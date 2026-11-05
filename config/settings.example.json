@@ -1,0 +1,40 @@
+{
+  "default_provider": "gemini",
+  "providers": {
+    "gemini": {
+      "type": "openai_compat",
+      "label": "Google Gemini (2.0 Flash)",
+      "model": "gemini-2.0-flash",
+      "endpoint": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+      "api_key_env": "GEMINI_API_KEY"
+    },
+    "claude": {
+      "type": "anthropic",
+      "label": "Anthropic Claude (3.5 Sonnet)",
+      "model": "claude-3-5-sonnet-20241022",
+      "endpoint": "https://api.anthropic.com/v1/messages",
+      "api_key_env": "ANTHROPIC_API_KEY"
+    },
+    "openai": {
+      "type": "openai_compat",
+      "label": "OpenAI (GPT-4o)",
+      "model": "gpt-4o",
+      "endpoint": "https://api.openai.com/v1/chat/completions",
+      "api_key_env": "OPENAI_API_KEY"
+    },
+    "openrouter": {
+      "type": "openai_compat",
+      "label": "OpenRouter",
+      "model": "google/gemini-2.0-flash-001",
+      "endpoint": "https://openrouter.ai/api/v1/chat/completions",
+      "api_key_env": "OPENROUTER_API_KEY"
+    },
+    "ollama": {
+      "type": "openai_compat",
+      "label": "Ollama Local (LLaVA / Qwen-VL)",
+      "model": "llava",
+      "endpoint": "http://127.0.0.1:11434/v1/chat/completions",
+      "api_key": "ollama"
+    }
+  }
+}

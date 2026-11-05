@@ -4,6 +4,19 @@ Tất cả các thay đổi đáng chú ý của dự án **TAIO Cover Studio** 
 
 ---
 
+## [0.3.0] - 2026-11-05 - Giai đoạn 3: Tích hợp AI (AI Module)
+- Xây dựng tệp cấu hình mẫu `config/settings.example.json` hỗ trợ đa nhà cung cấp: Claude, Gemini, OpenAI, OpenRouter, Ollama.
+- Hoàn thiện mô-đun quản lý cấu hình `ai/settings.py` bảo vệ khóa API và tự động đọc biến môi trường.
+- Xây dựng bộ tạo prompt `ai/prompt.py` dựa trên các nguyên lý tâm lý học hành vi (Loewenstein, Cialdini, Kahneman & Tversky), hỗ trợ 4 phong cách và chuẩn hoá JSON có khả năng tự phục hồi.
+- Hoàn thiện HTTP client thuần `ai/providers/http.py`.
+- Tích hợp 2 adapter AI chính:
+  - `ai/providers/anthropic_provider.py` (Claude Messages API, hình ảnh base64).
+  - `ai/providers/openai_compat.py` (OpenAI Chat Completions API chuẩn, OpenAI, Gemini, OpenRouter, Ollama).
+- Hoàn thiện bộ điều phối `ai/suggest.py` tự động trích xuất 3 khung hình chuẩn (cạnh dài 768px).
+- Vượt qua kiểm thử nghiệm thu T5 với máy chủ AI giả lập.
+
+---
+
 ## [0.2.0] - 2026-11-05 - Giai đoạn 2: Giao diện dòng lệnh (CLI)
 - Hoàn thiện `studio_cli.py` với đầy đủ các lệnh:
   - `templates`: Liệt kê các mẫu lớp phủ và mô tả.
