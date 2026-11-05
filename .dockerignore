@@ -1,0 +1,16 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.git
+.gitignore
+.env
+config/settings.json
+workspace/
+test_outputs/
+tmp/
+.DS_Store

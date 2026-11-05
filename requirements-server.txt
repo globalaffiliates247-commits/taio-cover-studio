@@ -1,0 +1,3 @@
+# Production Server Dependencies
+-r requirements.txt
+gunicorn>=21.0.0

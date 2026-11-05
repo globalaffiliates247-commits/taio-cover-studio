@@ -4,6 +4,16 @@ Tất cả các thay đổi đáng chú ý của dự án **TAIO Cover Studio** 
 
 ---
 
+## [0.6.0] - 2026-11-05 - Giai đoạn 6: Triển khai Host & Docker Production
+- Xây dựng điểm vào `wsgi.py` cho máy chủ Gunicorn chuẩn production.
+- Hoàn thiện tệp dependencies `requirements.txt` và `requirements-server.txt`.
+- Đóng gói container chuẩn qua `Dockerfile` (Python 3.12-slim + ffmpeg) cấu hình 1 worker, 8 threads với timeout 900s.
+- Cấu hình tệp `render.yaml` phục vụ 1-click Render Blueprint Deployment (khu vực Singapore, health check `/healthz`).
+- Cấu hình `docker-compose.yml` và `.env.example` phục vụ triển khai tự lưu trữ trên máy chủ VPS.
+- Vượt qua kiểm thử nghiệm thu T3 (giới hạn `OUTPUT_MAX_RES`), T7 (xác thực `APP_PASSWORD`), T8 (hàng đợi tuần tự `MAX_PARALLEL_RENDERS`).
+
+---
+
 ## [0.5.0] - 2026-11-05 - Giai đoạn 5: Tích hợp MCP Server (FastMCP)
 - Xây dựng máy chủ `studio_mcp.py` theo giao thức Model Context Protocol qua chuẩn stdio.
 - Đăng ký đầy đủ 5 công cụ chuẩn:

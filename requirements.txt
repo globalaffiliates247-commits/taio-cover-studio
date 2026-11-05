@@ -1,0 +1,5 @@
+# TAIO Cover Studio - Core & CLI Dependencies
+Pillow>=10.0.0
+Flask>=3.0.0
+werkzeug>=3.0.0
+mcp>=1.2.0,<2

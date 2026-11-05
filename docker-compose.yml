@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  taio-cover-studio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: taio-cover-studio
+    restart: unless-stopped
+    ports:
+      - "8765:8765"
+    env_file:
+      - .env
+    volumes:
+      - ./workspace:/app/workspace
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8765/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
