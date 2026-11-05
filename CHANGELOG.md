@@ -4,6 +4,17 @@ Tất cả các thay đổi đáng chú ý của dự án **TAIO Cover Studio** 
 
 ---
 
+## [0.2.0] - 2026-11-05 - Giai đoạn 2: Giao diện dòng lệnh (CLI)
+- Hoàn thiện `studio_cli.py` với đầy đủ các lệnh:
+  - `templates`: Liệt kê các mẫu lớp phủ và mô tả.
+  - `preview`: Xuất ảnh xem trước tại mốc thời gian `--at`.
+  - `render`: Xuất video đơn lẻ kèm thanh tiến độ phần trăm tương tác.
+  - `batch`: Xử lý hàng loạt toàn bộ video trong thư mục, in tiến độ từng file.
+  - `suggest`: Khung chuẩn bị tích hợp AI gợi ý caption.
+- Đã nghiệm thu xử lý hàng loạt 3 video thành công.
+
+---
+
 ## [0.1.0] - 2026-11-05 - Giai đoạn 1: Lõi (Core)
 - Tích hợp bộ font **Be Vietnam Pro** (Black, Bold, ExtraBold, SemiBold) kèm giấy phép OFL.
 - Hoàn thiện mô-đun đọc đường dẫn `core/paths.py` hỗ trợ tự nhận diện ffmpeg/ffprobe.
