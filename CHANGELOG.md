@@ -4,6 +4,18 @@ Tất cả các thay đổi đáng chú ý của dự án **TAIO Cover Studio** 
 
 ---
 
+## [0.5.0] - 2026-11-05 - Giai đoạn 5: Tích hợp MCP Server (FastMCP)
+- Xây dựng máy chủ `studio_mcp.py` theo giao thức Model Context Protocol qua chuẩn stdio.
+- Đăng ký đầy đủ 5 công cụ chuẩn:
+  1. `list_templates`: Liệt kê các template.
+  2. `inspect_video`: Trích xuất 1 thông tin text + 3 khung hình (giúp AI tự đọc video không cần API key ngoài).
+  3. `suggest_captions`: Gợi ý caption bằng AI.
+  4. `preview_overlay`: Xuất ảnh xem trước kèm cảnh báo.
+  5. `render_overlay_video`: Xuất video kèm lớp phủ.
+- Vượt qua kiểm thử nghiệm thu T6.
+
+---
+
 ## [0.4.0] - 2026-11-05 - Giai đoạn 4: Giao diện Web & HTTP API
 - Xây dựng HTTP REST API server chuẩn trong `web/server.py`:
   - `/healthz`: Kiểm tra trạng thái máy chủ.
