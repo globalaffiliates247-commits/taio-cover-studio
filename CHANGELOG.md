@@ -1,6 +1,16 @@
 # Nhật ký thay đổi (CHANGELOG)
 
-Tất cả các thay đổi đáng chú ý của dự án **TAIO Cover Studio** sẽ được ghi lại tại đây theo từng giai đoạn phát triển.
+Tất cả các thay đổi đáng chú ý của dự án **TAIO Cover Studio** được ghi lại đầy đủ dưới đây.
+
+---
+
+## [1.0.0] - 2026-11-05 - Giai đoạn 7: Tài liệu & Hoàn thiện Sản phẩm v1.0 MVP
+- Biên soạn tài liệu chi tiết:
+  - `README.md`: Hướng dẫn cài đặt, khởi chạy 1 chạm cho macOS và Windows, cấu hình AI, hướng dẫn dùng CLI, MCP Server và tự tạo template JSON.
+  - `DEPLOY.md`: Hướng dẫn triển khai Docker, Render Blueprint và bảng tra cứu biến môi trường.
+  - `PRODUCT.md`: Đặc tả sản phẩm, cơ sở tâm lý học hành vi (Von Restorff, Loewenstein, Cialdini, Kahneman & Tversky, Hick's Law) và lộ trình tính năng v2+.
+  - `BUILD_SPEC.md`: Toàn văn tài liệu đặc tả kỹ thuật chuẩn.
+- Hoàn thiện toàn bộ 10 tính năng F1 - F10 và vượt qua 10/10 bài kiểm thử nghiệm thu.
 
 ---
 
