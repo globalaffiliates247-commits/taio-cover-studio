@@ -1,0 +1,77 @@
+{
+  "id": "top_bottom_bars",
+  "name": "Phủ trên + dưới",
+  "description": "Thanh tối ~20% phía trên chứa caption; thanh thương hiệu ~10% phía dưới chứa logo + @handle.",
+  "canvas": "source",
+  "layers": [
+    {
+      "type": "rect",
+      "x": 0,
+      "y": 0,
+      "w": 1,
+      "h": 0.20,
+      "fill": "#000000E6",
+      "radius": 0
+    },
+    {
+      "type": "caption",
+      "box": {
+        "x": 0.05,
+        "y": 0.02,
+        "w": 0.90,
+        "h": 0.16
+      },
+      "weight": "Black",
+      "uppercase": true,
+      "color": "$text",
+      "accent": "$accent",
+      "align": "center",
+      "valign": "middle",
+      "max_size": 0.065,
+      "min_size": 0.028,
+      "line_spacing": 1.15,
+      "max_lines": 3,
+      "shadow": {
+        "color": "#00000099",
+        "dx": 0.003,
+        "dy": 0.004,
+        "blur": 0.002
+      }
+    },
+    {
+      "type": "rect",
+      "x": 0,
+      "y": 0.90,
+      "w": 1,
+      "h": 0.10,
+      "fill": "$primary",
+      "radius": 0
+    },
+    {
+      "type": "logo",
+      "x": 0.04,
+      "y": 0.915,
+      "h": 0.07,
+      "anchor": "left",
+      "label": "$name",
+      "weight": "Bold",
+      "color": "#FFFFFF",
+      "gap": 0.012
+    },
+    {
+      "type": "text",
+      "text": "@$handle",
+      "box": {
+        "x": 0.50,
+        "y": 0.915,
+        "w": 0.46,
+        "h": 0.07
+      },
+      "size": 0.038,
+      "align": "right",
+      "valign": "middle",
+      "color": "$accent",
+      "weight": "Bold"
+    }
+  ]
+}

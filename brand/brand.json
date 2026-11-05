@@ -1,0 +1,15 @@
+{
+  "name": "TAIO",
+  "handle": "taio.club",
+  "tagline": "Khởi đầu thông minh, hành động nhanh",
+  "logo": "logo.png",
+  "colors": {
+    "primary": "#1A56DB",
+    "primary_dark": "#0E2B6C",
+    "accent": "#FFD34D",
+    "text": "#FFFFFF",
+    "pill": "#FFFFFF26",
+    "pill_stroke": "#FFFFFF55"
+  },
+  "voice": "Chuyên nghiệp, tin cậy, súc tích, mang tính hành động, văn phong tiếng Việt hiện đại."
+}

@@ -1,0 +1,24 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments & dependencies
+.venv/
+venv/
+ENV/
+env/
+
+# Secrets & Local Configurations
+.env
+config/settings.json
+
+# Workspace & Temporary outputs
+workspace/
+tmp/
+*.tmp
+test_outputs/
+
+# macOS / OS artifacts
+.DS_Store
+Thumbs.db

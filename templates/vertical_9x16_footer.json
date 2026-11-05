@@ -1,0 +1,95 @@
+{
+  "id": "vertical_9x16_footer",
+  "name": "Chuyển dọc 9:16",
+  "description": "Đổi khung sang 9:16: video ở ~56% phía trên, nền mờ (blur) lấp chỗ trống, dải thương hiệu + caption + handle ở dưới.",
+  "canvas": {
+    "aspect": "9:16",
+    "width": 1080,
+    "upscale": false,
+    "video_area": {
+      "x": 0,
+      "y": 0.02,
+      "w": 1,
+      "h": 0.56,
+      "fit": "contain",
+      "valign": "center"
+    },
+    "fill": "blur",
+    "fill_color": "#000000"
+  },
+  "layers": [
+    {
+      "type": "rect",
+      "x": 0,
+      "y": 0.58,
+      "w": 1,
+      "h": 0.42,
+      "fill": "$primary",
+      "fill_to": "$primary_dark",
+      "direction": "vertical",
+      "radius": 0
+    },
+    {
+      "type": "logo",
+      "x": 0.06,
+      "y": 0.61,
+      "h": 0.065,
+      "anchor": "left",
+      "label": "$name",
+      "weight": "Black",
+      "color": "#FFFFFF",
+      "gap": 0.012,
+      "pill": {
+        "fill": "$pill",
+        "stroke": "$pill_stroke",
+        "stroke_width": 0.003,
+        "pad": 0.012,
+        "radius": "full"
+      }
+    },
+    {
+      "type": "caption",
+      "box": {
+        "x": 0.06,
+        "y": 0.70,
+        "w": 0.88,
+        "h": 0.22
+      },
+      "weight": "Black",
+      "uppercase": true,
+      "color": "$text",
+      "accent": "$accent",
+      "align": "center",
+      "valign": "middle",
+      "max_size": 0.075,
+      "min_size": 0.032,
+      "line_spacing": 1.18,
+      "max_lines": 4,
+      "shadow": {
+        "color": "#00000088",
+        "dx": 0.004,
+        "dy": 0.005,
+        "blur": 0.002
+      },
+      "stroke": {
+        "color": "#000000",
+        "width": 0.003
+      }
+    },
+    {
+      "type": "text",
+      "text": "@$handle",
+      "box": {
+        "x": 0.06,
+        "y": 0.93,
+        "w": 0.88,
+        "h": 0.04
+      },
+      "size": 0.032,
+      "align": "center",
+      "valign": "middle",
+      "color": "$accent",
+      "weight": "SemiBold"
+    }
+  ]
+}

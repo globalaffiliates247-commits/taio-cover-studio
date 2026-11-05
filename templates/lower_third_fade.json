@@ -1,0 +1,70 @@
+{
+  "id": "lower_third_fade",
+  "name": "Mờ dần tối giản",
+  "description": "Nền đen mờ dần ở 45% dưới, caption canh trái kèm vạch màu nhấn, logo nhỏ góc trên phải.",
+  "canvas": "source",
+  "layers": [
+    {
+      "type": "rect",
+      "x": 0,
+      "y": 0.55,
+      "w": 1,
+      "h": 0.45,
+      "fill": "#00000000",
+      "fill_to": "#000000F2",
+      "direction": "vertical",
+      "radius": 0
+    },
+    {
+      "type": "rect",
+      "x": 0.05,
+      "y": 0.68,
+      "w": 0.015,
+      "h": 0.22,
+      "fill": "$accent",
+      "radius": 0.005
+    },
+    {
+      "type": "caption",
+      "box": {
+        "x": 0.085,
+        "y": 0.68,
+        "w": 0.86,
+        "h": 0.22
+      },
+      "weight": "Black",
+      "uppercase": true,
+      "color": "$text",
+      "accent": "$accent",
+      "align": "left",
+      "valign": "middle",
+      "max_size": 0.065,
+      "min_size": 0.030,
+      "line_spacing": 1.15,
+      "max_lines": 3,
+      "shadow": {
+        "color": "#000000AA",
+        "dx": 0.003,
+        "dy": 0.004,
+        "blur": 0.002
+      }
+    },
+    {
+      "type": "logo",
+      "x": 0.95,
+      "y": 0.04,
+      "h": 0.06,
+      "anchor": "right",
+      "label": "$name",
+      "weight": "Bold",
+      "color": "#FFFFFF",
+      "pill": {
+        "fill": "#00000066",
+        "stroke": "#FFFFFF33",
+        "stroke_width": 0.002,
+        "pad": 0.01,
+        "radius": "full"
+      }
+    }
+  ]
+}
