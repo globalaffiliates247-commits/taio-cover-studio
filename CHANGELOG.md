@@ -4,6 +4,26 @@ Tất cả các thay đổi đáng chú ý của dự án **TAIO Cover Studio** 
 
 ---
 
+## [0.4.0] - 2026-11-05 - Giai đoạn 4: Giao diện Web & HTTP API
+- Xây dựng HTTP REST API server chuẩn trong `web/server.py`:
+  - `/healthz`: Kiểm tra trạng thái máy chủ.
+  - `/api/config`: Cung cấp danh sách template, trạng thái AI providers, thông tin brand.
+  - `/api/upload`: Nhận diện & kiểm tra tính hợp lệ của video/logo, tính toán kích thước, metadata, thời lượng và fps.
+  - `/api/preview`: Kết xuất ảnh xem trước 1 khung hình chính xác, hỗ trợ đóng gói cảnh báo qua header `X-Warnings`.
+  - `/api/suggest`: Kết nối bộ điều phối AI gợi ý caption theo phong cách.
+  - `/api/render`, `/api/job/<id>`, `/api/download/<id>`: Quản lý hàng đợi xuất video nền (render queue), theo dõi tiến độ thời gian thực.
+- Xây dựng hệ thống dọn dẹp file tự động `web/cleanup.py` theo `FILE_TTL_HOURS`.
+- Xây dựng cơ chế bảo vệ HTTP Basic Auth an toàn `web/auth.py` bằng `hmac.compare_digest`.
+- Hoàn thiện giao diện Dark Theme tối giản, tuân thủ Hick's Law:
+  - Bố cục 2 cột (responsive tự đổi sang 1 cột với khung xem trước lên đầu trên điện thoại).
+  - 5 bước biên tập được đánh số rõ ràng.
+  - Trình xem trước thời gian thực kèm thanh kéo timeline.
+  - Khối AI accordion tích hợp 5 góc tâm lý học hành vi.
+- Cung cấp script khởi chạy `studio_web.py`, `start.sh` và `start.bat`.
+- Vượt qua kiểm thử nghiệm thu luồng web hoàn chỉnh.
+
+---
+
 ## [0.3.0] - 2026-11-05 - Giai đoạn 3: Tích hợp AI (AI Module)
 - Xây dựng tệp cấu hình mẫu `config/settings.example.json` hỗ trợ đa nhà cung cấp: Claude, Gemini, OpenAI, OpenRouter, Ollama.
 - Hoàn thiện mô-đun quản lý cấu hình `ai/settings.py` bảo vệ khóa API và tự động đọc biến môi trường.

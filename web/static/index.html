@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TAIO Cover Studio — Gắn bìa thương hiệu & Caption AI cho Video ngắn</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <!-- Header thương hiệu -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-identity">
+        <div class="brand-logo-badge">
+          <img src="/static/brand-logo" alt="Logo" class="header-logo-img" id="headerBrandLogo" onerror="this.style.display='none'">
+          <span class="brand-name" id="headerBrandName">TAIO</span>
+        </div>
+        <span class="brand-app-title">Cover Studio</span>
+      </div>
+      <div class="brand-tagline" id="headerBrandTagline">Thả video vào → gắn bìa thương hiệu & caption AI</div>
+    </div>
+  </header>
+
+  <!-- Bố cục chính 2 cột -->
+  <main class="main-layout">
+    <!-- CỘT TRÁI: 5 BƯỚC BIÊN TẬP (HICK'S LAW) -->
+    <section class="editor-column">
+      
+      <!-- BƯỚC 1: VIDEO GỐC -->
+      <div class="step-card" id="step1Card">
+        <div class="step-header">
+          <span class="step-badge">1</span>
+          <h2 class="step-title">Video gốc</h2>
+        </div>
+        <div class="step-body">
+          <div class="dropzone" id="videoDropzone">
+            <input type="file" id="videoFileInput" accept="video/mp4,video/quicktime,video/x-matroska,video/webm" hidden>
+            <div class="dropzone-content">
+              <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                <line x1="7" y1="2" x2="7" y2="22"></line>
+                <line x1="17" y1="2" x2="17" y2="22"></line>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <line x1="2" y1="7" x2="7" y2="7"></line>
+                <line x1="2" y1="17" x2="7" y2="17"></line>
+                <line x1="17" y1="17" x2="22" y2="17"></line>
+                <line x1="17" y1="7" x2="22" y2="7"></line>
+              </svg>
+              <p class="dropzone-title">Kéo thả video vào đây, hoặc <span class="highlight-link">bấm chọn tệp</span></p>
+              <p class="dropzone-subtitle">Hỗ trợ MP4, MOV, MKV, WEBM (Tối đa 4GB)</p>
+            </div>
+          </div>
+
+          <!-- Thông tin video đã tải -->
+          <div class="video-info-banner" id="videoInfoBanner" hidden>
+            <div class="video-info-content">
+              <span class="video-filename" id="videoFilename">video.mp4</span>
+              <span class="video-meta" id="videoMetaBadge">1080×1920 · 0:45 · 30 fps · có âm thanh</span>
+            </div>
+            <button type="button" class="btn-text-danger" id="btnRemoveVideo">Đổi video khác</button>
+          </div>
+          <div class="status-msg error-msg" id="uploadErrorMsg" hidden></div>
+        </div>
+      </div>
+
+      <!-- BƯỚC 2: MẪU LỚP PHỦ (TEMPLATES) -->
+      <div class="step-card" id="step2Card">
+        <div class="step-header">
+          <span class="step-badge">2</span>
+          <h2 class="step-title">Mẫu lớp phủ (Template)</h2>
+        </div>
+        <div class="step-body">
+          <div class="template-grid" id="templateGrid">
+            <!-- Render qua JavaScript -->
+          </div>
+        </div>
+      </div>
+
+      <!-- BƯỚC 3: CAPTION & GỢI Ý AI -->
+      <div class="step-card" id="step3Card">
+        <div class="step-header">
+          <span class="step-badge">3</span>
+          <h2 class="step-title">Caption & Tiêu đề</h2>
+        </div>
+        <div class="step-body">
+          <div class="form-group">
+            <label for="captionInput" class="form-label">
+              Nội dung caption:
+              <span class="label-hint">Dùng <code class="code-syntax">**từ khóa**</code> để tô màu nhấn vàng</span>
+            </label>
+            <textarea id="captionInput" class="form-textarea" rows="3" placeholder="Nhập caption của bạn... Ví dụ: Biến tướng từ **&quot;đi chùa online&quot;** để kêu gọi, **trục lợi**"></textarea>
+          </div>
+
+          <!-- Khối gợi ý AI thu gọn -->
+          <details class="ai-accordion" id="aiAccordion">
+            <summary class="ai-summary">
+              <span class="ai-summary-title">✨ Gợi ý caption bằng AI</span>
+              <span class="ai-badge">Claude / Gemini / GPT</span>
+            </summary>
+            <div class="ai-body">
+              <div class="form-row">
+                <div class="form-group col-6">
+                  <label for="aiProviderSelect" class="form-label">Nhà cung cấp AI:</label>
+                  <select id="aiProviderSelect" class="form-select">
+                    <!-- Dynamic -->
+                  </select>
+                </div>
+                <div class="form-group col-6">
+                  <label for="aiStyleSelect" class="form-label">Phong cách:</label>
+                  <select id="aiStyleSelect" class="form-select">
+                    <option value="tin_tuc">Thời sự / Tin tức</option>
+                    <option value="giao_duc">Giáo dục / Chia sẻ</option>
+                    <option value="ban_hang">Bán hàng / Chuyển đổi</option>
+                    <option value="giai_tri">Giải trí / Viral</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="aiContextInput" class="form-label">Ngữ cảnh / Kịch bản (tuỳ chọn):</label>
+                <input type="text" id="aiContextInput" class="form-input" placeholder="Dán ý chính, kịch bản ngắn hoặc từ khoá của video...">
+              </div>
+
+              <button type="button" class="btn btn-ai" id="btnGenerateAI">
+                <span class="btn-text">✨ Gợi ý 5 caption thu hút</span>
+                <span class="btn-spinner" hidden></span>
+              </button>
+              <div class="status-msg error-msg" id="aiErrorMsg" hidden></div>
+
+              <!-- Danh sách gợi ý trả về -->
+              <div class="ai-results-list" id="aiResultsList" hidden>
+                <div class="ai-summary-note" id="aiSummaryNote"></div>
+                <div class="ai-cards-container" id="aiCardsContainer"></div>
+              </div>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <!-- BƯỚC 4: LOGO THƯƠNG HIỆU -->
+      <div class="step-card" id="step4Card">
+        <div class="step-header">
+          <span class="step-badge">4</span>
+          <h2 class="step-title">Logo & Thương hiệu</h2>
+        </div>
+        <div class="step-body">
+          <div class="logo-control-row">
+            <div class="current-logo-preview">
+              <img src="/static/brand-logo" alt="Logo preview" id="logoThumbnailImg" class="logo-thumb" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\' fill=\'%23fff\'><text x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\'>T</text></svg>'">
+              <span class="logo-status-label" id="logoStatusLabel">Logo mặc định của TAIO</span>
+            </div>
+            <div class="logo-actions">
+              <input type="file" id="logoFileInput" accept="image/png,image/jpeg,image/webp" hidden>
+              <button type="button" class="btn btn-secondary btn-sm" id="btnUploadCustomLogo">Đổi logo khác…</button>
+              <button type="button" class="btn btn-text-danger btn-sm" id="btnResetDefaultLogo" hidden>Dùng lại logo mặc định</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BƯỚC 5: XUẤT VIDEO -->
+      <div class="step-card" id="step5Card">
+        <div class="step-header">
+          <span class="step-badge">5</span>
+          <h2 class="step-title">Xuất video hoàn tất</h2>
+        </div>
+        <div class="step-body">
+          <button type="button" class="btn btn-primary btn-block btn-lg" id="btnRenderVideo" disabled>
+            <span class="btn-text">🚀 Xuất video ngay</span>
+          </button>
+
+          <!-- Tiến trình xuất video -->
+          <div class="render-progress-card" id="renderProgressCard" hidden>
+            <div class="render-progress-header">
+              <span class="progress-status-text" id="renderStatusText">Đang chuẩn bị...</span>
+              <span class="progress-pct" id="renderPctText">0%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-bar-fill" id="renderProgressBar" style="width: 0%"></div>
+            </div>
+            <div class="render-done-actions" id="renderDoneActions" hidden>
+              <a href="#" class="btn btn-success btn-block" id="btnDownloadVideo" download>
+                📥 Tải video đã xuất (.mp4)
+              </a>
+            </div>
+            <div class="status-msg error-msg" id="renderErrorMsg" hidden></div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- CỘT PHẢI: XEM TRƯỚC WYSIWYG TRỰC QUAN -->
+    <section class="preview-column">
+      <div class="preview-sticky-wrapper">
+        <div class="preview-card">
+          <div class="preview-header">
+            <span class="preview-title">Xem trước (WYSIWYG)</span>
+            <span class="preview-status-pill" id="previewStatusPill">Khớp 100% video xuất</span>
+          </div>
+
+          <div class="preview-canvas-box" id="previewCanvasBox">
+            <div class="preview-empty-state" id="previewEmptyState">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="empty-icon">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                <line x1="8" y1="21" x2="16" y2="21"></line>
+                <line x1="12" y1="17" x2="12" y2="21"></line>
+              </svg>
+              <p>Tải video lên để xem trước lớp phủ tại đây</p>
+            </div>
+            <img src="" alt="Preview frame" id="previewImage" class="preview-img" hidden>
+            <div class="preview-loading-overlay" id="previewLoadingOverlay" hidden>
+              <div class="spinner"></div>
+              <span>Đang kết xuất xem trước...</span>
+            </div>
+          </div>
+
+          <!-- Thanh kéo thời gian mm:ss -->
+          <div class="preview-timeline" id="previewTimeline" hidden>
+            <div class="timeline-meta">
+              <span>Thời điểm: <strong id="timelineTimeLabel">0:01</strong></span>
+              <span id="timelineDurationLabel">/ 0:00</span>
+            </div>
+            <input type="range" id="timelineSlider" class="timeline-slider" min="0" max="10" step="0.5" value="1">
+          </div>
+
+          <!-- Dòng cảnh báo (Warnings) -->
+          <div class="warning-banner" id="warningBanner" hidden>
+            <span class="warning-icon">⚠️</span>
+            <span class="warning-text" id="warningText"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
