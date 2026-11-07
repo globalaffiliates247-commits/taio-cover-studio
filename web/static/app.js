@@ -285,6 +285,9 @@
 
   // ==================== TẢI LÊN VIDEO & TỰ PHỤC HỒI ====================
   function resetToPickVideo(msg) {
+    if (window.TAIOSavePhotos) {
+      window.TAIOSavePhotos.cleanup();
+    }
     state.video = null;
     state.videoFile = null;
     state.currentJobId = null;
@@ -367,6 +370,9 @@
   }
 
   async function uploadVideo(file) {
+    if (window.TAIOSavePhotos) {
+      window.TAIOSavePhotos.cleanup();
+    }
     state.videoFile = file;
     previewLoadingOverlay.hidden = false;
     renderErrorMsg.hidden = true;
@@ -559,6 +565,10 @@
   // ==================== XUẤT VIDEO ====================
   async function startRender() {
     if (!state.video) return;
+
+    if (window.TAIOSavePhotos) {
+      window.TAIOSavePhotos.cleanup();
+    }
 
     btnRenderVideo.disabled = true;
     renderProgressCard.hidden = false;

@@ -4,6 +4,24 @@ Tất cả các thay đổi đáng chú ý của dự án **TAIO Cover Studio** 
 
 ---
 
+## [1.3.1] - 2026-11-07 - Khắc phục Lỗi "Lưu vào Cuộn Camera" trên iPhone / iOS (FIX v1.3.1)
+- **Tải sẵn video vào bộ nhớ ngay khi xuất xong (FIX-1):**
+  - Tách toàn bộ logic lưu Cuộn Camera sang file mới `web/static/js/save-photos.js`.
+  - Ngay khi tiến trình render chuyển sang trạng thái `done`, video lập tức được tải về RAM trình duyệt dưới dạng `File` đối tượng. Nút hiển thị "⏳ Đang chuẩn bị video…" và tự động đổi thành "📱 Lưu vào Cuộn Camera" khi sẵn sàng.
+- **Kích hoạt Web Share tức thì trong cú chạm (FIX-2):**
+  - Gọi `navigator.share({ files: [state.resultFile] })` ngay trong call stack đồng bộ của sự kiện click, không có bất kỳ lệnh `await` (fetch/blob) nào trước đó, bảo đảm nằm gọn trong transient user activation của WebKit iOS.
+  - Kiểm tra đồng bộ bằng `navigator.canShare()`. Nếu người dùng bấm quá sớm khi tệp đang tải, hệ thống báo chờ và không kích hoạt trễ nhịp.
+- **Loại bỏ tab about:blank & Xử lý lỗi theo từng trường hợp (FIX-3):**
+  - Xoá bỏ hoàn toàn nhánh `window.open(..., "_blank")` vốn gây mở tab trắng `about:blank` trên iPhone.
+  - `AbortError`: Im lặng khi người dùng bấm Huỷ/Đóng bảng chia sẻ iOS, trả nút về trạng thái bình thường.
+  - `NotAllowedError`: Nhắc người dùng "Bấm lại nút Lưu một lần nữa", giữ nguyên file trong bộ nhớ để lần chạm sau kích hoạt share ngay lập tức.
+  - Trình duyệt không hỗ trợ chia sẻ tệp (máy tính): Tự động tải xuống bằng thẻ `<a>` ngay trong cùng tab. Trên iOS không có share: hướng dẫn "Chạm giữ vào video đang phát → Lưu video".
+  - Ghi log chuẩn đoán `console.info("[save-photos]", e.name, e.message)`.
+- **Giải phóng bộ nhớ RAM (FIX-4):**
+  - Tự động thu hồi `URL.revokeObjectURL` và xoá tham chiếu file khi đổi video, xuất bản mới hoặc rời trang web (`beforeunload`, `pagehide`).
+
+---
+
 ## [1.3.0] - 2026-11-07 - Nhãn Phiên Bản & Độ Mờ / Màu Sắc Cho Lớp Phủ A/B/C (FEATURE v1.3)
 - **Nhãn phiên bản toàn hệ thống TAIO.CLUB:**
   - Thiết lập file `VERSION` làm nguồn duy nhất theo SemVer (`1.3.0`). Dấu thời gian `BUILD_STAMP` tạo lúc build theo giờ Việt Nam (UTC+7, dạng `ddmmyyhh`).
