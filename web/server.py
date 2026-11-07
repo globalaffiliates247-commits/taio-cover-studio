@@ -16,7 +16,7 @@ from flask import Flask, jsonify, request, send_file, Response
 from core.brand import load_brand_kit, get_default_logo_path
 from core.canvas import calculate_canvas_layout
 from core.compositor import build_preview, render_video
-from core.paths import BASE_DIR, BRAND_DIR, OUTPUTS_DIR, UPLOADS_DIR, generate_cover_clip_name
+from core.paths import BASE_DIR, BRAND_DIR, OUTPUTS_DIR, UPLOADS_DIR, WORKSPACE_DIR, generate_cover_clip_name
 from core.templates import get_template, list_templates
 from core.video_probe import probe_video
 
@@ -25,6 +25,9 @@ from ai.suggest import get_caption_suggestions
 
 from web.auth import require_auth_if_configured
 from web.cleanup import cleanup_old_files
+
+# Mã định danh phiên chạy của máy chủ
+boot_id = uuid.uuid4().hex[:8]
 
 # Khởi tạo Flask App
 app = Flask(
@@ -47,6 +50,19 @@ jobs_lock = threading.Lock()
 
 max_parallel = int(os.getenv("MAX_PARALLEL_RENDERS", "1").strip())
 current_active_renders = 0
+
+# Giới hạn tối đa 2 preview chạy cùng lúc
+preview_semaphore = threading.BoundedSemaphore(2)
+
+# In log cấu hình hệ thống khi khởi động
+ffmpeg_threads_val = os.getenv("FFMPEG_THREADS", "2").strip()
+output_max_res_val = os.getenv("OUTPUT_MAX_RES", "720").strip()
+print(
+    f"[BOOT] boot_id={boot_id} cpu_count={os.cpu_count()} "
+    f"FFMPEG_THREADS={ffmpeg_threads_val} MAX_PARALLEL_RENDERS={max_parallel} "
+    f"OUTPUT_MAX_RES={output_max_res_val} WORKSPACE_DIR={WORKSPACE_DIR}",
+    flush=True,
+)
 
 
 def render_worker():
@@ -150,6 +166,7 @@ def api_config():
     }
 
     return jsonify({
+        "boot_id": boot_id,
         "templates": tpls,
         "ai": {
             "default": default_ai,
@@ -247,28 +264,35 @@ def _find_upload_file(file_id: str) -> Optional[Path]:
 @app.route("/api/preview", methods=["POST"])
 def api_preview():
     """Tạo ảnh xem trước 1 khung hình, khớp 100% với video xuất."""
-    data = request.get_json(force=True, silent=True) or {}
-    video_id = data.get("video_id", "")
-    template_id = data.get("template", "footer_band")
-    caption = data.get("caption", "")
-    time_sec = float(data.get("t", 1.0))
-    logo_id = data.get("logo_id")
-
-    video_file = _find_upload_file(video_id)
-    if not video_file or not video_file.exists():
-        return jsonify({"error": "Không tìm thấy video tương ứng với ID đã cung cấp."}), 404
-
-    tpl = get_template(template_id)
-    if not tpl:
-        return jsonify({"error": f"Không tìm thấy mẫu lớp phủ: '{template_id}'"}), 404
-
-    logo_path = None
-    if logo_id:
-        custom_logo = _find_upload_file(logo_id)
-        if custom_logo and custom_logo.exists():
-            logo_path = str(custom_logo)
+    acquired = preview_semaphore.acquire(blocking=False)
+    if not acquired:
+        return jsonify({"error": "Đang bận, thử lại sau giây lát"}), 429
 
     try:
+        data = request.get_json(force=True, silent=True) or {}
+        video_id = data.get("video_id", "")
+        template_id = data.get("template", "footer_band")
+        caption = data.get("caption", "")
+        time_sec = float(data.get("t", 1.0))
+        logo_id = data.get("logo_id")
+
+        video_file = _find_upload_file(video_id)
+        if not video_file or not video_file.exists():
+            return jsonify({
+                "error": "Không tìm thấy video tương ứng với ID đã cung cấp.",
+                "code": "VIDEO_NOT_FOUND",
+            }), 404
+
+        tpl = get_template(template_id)
+        if not tpl:
+            return jsonify({"error": f"Không tìm thấy mẫu lớp phủ: '{template_id}'"}), 404
+
+        logo_path = None
+        if logo_id:
+            custom_logo = _find_upload_file(logo_id)
+            if custom_logo and custom_logo.exists():
+                logo_path = str(custom_logo)
+
         preview_img, warnings = build_preview(
             video_path=str(video_file),
             template=tpl,
@@ -290,6 +314,8 @@ def api_preview():
         return resp
     except Exception as e:
         return jsonify({"error": f"Lỗi tạo ảnh xem trước: {e}"}), 500
+    finally:
+        preview_semaphore.release()
 
 
 # ==================== GỢI Ý CAPTION BẰNG AI ====================
@@ -305,7 +331,10 @@ def api_suggest():
 
     video_file = _find_upload_file(video_id)
     if not video_file or not video_file.exists():
-        return jsonify({"error": "Không tìm thấy video để phân tích."}), 404
+        return jsonify({
+            "error": "Không tìm thấy video để phân tích.",
+            "code": "VIDEO_NOT_FOUND",
+        }), 404
 
     try:
         suggestions = get_caption_suggestions(
@@ -333,7 +362,10 @@ def api_render():
 
     video_file = _find_upload_file(video_id)
     if not video_file or not video_file.exists():
-        return jsonify({"error": "Không tìm thấy video để xuất."}), 404
+        return jsonify({
+            "error": "Không tìm thấy video để xuất.",
+            "code": "VIDEO_NOT_FOUND",
+        }), 404
 
     tpl = get_template(template_id)
     if not tpl:
@@ -376,9 +408,13 @@ def api_job_status(job_id: str):
     with jobs_lock:
         job = jobs_store.get(job_id)
         if not job:
-            return jsonify({"error": "Không tìm thấy mã tiến trình này."}), 404
+            return jsonify({
+                "error": "Không tìm thấy mã tiến trình này.",
+                "boot_id": boot_id,
+            }), 404
 
         resp_data = {
+            "boot_id": boot_id,
             "status": job["status"],
             "progress": job["progress"],
             "warnings": job.get("warnings", []),
