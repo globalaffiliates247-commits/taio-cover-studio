@@ -125,6 +125,18 @@
       }
     }
 
+    // Khởi tạo bảng Aa Tuỳ chỉnh chữ (FEATURE v1.2 P4)
+    if (window.TAIOTextPanel) {
+      window.TAIOTextPanel.init({
+        onStyleChanged: () => {
+          debouncedPreview();
+        },
+      });
+      if (state.config) {
+        window.TAIOTextPanel.setConfig(state.config);
+      }
+    }
+
     if (previewImage) {
       previewImage.addEventListener("load", () => {
         if (window.TAIOSticker) {
@@ -392,9 +404,13 @@
       return;
     }
 
-    // Regex tìm **từ nhấn** hoặc *từ nhấn* hoặc <b>từ nhấn</b>
+    // Regex tìm ==từ nhấn 2== (xanh) và **từ nhấn 1** (vàng)
     const clean = escapeHtml(raw);
-    const highlighted = clean.replace(
+    let highlighted = clean.replace(
+      /==(.*?)==/gi,
+      '<span class="accent-word-2">$1</span>'
+    );
+    highlighted = highlighted.replace(
       /(?:\*\*|\*|&lt;b&gt;)(.*?)(?:\*\*|\*|&lt;\/b&gt;)/gi,
       '<span class="accent-word">$1</span>'
     );
@@ -415,13 +431,21 @@
 
     try {
       const stickerOverrides = window.TAIOSticker ? window.TAIOSticker.getOverrides() : {};
+      const captionOverrides = window.TAIOTextPanel ? window.TAIOTextPanel.getCaptionOverrides() : {};
+      const combinedOverrides = {
+        layers: {
+          ...(stickerOverrides.layers || {}),
+          caption: captionOverrides,
+        },
+      };
+
       const payload = {
         video_id: state.video.id,
         template: state.templateId,
         caption: state.caption,
         t: state.timeSec,
         logo_id: state.logoId,
-        overrides: stickerOverrides,
+        overrides: combinedOverrides,
         exclude_layers: ["logo"],
       };
 
@@ -513,13 +537,21 @@
 
     try {
       const stickerOverrides = window.TAIOSticker ? window.TAIOSticker.getOverrides() : {};
+      const captionOverrides = window.TAIOTextPanel ? window.TAIOTextPanel.getCaptionOverrides() : {};
+      const combinedOverrides = {
+        layers: {
+          ...(stickerOverrides.layers || {}),
+          caption: captionOverrides,
+        },
+      };
+
       const payload = {
         video_id: state.video.id,
         video_name: state.video.name,
         template: state.templateId,
         caption: state.caption,
         logo_id: state.logoId,
-        overrides: stickerOverrides,
+        overrides: combinedOverrides,
       };
 
       const res = await fetchWithVideoRecovery("/api/render", {

@@ -13,9 +13,11 @@ from core.layer_blocks import render_logo_block
 from core.text_layout import (
     compute_text_layout,
     get_font,
+    measure_span,
     prepare_caption_text,
     TextSpan,
 )
+from core.text_style import apply_text_style_to_layer
 
 
 def _draw_gradient_rect(
@@ -119,10 +121,16 @@ def _draw_caption(
     context: Dict[str, Any],
     warnings: List[str],
 ):
-    """Vẽ caption với tự co cỡ chữ, tô màu từ nhấn **...**, đổ bóng và viền chữ."""
+    """
+    Vẽ chữ tiêu đề (caption) với tự co cỡ chữ, tô màu từ nhấn (**từ** và ==từ==),
+    hỗ trợ Text Styles tuỳ chỉnh (font, cỡ, in hoa, viền, bóng, nền chữ, giãn chữ, vị trí dọc).
+    """
     caption_text = context.get("caption", "").strip()
     if not caption_text:
         return
+
+    # Áp dụng text style override (nếu có)
+    layer = apply_text_style_to_layer(layer)
 
     w, h = layout.out_w, layout.out_h
     unit = layout.unit
@@ -133,8 +141,17 @@ def _draw_caption(
     bw = int(round(box.get("w", 1) * w))
     bh = int(round(box.get("h", 0.2) * h))
 
+    # Dịch chuyển vị trí dọc (vertical slider) nếu có y_offset_ratio
+    y_offset = float(layer.get("y_offset_ratio", 0.0))
+    by += int(round(y_offset * h))
+
     weight = layer.get("weight", "Black")
     uppercase = layer.get("uppercase", True)
+    case_mode = layer.get("case_mode")
+    family = layer.get("font_family")
+    fixed_size = layer.get("fixed_size")
+    letter_spacing = float(layer.get("letter_spacing", 0.0))
+
     max_size = layer.get("max_size", 0.075)
     min_size = layer.get("min_size", 0.032)
     line_spacing = layer.get("line_spacing", 1.18)
@@ -145,22 +162,49 @@ def _draw_caption(
 
     # Màu sắc
     main_color = parse_hex_color(layer.get("color", "#FFFFFF"))
+
     raw_accent = layer.get("accent")
     if raw_accent and not str(raw_accent).startswith("$"):
         accent_color = parse_hex_color(raw_accent)
     else:
-        accent_color = (255, 211, 77, 255)  # Luôn đảm bảo màu vàng #FFD34D chuẩn xác
+        accent_color = (255, 211, 77, 255)  # #FFD34D Vàng thương hiệu mặc định
+
+    raw_accent2 = layer.get("accent2")
+    if raw_accent2 and not str(raw_accent2).startswith("$"):
+        accent2_color = parse_hex_color(raw_accent2)
+    else:
+        accent2_color = (56, 189, 248, 255)  # #38BDF8 Sky Blue cho ==từ==
+
+    accent_style = layer.get("accent_style", "color")
 
     # Đổ bóng & Viền
     shadow_cfg = layer.get("shadow")
     stroke_cfg = layer.get("stroke")
 
-    shadow_color = parse_hex_color(shadow_cfg.get("color")) if shadow_cfg else None
-    shadow_dx = int(round(shadow_cfg.get("dx", 0) * unit)) if shadow_cfg else 0
-    shadow_dy = int(round(shadow_cfg.get("dy", 0) * unit)) if shadow_cfg else 0
+    shadow_color = parse_hex_color(shadow_cfg.get("color", "#000000")) if shadow_cfg else None
+    if shadow_cfg:
+        is_ratio = shadow_cfg.get("is_ratio", True)
+        shadow_dx = int(round(shadow_cfg.get("dx", 0) * (unit if is_ratio else 1)))
+        shadow_dy = int(round(shadow_cfg.get("dy", 0) * (unit if is_ratio else 1)))
+    else:
+        shadow_dx = 0
+        shadow_dy = 0
 
-    stroke_color = parse_hex_color(stroke_cfg.get("color")) if stroke_cfg else None
-    stroke_w = int(round(stroke_cfg.get("width", 0) * unit)) if stroke_cfg else 0
+    stroke_color = parse_hex_color(stroke_cfg.get("color", "#000000")) if stroke_cfg else None
+    if stroke_cfg:
+        is_ratio = stroke_cfg.get("is_ratio", True)
+        stroke_w = int(round(stroke_cfg.get("width", 0) * (unit if is_ratio else 1)))
+    else:
+        stroke_w = 0
+
+    # Nền chữ (TikTok style hoặc khối liền)
+    bg_style = layer.get("bg_style", "none")
+    bg_color_hex = layer.get("bg_color", "#000000")
+    bg_opacity = float(layer.get("bg_opacity", 0.75))
+    bg_rgb = parse_hex_color(bg_color_hex)
+    bg_rgba = (bg_rgb[0], bg_rgb[1], bg_rgb[2], int(round(bg_opacity * 255)))
+    bg_pad = int(round(layer.get("bg_padding", 6)))
+    bg_radius = int(round(layer.get("bg_radius", 6)))
 
     # Tính toán layout
     result = compute_text_layout(
@@ -170,10 +214,14 @@ def _draw_caption(
         unit=unit,
         weight=weight,
         uppercase=uppercase,
+        case_mode=case_mode,
         max_size_ratio=max_size,
         min_size_ratio=min_size,
         line_spacing=line_spacing,
         max_lines=max_lines,
+        fixed_size=fixed_size,
+        family=family,
+        letter_spacing=letter_spacing,
     )
 
     if result.warning:
@@ -192,6 +240,47 @@ def _draw_caption(
     current_y = start_y
     font = result.font
 
+    # 1. Vẽ nền khối cả đoạn (nếu bg_style == 'block')
+    if bg_style == "block" and result.lines:
+        block_left = bx
+        if align == "center":
+            block_left = bx + (bw - result.total_w) / 2.0
+        elif align == "right":
+            block_left = bx + (bw - result.total_w)
+        draw.rounded_rectangle(
+            [
+                block_left - bg_pad,
+                start_y - bg_pad,
+                block_left + result.total_w + bg_pad,
+                start_y + result.total_h + bg_pad,
+            ],
+            radius=bg_radius,
+            fill=bg_rgba,
+        )
+
+    def _draw_text_with_spacing(d, xy, txt, fnt, fill, strk_w=0, strk_fill=None, l_sp=0.0):
+        if l_sp <= 0.0 or len(txt) <= 1:
+            if strk_fill and strk_w > 0:
+                d.text(xy, txt, font=fnt, fill=fill, stroke_width=strk_w, stroke_fill=strk_fill)
+            else:
+                d.text(xy, txt, font=fnt, fill=fill)
+            return
+
+        cx, cy = xy
+        f_size = getattr(fnt, "size", 32)
+        extra = l_sp * f_size
+        for ch in txt:
+            if strk_fill and strk_w > 0:
+                d.text((cx, cy), ch, font=fnt, fill=fill, stroke_width=strk_w, stroke_fill=strk_fill)
+            else:
+                d.text((cx, cy), ch, font=fnt, fill=fill)
+            try:
+                cw = float(fnt.getlength(ch))
+            except Exception:
+                cbbox = fnt.getbbox(ch)
+                cw = float(cbbox[2] - cbbox[0]) if cbbox else 10.0
+            cx += cw + extra
+
     for line in result.lines:
         # Tính toạ độ ngang bắt đầu (align)
         if align == "left":
@@ -201,45 +290,92 @@ def _draw_caption(
         else:  # center
             current_x = float(bx + (bw - line.width) / 2.0)
 
+        # 2. Vẽ nền theo từng dòng kiểu TikTok (nếu bg_style == 'lines')
+        if bg_style == "lines" and line.spans and line.width > 0:
+            draw.rounded_rectangle(
+                [
+                    current_x - bg_pad,
+                    current_y - bg_pad / 2,
+                    current_x + line.width + bg_pad,
+                    current_y + result.line_height - bg_pad / 2,
+                ],
+                radius=bg_radius,
+                fill=bg_rgba,
+            )
+
         for span in line.spans:
             if not span.text:
                 continue
 
-            text_color = accent_color if span.is_accent else main_color
+            span_w = measure_span(span.text, font, letter_spacing=letter_spacing)
+
+            # Phân biệt màu chữ: accent 1, accent 2, hoặc chữ chính
+            if span.accent_type == "accent2":
+                chosen_color = accent2_color
+            elif span.is_accent:
+                chosen_color = accent_color
+            else:
+                chosen_color = main_color
+
+            # Hiệu ứng Marker Highlight (P5)
+            if span.is_accent and accent_style == "marker":
+                marker_rgba = (chosen_color[0], chosen_color[1], chosen_color[2], 120)
+                draw.rounded_rectangle(
+                    [
+                        current_x - 2,
+                        current_y + 2,
+                        current_x + span_w + 2,
+                        current_y + result.line_height - 2,
+                    ],
+                    radius=4,
+                    fill=marker_rgba,
+                )
+                text_color = main_color
+            else:
+                text_color = chosen_color
+
+            # Hiệu ứng Gạch chân (Underline - P5)
+            if span.is_accent and accent_style == "underline":
+                underline_y = current_y + result.line_height * 0.88
+                draw.line(
+                    [(current_x, underline_y), (current_x + span_w, underline_y)],
+                    fill=chosen_color,
+                    width=max(2, int(round(result.font_size * 0.08))),
+                )
 
             # 1. Vẽ bóng (shadow) nếu có
             if shadow_color:
-                draw.text(
+                _draw_text_with_spacing(
+                    draw,
                     (current_x + shadow_dx, current_y + shadow_dy),
                     span.text,
                     font=font,
                     fill=shadow_color,
+                    l_sp=letter_spacing,
                 )
 
-            # 2. Vẽ viền (stroke) nếu có
+            # 2. Vẽ viền và chữ chính
             if stroke_color and stroke_w > 0:
-                draw.text(
+                _draw_text_with_spacing(
+                    draw,
                     (current_x, current_y),
                     span.text,
                     font=font,
                     fill=text_color,
-                    stroke_width=stroke_w,
-                    stroke_fill=stroke_color,
+                    strk_w=stroke_w,
+                    strk_fill=stroke_color,
+                    l_sp=letter_spacing,
                 )
             else:
-                draw.text(
+                _draw_text_with_spacing(
+                    draw,
                     (current_x, current_y),
                     span.text,
                     font=font,
                     fill=text_color,
+                    l_sp=letter_spacing,
                 )
 
-            # Tăng current_x bằng getlength chính xác
-            try:
-                span_w = float(font.getlength(span.text))
-            except Exception:
-                span_bbox = font.getbbox(span.text)
-                span_w = float(span_bbox[2] - span_bbox[0]) if span_bbox else 0.0
             current_x += span_w
 
         current_y += result.line_height

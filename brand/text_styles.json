@@ -1,0 +1,85 @@
+[
+  {
+    "id": "tin_nong",
+    "name": "Tin nóng",
+    "description": "Black, IN HOA, nhấn vàng, bóng đổ nổi bật",
+    "style": {
+      "font_family": "Be Vietnam Pro",
+      "weight": "Black",
+      "case_mode": "uppercase",
+      "size_mode": "auto",
+      "color": "#FFFFFF",
+      "accent_color": "#FFD34D",
+      "accent2_color": "#38BDF8",
+      "accent_style": "color",
+      "stroke_width": 0,
+      "stroke_color": "#000000",
+      "shadow_dx": 0,
+      "shadow_dy": 3,
+      "shadow_color": "#000000",
+      "bg_style": "none"
+    }
+  },
+  {
+    "id": "tiktok_box",
+    "name": "TikTok box",
+    "description": "Nền đen mờ theo từng dòng, chữ trắng sắc nét",
+    "style": {
+      "font_family": "Be Vietnam Pro",
+      "weight": "ExtraBold",
+      "case_mode": "uppercase",
+      "size_mode": "auto",
+      "color": "#FFFFFF",
+      "accent_color": "#FFD34D",
+      "accent2_color": "#60A5FA",
+      "accent_style": "color",
+      "stroke_width": 0,
+      "bg_style": "lines",
+      "bg_color": "#000000",
+      "bg_opacity": 0.82,
+      "bg_radius": 6,
+      "bg_padding": 8
+    }
+  },
+  {
+    "id": "vien_den",
+    "name": "Viền đen",
+    "description": "Chữ trắng viền đen dày, đọc rõ trên mọi nền",
+    "style": {
+      "font_family": "Be Vietnam Pro",
+      "weight": "Black",
+      "case_mode": "uppercase",
+      "size_mode": "auto",
+      "color": "#FFFFFF",
+      "accent_color": "#FFD34D",
+      "accent2_color": "#F43F5E",
+      "accent_style": "color",
+      "stroke_width": 4,
+      "stroke_color": "#000000",
+      "shadow_dx": 0,
+      "shadow_dy": 2,
+      "shadow_color": "#000000",
+      "bg_style": "none"
+    }
+  },
+  {
+    "id": "toi_gian",
+    "name": "Tối giản",
+    "description": "SemiBold thanh lịch, không nền, bóng nhẹ",
+    "style": {
+      "font_family": "Be Vietnam Pro",
+      "weight": "SemiBold",
+      "case_mode": "preserve",
+      "size_mode": "auto",
+      "color": "#FFFFFF",
+      "accent_color": "#FFD34D",
+      "accent2_color": "#38BDF8",
+      "accent_style": "color",
+      "stroke_width": 0,
+      "shadow_dx": 0,
+      "shadow_dy": 1,
+      "shadow_color": "#000000",
+      "bg_style": "none"
+    }
+  }
+]

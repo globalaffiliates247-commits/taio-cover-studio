@@ -1,0 +1,14 @@
+[
+  {
+    "id": "be_vietnam_pro",
+    "name": "Be Vietnam Pro",
+    "family": "Be Vietnam Pro",
+    "default_weight": "Bold",
+    "weights": [
+      { "weight": "SemiBold", "file": "BeVietnamPro-SemiBold.ttf" },
+      { "weight": "Bold", "file": "BeVietnamPro-Bold.ttf" },
+      { "weight": "ExtraBold", "file": "BeVietnamPro-ExtraBold.ttf" },
+      { "weight": "Black", "file": "BeVietnamPro-Black.ttf" }
+    ]
+  }
+]

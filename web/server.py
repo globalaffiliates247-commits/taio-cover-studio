@@ -180,6 +180,24 @@ def api_config():
         except Exception:
             pass
 
+    fonts = []
+    fonts_path = BASE_DIR / "assets" / "fonts" / "fonts.json"
+    if fonts_path.exists():
+        try:
+            with open(fonts_path, "r", encoding="utf-8") as f:
+                fonts = json.load(f)
+        except Exception:
+            pass
+
+    text_styles = []
+    text_styles_path = BRAND_DIR / "text_styles.json"
+    if text_styles_path.exists():
+        try:
+            with open(text_styles_path, "r", encoding="utf-8") as f:
+                text_styles = json.load(f)
+        except Exception:
+            pass
+
     return jsonify({
         "boot_id": boot_id,
         "templates": tpls,
@@ -190,6 +208,8 @@ def api_config():
         "brand": clean_brand,
         "telegram": telegram_cfg,
         "safe_zones": safe_zones,
+        "fonts": fonts,
+        "text_styles": text_styles,
     })
 
 

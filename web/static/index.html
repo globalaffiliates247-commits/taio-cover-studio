@@ -114,7 +114,10 @@
       <!-- Ô nhập Caption & Highlight thời gian thực -->
       <div class="caption-box-compact">
         <div class="caption-input-wrapper">
-          <input type="text" id="captionInput" class="caption-quick-input" placeholder="Nhập tiêu đề (dùng **từ khóa** để tô vàng)...">
+          <input type="text" id="captionInput" class="caption-quick-input" placeholder="Nhập tiêu đề (dùng **từ khóa** hoặc ==nhấn 2==)...">
+          <button type="button" class="btn-icon-aa" id="btnOpenTextStyleModal" title="Tuỳ chỉnh kiểu chữ (Aa)">
+            Aa
+          </button>
           <button type="button" class="btn-icon-ai" id="btnOpenAIModal" title="Gợi ý caption bằng AI">
             ✨ AI
           </button>
@@ -319,7 +322,156 @@
     </div>
   </div>
 
+  <!-- MODAL / BOTTOM SHEET "Aa TUỲ CHỈNH CHỮ" -->
+  <div class="modal-backdrop" id="textStyleModal" hidden>
+    <div class="modal-sheet text-style-sheet">
+      <div class="modal-header">
+        <h3 class="modal-title">Aa Tuỳ chỉnh chữ</h3>
+        <button type="button" class="btn-close-modal" id="btnCloseTextStyleModal">&times;</button>
+      </div>
+
+      <!-- Cảnh báo tương phản WCAG 2.1 -->
+      <div class="contrast-banner" id="contrastWarningBanner" hidden></div>
+
+      <!-- Navigation Tabs mượn CapCut: Kiểu sẵn | Font | Màu | Nền & Viền | Khoảng cách -->
+      <div class="text-sheet-tabs">
+        <button type="button" class="text-tab-btn active" data-tab="tabPresets">Kiểu sẵn</button>
+        <button type="button" class="text-tab-btn" data-tab="tabFont">Font</button>
+        <button type="button" class="text-tab-btn" data-tab="tabColors">Màu sắc</button>
+        <button type="button" class="text-tab-btn" data-tab="tabDecor">Nền & Viền</button>
+        <button type="button" class="text-tab-btn" data-tab="tabSpacing">Khoảng cách</button>
+      </div>
+
+      <div class="modal-body text-sheet-body">
+        
+        <!-- TAB 1: KIỂU SẴN (PRESETS) -->
+        <div class="text-tab-content" id="tabPresets">
+          <div class="presets-grid" id="textPresetsContainer"></div>
+          <button type="button" class="btn-save-current-style" id="btnSaveCurrentStyle">
+            💾 Lưu kiểu hiện tại làm mẫu riêng
+          </button>
+        </div>
+
+        <!-- TAB 2: FONT & CỠ CHỮ -->
+        <div class="text-tab-content" id="tabFont" hidden>
+          <div class="setting-field-row">
+            <label class="setting-label">Họ Font:</label>
+            <select id="selFontFamily" class="compact-select">
+              <option value="Be Vietnam Pro">Be Vietnam Pro (Chuẩn TV)</option>
+            </select>
+          </div>
+          <div class="setting-field-row">
+            <label class="setting-label">Độ đậm:</label>
+            <select id="selFontWeight" class="compact-select">
+              <option value="SemiBold">SemiBold (Vừa)</option>
+              <option value="Bold">Bold (Đậm)</option>
+              <option value="ExtraBold">ExtraBold (Rất đậm)</option>
+              <option value="Black">Black (Dày nhất)</option>
+            </select>
+          </div>
+          <div class="setting-field-row">
+            <label class="setting-label">Chữ hoa:</label>
+            <div class="btn-group-segmented">
+              <button type="button" class="btn-case-mode" data-mode="preserve">Giữ nguyên</button>
+              <button type="button" class="btn-case-mode active" data-mode="uppercase">IN HOA</button>
+              <button type="button" class="btn-case-mode" data-mode="title">Viết Hoa Đầu</button>
+            </div>
+          </div>
+          <div class="setting-field-row">
+            <label class="setting-label">Cỡ chữ:</label>
+            <label class="toggle-switch-label">
+              <input type="checkbox" id="chkSizeAuto" checked>
+              <span>Tự co vừa khung</span>
+            </label>
+          </div>
+          <div class="setting-field-row">
+            <span class="sub-label">Cỡ cố định:</span>
+            <input type="range" id="sliderFontSize" min="16" max="96" value="42" disabled>
+            <span class="value-readout" id="valFontSize">42px</span>
+          </div>
+        </div>
+
+        <!-- TAB 3: MÀU SẮC -->
+        <div class="text-tab-content" id="tabColors" hidden>
+          <div class="setting-field-row">
+            <label class="setting-label">Màu chữ chính:</label>
+            <input type="color" id="colTextPrimary" value="#FFFFFF">
+          </div>
+          <div class="setting-field-row">
+            <label class="setting-label">Màu nhấn 1 (dùng **từ**):</label>
+            <input type="color" id="colTextAccent1" value="#FFD34D">
+          </div>
+          <div class="setting-field-row">
+            <label class="setting-label">Màu nhấn 2 (dùng ==từ==):</label>
+            <input type="color" id="colTextAccent2" value="#38BDF8">
+          </div>
+          <div class="setting-field-row">
+            <label class="setting-label">Kiểu nhấn:</label>
+            <select id="selAccentStyle" class="compact-select">
+              <option value="color">Đổi màu chữ</option>
+              <option value="marker">Nền marker highlight</option>
+              <option value="underline">Gạch chân từ nhấn</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- TAB 4: NỀN & VIỀN -->
+        <div class="text-tab-content" id="tabDecor" hidden>
+          <div class="setting-field-row">
+            <label class="setting-label">Kiểu nền chữ:</label>
+            <select id="selBgStyle" class="compact-select">
+              <option value="none">Không nền</option>
+              <option value="lines">Khối theo từng dòng (TikTok)</option>
+              <option value="block">Một khối cả đoạn</option>
+            </select>
+          </div>
+          <div class="setting-field-row">
+            <label class="setting-label">Màu nền & Độ mờ:</label>
+            <input type="color" id="colBgColor" value="#000000">
+            <input type="range" id="sliderBgOpacity" min="10" max="100" value="80">
+          </div>
+          <div class="setting-field-row">
+            <label class="setting-label">Viền chữ (độ dày):</label>
+            <input type="range" id="sliderStrokeWidth" min="0" max="16" value="0">
+            <input type="color" id="colStrokeColor" value="#000000">
+          </div>
+          <div class="setting-field-row">
+            <label class="setting-label">Bóng đổ (độ lệch):</label>
+            <input type="range" id="sliderShadowDy" min="0" max="15" value="2">
+            <input type="color" id="colShadowColor" value="#000000">
+          </div>
+        </div>
+
+        <!-- TAB 5: KHOẢNG CÁCH & VỊ TRÍ -->
+        <div class="text-tab-content" id="tabSpacing" hidden>
+          <div class="setting-field-row">
+            <label class="setting-label">Canh lề:</label>
+            <div class="btn-group-segmented">
+              <button type="button" class="btn-align-mode" data-align="left">Trái</button>
+              <button type="button" class="btn-align-mode active" data-align="center">Giữa</button>
+              <button type="button" class="btn-align-mode" data-align="right">Phải</button>
+            </div>
+          </div>
+          <div class="setting-field-row">
+            <label class="setting-label">Vị trí dọc (lên / xuống):</label>
+            <input type="range" id="sliderYOffset" min="-25" max="25" value="0">
+          </div>
+          <div class="setting-field-row">
+            <label class="setting-label">Giãn chữ (Letter spacing):</label>
+            <input type="range" id="sliderLetterSpacing" min="0" max="30" value="0">
+          </div>
+          <div class="setting-field-row">
+            <label class="setting-label">Giãn dòng (Line spacing):</label>
+            <input type="range" id="sliderLineSpacing" min="100" max="200" value="118">
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
   <script src="/static/js/sticker.js"></script>
+  <script src="/static/js/text-panel.js"></script>
   <script src="/static/app.js"></script>
 </body>
 </html>
