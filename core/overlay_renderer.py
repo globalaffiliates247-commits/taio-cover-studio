@@ -258,26 +258,26 @@ def _draw_caption(
             fill=bg_rgba,
         )
 
-    def _draw_text_with_spacing(d, xy, txt, fnt, fill, strk_w=0, strk_fill=None, l_sp=0.0):
+    def _draw_text_with_spacing(d, xy, txt, font, fill, strk_w=0, strk_fill=None, l_sp=0.0):
         if l_sp <= 0.0 or len(txt) <= 1:
             if strk_fill and strk_w > 0:
-                d.text(xy, txt, font=fnt, fill=fill, stroke_width=strk_w, stroke_fill=strk_fill)
+                d.text(xy, txt, font=font, fill=fill, stroke_width=strk_w, stroke_fill=strk_fill)
             else:
-                d.text(xy, txt, font=fnt, fill=fill)
+                d.text(xy, txt, font=font, fill=fill)
             return
 
         cx, cy = xy
-        f_size = getattr(fnt, "size", 32)
+        f_size = getattr(font, "size", 32)
         extra = l_sp * f_size
         for ch in txt:
             if strk_fill and strk_w > 0:
-                d.text((cx, cy), ch, font=fnt, fill=fill, stroke_width=strk_w, stroke_fill=strk_fill)
+                d.text((cx, cy), ch, font=font, fill=fill, stroke_width=strk_w, stroke_fill=strk_fill)
             else:
-                d.text((cx, cy), ch, font=fnt, fill=fill)
+                d.text((cx, cy), ch, font=font, fill=fill)
             try:
-                cw = float(fnt.getlength(ch))
+                cw = float(font.getlength(ch))
             except Exception:
-                cbbox = fnt.getbbox(ch)
+                cbbox = font.getbbox(ch)
                 cw = float(cbbox[2] - cbbox[0]) if cbbox else 10.0
             cx += cw + extra
 

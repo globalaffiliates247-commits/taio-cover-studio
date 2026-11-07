@@ -4,6 +4,37 @@ Tất cả các thay đổi đáng chú ý của dự án **TAIO Cover Studio** 
 
 ---
 
+## [1.2.0] - 2026-11-07 - Logo Kéo Thả Như Sticker & Tuỳ Chỉnh Chữ Nâng Cao (FEATURE v1.2)
+- **Thứ tự mẫu từ dữ liệu & Mẫu A mặc định:**
+  - Bổ sung `order` và `short_name` vào các file mẫu JSON. `list_templates()` tự động sắp xếp theo `order`.
+  - Mẫu **Mờ dần (`lower_third_fade`)** trở thành mẫu A mặc định.
+  - Giao diện web tự sinh các nút chọn mẫu A, B, C, D từ `/api/config`, loại bỏ mã viết cứng trong HTML/JS.
+- **Mô hình Overrides chung & Sticker Logo:**
+  - Thiết kế `core/overrides.py` cho phép ghi đè toạ độ tâm `(x, y)`, độ rộng `w`, góc xoay `rotation`, `opacity`, `pill` và `visible` mà không sửa đổi file template gốc.
+  - Endpoint mới `GET /api/layer-image` trả ảnh khối logo PNG RGBA trong suốt để kéo thả mượt mà 60fps trên client.
+  - Thao tác trực tiếp (Direct Manipulation): Hỗ trợ kéo di chuyển bằng chuột/1 ngón; pinch-to-scale và xoay 2 ngón; 4 tay cầm đổi cỡ ở 4 góc và 1 tay cầm xoay đỉnh đầu (vùng chạm $\ge 44\times 44$px theo Apple HIG và Fitts's Law).
+  - Phím mũi tên: Di chuyển chính xác 1px theo khung xuất (Shift + mũi tên: 10px).
+  - Chạm đúp / Double click: Khôi phục vị trí mặc định của mẫu.
+  - Đường dóng thông minh (Smart Guides): Tự động hít và hiện đường dóng vàng khi cách trục giữa hoặc lề 5% $\le 8$px.
+  - Bảng số chính xác & Lưới 9 vị trí nhanh: Nhập phần trăm X, Y, Cỡ, Xoay, Mờ hoặc chọn nhanh 9 vị trí cách lề an toàn 5%.
+  - Vùng an toàn nền tảng (Safe Zones Overlay): Hiển thị lớp phủ trực quan vùng bị giao diện che của TikTok, Instagram Reels, YouTube Shorts theo `config/safe_zones.json`.
+- **Bảng "Aa Tuỳ chỉnh chữ" & Cú pháp Tô màu nhấn kép:**
+  - Hỗ trợ 2 màu nhấn riêng biệt: `**từ khóa 1**` (màu vàng thương hiệu) và cú pháp mới `==từ khóa 2==` (màu xanh dương).
+  - Cảnh báo tâm lý học hành vi (*Von Restorff Effect*) khi người dùng nhấn quá 3 cụm từ trong caption.
+  - Tuỳ chọn kiểu chữ hoa: Giữ nguyên (`preserve`), IN HOA (`uppercase`), Viết Hoa Đầu Từ (`title`).
+  - Cỡ chữ linh hoạt: Tự co vừa khung (`auto`) hoặc Cố định (`fixed`) kèm thanh trượt cỡ chữ.
+  - Nền chữ kiểu TikTok: Tuỳ chọn nền ôm sát từng dòng chữ (`lines`) hoặc khối chữ liền (`block`), tuỳ biến màu sắc, độ mờ, bo góc và đệm.
+  - Kiểu nhấn phong phú: Đổi màu chữ, Nền marker highlight hoặc Gạch chân.
+  - Giãn chữ (Letter-spacing) và Giãn dòng (Line-spacing) với thuật toán đo đạc chuẩn xác trong Pillow.
+  - Bảng 4 kiểu chữ lưu sẵn (Presets): *Tin nóng*, *TikTok box*, *Viền đen*, *Tối giản*; hỗ trợ lưu kiểu của người dùng vào `localStorage`.
+  - Bộ kiểm tra độ tương phản WCAG 2.1: Tự động tính tỷ lệ tương phản, cảnh báo khi dưới ngưỡng 4.5:1.
+- **Hiệu năng & Tương thích:**
+  - Không gọi API preview trong lúc kéo sticker; chỉ gọi khi thả tay kèm debounce 300ms.
+  - Bộ nhớ đệm font LRU tối đa 32 đối tượng (`@lru_cache(maxsize=32)`).
+  - **Emoji màu:** Đánh giá Noto Color Emoji cho thấy thư viện ngoài và kích thước font (~25MB) có nguy cơ gây quá tải bộ nhớ trên Render Free 512MB, tạm hoãn sang bản v1.3 để bảo toàn độ ổn định của hệ thống.
+
+---
+
 ## [1.1.1] - 2026-11-07 - Khắc phục Hết RAM Render (512MB) & Tự Khôi Phục Video
 - **FIX-1 (Giới hạn luồng ffmpeg):** Thêm biến `FFMPEG_THREADS` (mặc định 2), thêm `-threads 2`, `-filter_complex_threads 1`, `-x264-params rc-lookahead=10`, `-nostats -loglevel error` trong `core/compositor.py` và `-threads 1` trong `core/frames.py`. Đảm bảo RAM đỉnh < 250 MB trên container đa nhân của Render.
 - **FIX-2 (Loại bỏ nguy cơ treo do stderr):** Chuyển stderr của ffmpeg sang `tempfile.TemporaryFile` không giới hạn bộ đệm pipe; trả thông báo lỗi tiếng Việt ngắn gọn và cảnh báo rõ khi hệ thống dừng tiến trình do thiếu RAM (mã thoát -9, 137).

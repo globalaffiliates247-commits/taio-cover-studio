@@ -1,7 +1,7 @@
 # TAIO Cover Studio
 
 > **"Thả video vào → chọn mẫu lớp phủ, caption, logo → nhận video đã gắn bìa thương hiệu; caption có thể để AI gợi ý."**  
-> *Thuộc hệ sinh thái **TAIO (TAIO.CLUB)*** · Phiên bản: **v1.0 MVP** · Ngôn ngữ giao diện: **Tiếng Việt**
+> *Thuộc hệ sinh thái **TAIO (TAIO.CLUB)*** · Phiên bản: **v1.2.0** · Ngôn ngữ giao diện: **Tiếng Việt**
 
 ---
 
@@ -10,10 +10,12 @@
 Biên tập viên video ngắn (TikTok, Reels, Shorts) thường mất 5–10 phút cho mỗi video chỉ để kéo dải màu chân trang, gõ tiêu đề, tô màu từ khóa, đặt logo và xuất file. Quá trình thủ công này dễ khiến vị trí và màu sắc giữa các video bị lệch nhau, đồng thời việc nghĩ tiêu đề (caption/hook) hấp dẫn tốn nhiều thời gian.
 
 **TAIO Cover Studio** tự động hóa toàn bộ quy trình:
-- Đảm bảo nhận diện thương hiệu nhất quán 100% nhờ hệ thống template chuẩn hóa.
+- Đảm bảo nhận diện thương hiệu nhất quán 100% nhờ hệ thống template chuẩn hóa (Mẫu A Mờ dần mặc định).
+- **Logo Sticker kéo thả tự do:** Di chuyển, đổi cỡ, xoay sticker trực quan như CapCut/TikTok với Smart Guides và Vùng an toàn (Safe Zones).
+- **Tuỳ chỉnh chữ nâng cao (Aa):** Cú pháp nhấn kép `**vàng**` & `==xanh==`, nền chữ TikTok ôm dòng, viền, bóng, bộ kiểu chữ lưu sẵn và kiểm tra tương phản WCAG 2.1.
 - Nhấn mạnh từ khóa theo tâm lý học hành vi (*Hiệu ứng Von Restorff*).
 - Gợi ý 5 góc caption thu hút người xem dừng lại bằng AI (*Information-Gap Theory, Contrast Principle, Loss Aversion*).
-- Hỗ trợ xem trước trực quan (WYSIWYG) khớp 100% với video xuất.
+- Hỗ trợ xem trước trực quan (WYSIWYG) khớp 100% với video xuất (sai lệch $\le 2$px).
 - Đa nền tảng: Chạy trên Web máy cá nhân (macOS/Windows), máy chủ Docker (Render/VPS), hoặc điều khiển qua MCP từ trợ lý AI.
 
 ---
@@ -59,7 +61,28 @@ Trình duyệt sẽ tự động mở địa chỉ: `http://127.0.0.1:8765`.
 
 ---
 
-## 🤖 4. Cấu hình AI gợi ý Caption
+## 🎯 4. Tính năng mới v1.2: Logo Sticker & Tuỳ chỉnh Chữ (Aa)
+
+### 1. Logo Sticker kéo thả tự do (Direct Manipulation)
+- **Chuột / 1 ngón tay:** Kéo để di chuyển vị trí logo.
+- **2 ngón tay (cảm ứng):** Pinch để phóng to/thu nhỏ, xoay 2 ngón để đổi góc nghiêng.
+- **Tay cầm trên máy tính:** 4 tay cầm tròn ở 4 góc để đổi cỡ; tay cầm trên đỉnh để xoay (giữ `Shift` để nhảy góc 15°).
+- **Phím mũi tên:** Nhấn phím mũi tên để dịch chuyển chính xác 1px theo độ phân giải video (giữ `Shift` + mũi tên dịch 10px).
+- **Chạm đúp (Double-click):** Khôi phục tức thì về vị trí chuẩn mặc định của mẫu.
+- **Đường dóng thông minh (Smart Guides):** Tự động hít và hiện đường dóng vàng khi tâm hoặc mép logo cách trục giữa, lề an toàn 5% trong khoảng $\le 8$px.
+- **Vùng an toàn (Safe Zones):** Bật lớp phủ bóng mờ mô phỏng vùng bị che bởi nút bấm và mô tả của TikTok, Instagram Reels, YouTube Shorts.
+
+### 2. Bảng "Aa Tuỳ chỉnh chữ"
+- Bấm nút **Aa** cạnh ô nhập caption để mở bảng điều khiển:
+  - **Kiểu sẵn (Presets):** 4 bộ phong cách tối ưu (*Tin nóng*, *TikTok box*, *Viền đen*, *Tối giản*) và nút lưu kiểu riêng vào bộ nhớ trình duyệt.
+  - **Font & Cỡ chữ:** Đổi font Be Vietnam Pro, độ đậm (SemiBold, Bold, ExtraBold, Black), in hoa / viết hoa đầu từ, cỡ chữ tự co vừa khung hoặc cố định.
+  - **2 Màu nhấn kép:** Dùng cú pháp `**từ khóa 1**` để tô màu vàng và `==từ khóa 2==` để tô màu xanh dương.
+  - **Nền chữ TikTok & Viền, Bóng:** Nền ôm theo từng dòng chữ (`lines`), màu nền, độ mờ, độ dày viền chữ và bóng đổ.
+  - **Kiểm tra tương phản WCAG 2.1:** Cảnh báo tự động nếu màu chữ và màu nền có độ tương phản dưới 4.5:1.
+
+---
+
+## 🤖 5. Cấu hình AI gợi ý Caption
 
 Hệ thống hỗ trợ đa nhà cung cấp AI: **Google Gemini**, **Anthropic Claude**, **OpenAI GPT-4o**, **OpenRouter**, và **Ollama Local**.
 
@@ -77,7 +100,7 @@ OPENAI_API_KEY=your_openai_api_key_here
 
 ---
 
-## 💻 5. Sử dụng Giao diện Dòng lệnh (CLI)
+## 💻 6. Sử dụng Giao diện Dòng lệnh (CLI)
 
 `studio_cli.py` hỗ trợ tự động hoá mạnh mẽ:
 
@@ -113,7 +136,7 @@ python studio_cli.py suggest input.mp4 --context "Kịch bản phóng sự đi�
 
 ---
 
-## 🔌 6. Tích hợp MCP Server (Model Context Protocol)
+## 🔌 7. Tích hợp MCP Server (Model Context Protocol)
 
 TAIO Cover Studio tích hợp sẵn **MCP Server** (`studio_mcp.py`) theo chuẩn FastMCP, cho phép các trợ lý AI (Claude Desktop, Cursor, Antigravity) trực tiếp phân tích khung hình video và xuất video qua câu lệnh tự nhiên.
 
@@ -140,7 +163,7 @@ TAIO Cover Studio tích hợp sẵn **MCP Server** (`studio_mcp.py`) theo chuẩ
 
 ---
 
-## 🎨 7. Hướng dẫn tự tạo Mẫu lớp phủ mới (Templates)
+## 🎨 8. Hướng dẫn tự tạo Mẫu lớp phủ mới (Templates)
 
 Mỗi mẫu là một tệp JSON đặt trong thư mục `templates/<id>.json`. Để thêm mẫu mới, bạn chỉ cần tạo 1 tệp JSON, **hoàn toàn không cần sửa code**.
 
@@ -187,7 +210,7 @@ Mỗi mẫu là một tệp JSON đặt trong thư mục `templates/<id>.json`. 
 
 ---
 
-## 📜 8. Giấy phép & Bản quyền
+## 📜 9. Giấy phép & Bản quyền
 - **Phần mềm**: Phát triển bởi TAIO Team cho hệ sinh thái TAIO.CLUB.
 - **Font chữ**: Be Vietnam Pro (Giấy phép SIL Open Font License - OFL).
 - **Thư viện mã nguồn mở**: Pillow (HPND), Flask (BSD), FastMCP (MIT).

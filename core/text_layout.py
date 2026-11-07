@@ -334,7 +334,9 @@ def compute_text_layout(
     max_w = max((line.width for line in best_lines), default=0.0)
 
     # Kiểm tra hiệu ứng Von Restorff: cảnh báo nếu nhấn quá 3 cụm từ
-    total_accents = sum(1 for line in best_lines for span in line.spans if span.is_accent)
+    total_accents = len(
+        re.findall(r"==[^=]+?==|(?:\*\*|<b>|<B>).*?(?:\*\*|</b>|</B>)|(?<!\*)\*[^\*]+?\*(?!\*)", raw_text)
+    )
     if total_accents > 3 and not warning:
         warning = "Nhấn quá 3 cụm từ có thể làm giảm hiệu quả thu hút thị giác."
 
