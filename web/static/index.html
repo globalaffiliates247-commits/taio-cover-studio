@@ -2,237 +2,226 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TAIO Cover Studio — Gắn bìa thương hiệu & Caption AI cho Video ngắn</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TAIO Cover Studio — WYSIWYG Video Wrapper</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-  <!-- Header thương hiệu -->
-  <header class="app-header">
-    <div class="header-container">
-      <div class="brand-identity">
-        <div class="brand-logo-badge">
-          <img src="/static/brand-logo" alt="Logo" class="header-logo-img" id="headerBrandLogo" onerror="this.style.display='none'">
-          <span class="brand-name" id="headerBrandName">TAIO</span>
-        </div>
-        <span class="brand-app-title">Cover Studio</span>
-      </div>
-      <div class="brand-tagline" id="headerBrandTagline">Thả video vào → gắn bìa thương hiệu & caption AI</div>
+  <!-- Header tối giản dạng thanh công cụ -->
+  <header class="studio-topbar">
+    <div class="topbar-left">
+      <img src="/static/brand-logo" alt="Logo" class="topbar-logo" onerror="this.style.display='none'">
+      <span class="topbar-title">TAIO Cover Studio</span>
+    </div>
+    <div class="topbar-right">
+      <span class="clip-name-badge" id="clipNameBadge">TAIO.CoverClip</span>
+      <span class="status-indicator-dot online" title="Sẵn sàng"></span>
     </div>
   </header>
 
-  <!-- Bố cục chính 2 cột -->
-  <main class="main-layout">
-    <!-- CỘT TRÁI: 5 BƯỚC BIÊN TẬP (HICK'S LAW) -->
-    <section class="editor-column">
+  <!-- Giao diện chính WYSIWYG tập trung vào khung xem trước -->
+  <main class="studio-app">
+    
+    <!-- 1. KHUNG XEM TRƯỚC WYSIWYG CHÍNH (TRỌNG TÂM) -->
+    <section class="preview-stage">
+      <div class="preview-wrapper" id="previewWrapper">
+        
+        <!-- Trạng thái chưa có video: Chạm để chọn -->
+        <div class="drop-empty-overlay" id="dropEmptyState">
+          <input type="file" id="videoFileInput" accept="video/mp4,video/quicktime,video/x-matroska,video/webm" hidden>
+          <div class="drop-inner" id="btnTriggerUpload">
+            <div class="drop-icon-circle">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-camera">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+            </div>
+            <p class="drop-main-text">Chạm để chọn hoặc thả video vào</p>
+            <p class="drop-sub-text">Hỗ trợ MP4, MOV, MKV · Tự xoay chuẩn dọc</p>
+          </div>
+        </div>
+
+        <!-- Ảnh xem trước 100% khớp video -->
+        <img src="" alt="Preview frame" id="previewImage" class="preview-screen" hidden>
+        
+        <!-- Video phát thử khi xuất xong -->
+        <video id="playerResultVideo" class="preview-screen" controls playsinline hidden></video>
+
+        <!-- Loading spinner khi đang render preview -->
+        <div class="preview-spinner-overlay" id="previewLoadingOverlay" hidden>
+          <div class="spinner"></div>
+          <span class="spinner-text">Đang cập nhật...</span>
+        </div>
+
+        <!-- Overlay thanh thông tin video rút gọn -->
+        <div class="preview-top-pills" id="previewTopPills" hidden>
+          <span class="pill-meta" id="videoMetaBadge">1080×1920 · 0:37</span>
+          <button type="button" class="btn-pill-change" id="btnChangeVideo">📁 Đổi video</button>
+        </div>
+
+        <!-- Timeline scrub bar nằm sát đáy khung xem trước -->
+        <div class="preview-bottom-bar" id="previewBottomBar" hidden>
+          <span class="time-readout" id="timelineTimeLabel">0:01</span>
+          <input type="range" id="timelineSlider" class="timeline-scrub" min="0" max="10" step="0.5" value="1">
+          <span class="time-readout" id="timelineDurationLabel">/ 0:00</span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 2. BỘ ĐIỀU KHIỂN RÚT GỌN (CONTROL STRIP NẰM NGAY BÊN DƯỚI) -->
+    <section class="controls-stage">
       
-      <!-- BƯỚC 1: VIDEO GỐC -->
-      <div class="step-card" id="step1Card">
-        <div class="step-header">
-          <span class="step-badge">1</span>
-          <h2 class="step-title">Video gốc</h2>
-        </div>
-        <div class="step-body">
-          <div class="dropzone" id="videoDropzone">
-            <input type="file" id="videoFileInput" accept="video/mp4,video/quicktime,video/x-matroska,video/webm" hidden>
-            <div class="dropzone-content">
-              <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
-                <line x1="7" y1="2" x2="7" y2="22"></line>
-                <line x1="17" y1="2" x2="17" y2="22"></line>
-                <line x1="2" y1="12" x2="22" y2="12"></line>
-                <line x1="2" y1="7" x2="7" y2="7"></line>
-                <line x1="2" y1="17" x2="7" y2="17"></line>
-                <line x1="17" y1="17" x2="22" y2="17"></line>
-                <line x1="17" y1="7" x2="22" y2="7"></line>
-              </svg>
-              <p class="dropzone-title">Kéo thả video vào đây, hoặc <span class="highlight-link">bấm chọn tệp</span></p>
-              <p class="dropzone-subtitle">Hỗ trợ MP4, MOV, MKV, WEBM (Tối đa 4GB)</p>
-            </div>
-          </div>
-
-          <!-- Thông tin video đã tải -->
-          <div class="video-info-banner" id="videoInfoBanner" hidden>
-            <div class="video-info-content">
-              <span class="video-filename" id="videoFilename">video.mp4</span>
-              <span class="video-meta" id="videoMetaBadge">1080×1920 · 0:45 · 30 fps · có âm thanh</span>
-            </div>
-            <button type="button" class="btn-text-danger" id="btnRemoveVideo">Đổi video khác</button>
-          </div>
-          <div class="status-msg error-msg" id="uploadErrorMsg" hidden></div>
-        </div>
-      </div>
-
-      <!-- BƯỚC 2: MẪU LỚP PHỦ (TEMPLATES) -->
-      <div class="step-card" id="step2Card">
-        <div class="step-header">
-          <span class="step-badge">2</span>
-          <h2 class="step-title">Mẫu lớp phủ (Template)</h2>
-        </div>
-        <div class="step-body">
-          <div class="template-grid" id="templateGrid">
-            <!-- Render qua JavaScript -->
-          </div>
-        </div>
-      </div>
-
-      <!-- BƯỚC 3: CAPTION & GỢI Ý AI -->
-      <div class="step-card" id="step3Card">
-        <div class="step-header">
-          <span class="step-badge">3</span>
-          <h2 class="step-title">Caption & Tiêu đề</h2>
-        </div>
-        <div class="step-body">
-          <div class="form-group">
-            <label for="captionInput" class="form-label">
-              Nội dung caption:
-              <span class="label-hint">Dùng <code class="code-syntax">**từ khóa**</code> để tô màu nhấn vàng</span>
-            </label>
-            <textarea id="captionInput" class="form-textarea" rows="3" placeholder="Nhập caption của bạn... Ví dụ: Biến tướng từ **&quot;đi chùa online&quot;** để kêu gọi, **trục lợi**"></textarea>
-          </div>
-
-          <!-- Khối gợi ý AI thu gọn -->
-          <details class="ai-accordion" id="aiAccordion">
-            <summary class="ai-summary">
-              <span class="ai-summary-title">✨ Gợi ý caption bằng AI</span>
-              <span class="ai-badge">Claude / Gemini / GPT</span>
-            </summary>
-            <div class="ai-body">
-              <div class="form-row">
-                <div class="form-group col-6">
-                  <label for="aiProviderSelect" class="form-label">Nhà cung cấp AI:</label>
-                  <select id="aiProviderSelect" class="form-select">
-                    <!-- Dynamic -->
-                  </select>
-                </div>
-                <div class="form-group col-6">
-                  <label for="aiStyleSelect" class="form-label">Phong cách:</label>
-                  <select id="aiStyleSelect" class="form-select">
-                    <option value="tin_tuc">Thời sự / Tin tức</option>
-                    <option value="giao_duc">Giáo dục / Chia sẻ</option>
-                    <option value="ban_hang">Bán hàng / Chuyển đổi</option>
-                    <option value="giai_tri">Giải trí / Viral</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label for="aiContextInput" class="form-label">Ngữ cảnh / Kịch bản (tuỳ chọn):</label>
-                <input type="text" id="aiContextInput" class="form-input" placeholder="Dán ý chính, kịch bản ngắn hoặc từ khoá của video...">
-              </div>
-
-              <button type="button" class="btn btn-ai" id="btnGenerateAI">
-                <span class="btn-text">✨ Gợi ý 5 caption thu hút</span>
-                <span class="btn-spinner" hidden></span>
-              </button>
-              <div class="status-msg error-msg" id="aiErrorMsg" hidden></div>
-
-              <!-- Danh sách gợi ý trả về -->
-              <div class="ai-results-list" id="aiResultsList" hidden>
-                <div class="ai-summary-note" id="aiSummaryNote"></div>
-                <div class="ai-cards-container" id="aiCardsContainer"></div>
-              </div>
-            </div>
-          </details>
-        </div>
-      </div>
-
-      <!-- BƯỚC 4: LOGO THƯƠNG HIỆU -->
-      <div class="step-card" id="step4Card">
-        <div class="step-header">
-          <span class="step-badge">4</span>
-          <h2 class="step-title">Logo & Thương hiệu</h2>
-        </div>
-        <div class="step-body">
-          <div class="logo-control-row">
-            <div class="current-logo-preview">
-              <img src="/static/brand-logo" alt="Logo preview" id="logoThumbnailImg" class="logo-thumb" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\' fill=\'%23fff\'><text x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\'>T</text></svg>'">
-              <span class="logo-status-label" id="logoStatusLabel">Logo mặc định của TAIO</span>
-            </div>
-            <div class="logo-actions">
-              <input type="file" id="logoFileInput" accept="image/png,image/jpeg,image/webp" hidden>
-              <button type="button" class="btn btn-secondary btn-sm" id="btnUploadCustomLogo">Đổi logo khác…</button>
-              <button type="button" class="btn btn-text-danger btn-sm" id="btnResetDefaultLogo" hidden>Dùng lại logo mặc định</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- BƯỚC 5: XUẤT VIDEO -->
-      <div class="step-card" id="step5Card">
-        <div class="step-header">
-          <span class="step-badge">5</span>
-          <h2 class="step-title">Xuất video hoàn tất</h2>
-        </div>
-        <div class="step-body">
-          <button type="button" class="btn btn-primary btn-block btn-lg" id="btnRenderVideo" disabled>
-            <span class="btn-text">🚀 Xuất video ngay</span>
+      <!-- Hàng chọn 4 Mẫu lớp phủ A · B · C · D siêu ngắn gọn -->
+      <div class="template-selector-row">
+        <span class="control-label">Mẫu:</span>
+        <div class="template-pills-bar" id="templatePillsBar">
+          <button type="button" class="tpl-pill active" data-id="footer_band">
+            <span class="tpl-letter">A</span>
+            <span class="tpl-shortname">Chân trang</span>
           </button>
-
-          <!-- Tiến trình xuất video -->
-          <div class="render-progress-card" id="renderProgressCard" hidden>
-            <div class="render-progress-header">
-              <span class="progress-status-text" id="renderStatusText">Đang chuẩn bị...</span>
-              <span class="progress-pct" id="renderPctText">0%</span>
-            </div>
-            <div class="progress-track">
-              <div class="progress-bar-fill" id="renderProgressBar" style="width: 0%"></div>
-            </div>
-            <div class="render-done-actions" id="renderDoneActions" hidden>
-              <a href="#" class="btn btn-success btn-block" id="btnDownloadVideo" download>
-                📥 Tải video đã xuất (.mp4)
-              </a>
-            </div>
-            <div class="status-msg error-msg" id="renderErrorMsg" hidden></div>
-          </div>
+          <button type="button" class="tpl-pill" data-id="top_bottom_bars">
+            <span class="tpl-letter">B</span>
+            <span class="tpl-shortname">Trên + Dưới</span>
+          </button>
+          <button type="button" class="tpl-pill" data-id="lower_third_fade">
+            <span class="tpl-letter">C</span>
+            <span class="tpl-shortname">Mờ dần</span>
+          </button>
+          <button type="button" class="tpl-pill" data-id="vertical_9x16_footer">
+            <span class="tpl-letter">D</span>
+            <span class="tpl-shortname">Dọc 9:16</span>
+          </button>
         </div>
+      </div>
+
+      <!-- Ô nhập Caption & Highlight thời gian thực -->
+      <div class="caption-box-compact">
+        <div class="caption-input-wrapper">
+          <input type="text" id="captionInput" class="caption-quick-input" placeholder="Nhập tiêu đề (dùng **từ khóa** để tô vàng)...">
+          <button type="button" class="btn-icon-ai" id="btnOpenAIModal" title="Gợi ý caption bằng AI">
+            ✨ AI
+          </button>
+        </div>
+        <!-- Thanh trực quan hiển thị chữ tô màu vàng ngay lập tức -->
+        <div class="caption-live-preview" id="captionLivePreview">
+          <span class="live-label">Màu chữ:</span>
+          <span class="live-content" id="liveHighlightText">Chưa có caption</span>
+        </div>
+      </div>
+
+      <!-- Tùy chọn Logo rút gọn -->
+      <div class="logo-strip-compact">
+        <div class="logo-mini-pill">
+          <img src="/static/brand-logo" alt="logo" class="logo-tiny" id="logoThumbnailImg" onerror="this.style.display='none'">
+          <span class="logo-name-tag" id="logoStatusLabel">Logo TAIO</span>
+        </div>
+        <input type="file" id="logoFileInput" accept="image/png,image/jpeg,image/webp" hidden>
+        <button type="button" class="btn-micro" id="btnUploadCustomLogo">Đổi logo</button>
+        <button type="button" class="btn-micro btn-micro-danger" id="btnResetDefaultLogo" hidden>Dùng lại logo gốc</button>
+      </div>
+
+      <!-- Thông báo cảnh báo (nếu có) -->
+      <div class="warning-strip" id="warningBanner" hidden>
+        <span class="warn-dot">⚠️</span>
+        <span class="warn-msg" id="warningText"></span>
       </div>
 
     </section>
 
-    <!-- CỘT PHẢI: XEM TRƯỚC WYSIWYG TRỰC QUAN -->
-    <section class="preview-column">
-      <div class="preview-sticky-wrapper">
-        <div class="preview-card">
-          <div class="preview-header">
-            <span class="preview-title">Xem trước (WYSIWYG)</span>
-            <span class="preview-status-pill" id="previewStatusPill">Khớp 100% video xuất</span>
-          </div>
+    <!-- 3. ACTION BAR DƯỚI ĐÁY: XUẤT VIDEO & TẢI VỀ / GỬI TELEGRAM -->
+    <footer class="studio-action-bar">
+      
+      <!-- Nút xuất video chính -->
+      <button type="button" class="btn-render-action" id="btnRenderVideo" disabled>
+        <span class="btn-render-text">🚀 Xuất Video</span>
+      </button>
 
-          <div class="preview-canvas-box" id="previewCanvasBox">
-            <div class="preview-empty-state" id="previewEmptyState">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="empty-icon">
-                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                <line x1="8" y1="21" x2="16" y2="21"></line>
-                <line x1="12" y1="17" x2="12" y2="21"></line>
-              </svg>
-              <p>Tải video lên để xem trước lớp phủ tại đây</p>
-            </div>
-            <img src="" alt="Preview frame" id="previewImage" class="preview-img" hidden>
-            <div class="preview-loading-overlay" id="previewLoadingOverlay" hidden>
-              <div class="spinner"></div>
-              <span>Đang kết xuất xem trước...</span>
-            </div>
-          </div>
-
-          <!-- Thanh kéo thời gian mm:ss -->
-          <div class="preview-timeline" id="previewTimeline" hidden>
-            <div class="timeline-meta">
-              <span>Thời điểm: <strong id="timelineTimeLabel">0:01</strong></span>
-              <span id="timelineDurationLabel">/ 0:00</span>
-            </div>
-            <input type="range" id="timelineSlider" class="timeline-slider" min="0" max="10" step="0.5" value="1">
-          </div>
-
-          <!-- Dòng cảnh báo (Warnings) -->
-          <div class="warning-banner" id="warningBanner" hidden>
-            <span class="warning-icon">⚠️</span>
-            <span class="warning-text" id="warningText"></span>
-          </div>
+      <!-- Thanh tiến độ khi đang xuất -->
+      <div class="render-progress-wrap" id="renderProgressCard" hidden>
+        <div class="progress-info-row">
+          <span id="renderStatusText">Đang xuất video...</span>
+          <strong id="renderPctText">0%</strong>
+        </div>
+        <div class="progress-bar-rail">
+          <div class="progress-bar-fill" id="renderProgressBar" style="width: 0%"></div>
         </div>
       </div>
-    </section>
+
+      <!-- Bảng hành động khi xuất xong -->
+      <div class="download-action-group" id="renderDoneActions" hidden>
+        <!-- Nút lưu Cuộn Camera (iOS / Android Web Share) -->
+        <button type="button" class="btn-action-done btn-save-photos" id="btnSaveToPhotos">
+          📱 Lưu vào Cuộn Camera
+        </button>
+
+        <!-- Nút tải file trực tiếp -->
+        <a href="#" class="btn-action-done btn-download-file" id="btnDownloadVideo" download>
+          📥 Tải file MP4
+        </a>
+
+        <!-- Nút gửi Telegram -->
+        <button type="button" class="btn-action-done btn-telegram" id="btnSendTelegram">
+          ✈️ Gửi qua Telegram
+        </button>
+      </div>
+
+      <div class="error-strip" id="renderErrorMsg" hidden></div>
+    </footer>
+
   </main>
+
+  <!-- MODAL GỢI Ý CAPTION BẰNG AI (POPUP GỌN GÀNG) -->
+  <div class="modal-backdrop" id="aiModal" hidden>
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3 class="modal-title">✨ Gợi ý caption bằng AI</h3>
+        <button type="button" class="btn-close-modal" id="btnCloseAIModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-row">
+          <select id="aiStyleSelect" class="compact-select">
+            <option value="tin_tuc">Thời sự / Tin tức</option>
+            <option value="giao_duc">Giáo dục / Chia sẻ</option>
+            <option value="ban_hang">Bán hàng / Chuyển đổi</option>
+            <option value="giai_tri">Giải trí / Viral</option>
+          </select>
+          <select id="aiProviderSelect" class="compact-select">
+            <!-- Dynamic -->
+          </select>
+        </div>
+        <input type="text" id="aiContextInput" class="compact-input" placeholder="Ghi chú / ý chính video (tuỳ chọn)...">
+        
+        <button type="button" class="btn-modal-ai" id="btnGenerateAI">
+          <span class="btn-ai-text">✨ Gợi ý 5 caption thu hút</span>
+        </button>
+
+        <div class="ai-suggestions-list" id="aiCardsContainer"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CẤU HÌNH GỬI TELEGRAM -->
+  <div class="modal-backdrop" id="telegramModal" hidden>
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3 class="modal-title">✈️ Gửi video qua Telegram Bot</h3>
+        <button type="button" class="btn-close-modal" id="btnCloseTeleModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="tele-hint">Video sẽ được gửi thẳng vào cuộc trò chuyện Telegram của bạn:</p>
+        <label class="tele-label">Bot Token:</label>
+        <input type="password" id="teleBotTokenInput" class="compact-input" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ">
+        <label class="tele-label">Chat ID của bạn:</label>
+        <input type="text" id="teleChatIdInput" class="compact-input" placeholder="Ví dụ: 12345678 hoặc @ten_channel">
+        
+        <button type="button" class="btn-modal-telegram" id="btnConfirmSendTelegram">
+          🚀 Gửi video vào Telegram ngay
+        </button>
+        <div class="tele-status-msg" id="teleStatusMsg" hidden></div>
+      </div>
+    </div>
+  </div>
 
   <script src="/static/app.js"></script>
 </body>

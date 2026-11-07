@@ -16,7 +16,7 @@ from flask import Flask, jsonify, request, send_file, Response
 from core.brand import load_brand_kit, get_default_logo_path
 from core.canvas import calculate_canvas_layout
 from core.compositor import build_preview, render_video
-from core.paths import BASE_DIR, BRAND_DIR, OUTPUTS_DIR, UPLOADS_DIR
+from core.paths import BASE_DIR, BRAND_DIR, OUTPUTS_DIR, UPLOADS_DIR, generate_cover_clip_name
 from core.templates import get_template, list_templates
 from core.video_probe import probe_video
 
@@ -203,15 +203,19 @@ def api_upload():
             temp_path.unlink()
         return jsonify({"error": f"Tệp tải lên không phải video hợp lệ: {e}"}), 400
 
-    # Đổi tên sang ID chính thức
+    # Đổi tên sang ID chính thức và gán tên chuẩn theo quy ước TAIO.CoverClip_YYMMDDXX
     video_id = f"vid_{uuid.uuid4().hex[:10]}"
     final_filename = f"{video_id}{file_ext or '.mp4'}"
     final_path = UPLOADS_DIR / final_filename
     temp_path.rename(final_path)
 
+    # Đặt tên chuẩn hóa: TAIO.CoverClip_DDMMXX.mp4
+    standard_name = generate_cover_clip_name()
+
     return jsonify({
         "id": video_id,
-        "name": clean_name,
+        "name": standard_name,
+        "raw_name": clean_name,
         "kind": "video",
         "info": {
             "width": info.width,
@@ -226,10 +230,16 @@ def api_upload():
 
 
 def _find_upload_file(file_id: str) -> Optional[Path]:
-    """Tìm file trong thư mục uploads theo file_id."""
+    """Tìm file trong thư mục uploads theo file_id an toàn."""
+    if not file_id:
+        return None
     for f in UPLOADS_DIR.glob(f"{file_id}.*"):
         if f.is_file():
             return f
+    # Tìm trực tiếp nếu truyền kèm đuôi mở rộng
+    direct = UPLOADS_DIR / file_id
+    if direct.is_file():
+        return direct
     return None
 
 
@@ -394,8 +404,11 @@ def api_download(job_id: str):
         if not out_path.exists():
             return jsonify({"error": "Tệp video đã bị xoá hoặc không tồn tại."}), 404
 
-        raw_stem = Path(job.get("video_name", "video")).stem
-        download_filename = f"{raw_stem}_taio.mp4"
+        raw_name = job.get("video_name", "TAIO.CoverClip.mp4")
+        if not raw_name.endswith(".mp4"):
+            download_filename = f"{raw_name}.mp4"
+        else:
+            download_filename = raw_name
 
         return send_file(
             str(out_path),
@@ -403,6 +416,69 @@ def api_download(job_id: str):
             download_name=download_filename,
             mimetype="video/mp4",
         )
+
+
+@app.route("/api/send-telegram", methods=["POST"])
+def api_send_telegram():
+    """Gửi video đã xuất qua Telegram Bot trung gian."""
+    data = request.get_json(force=True, silent=True) or {}
+    job_id = data.get("job_id", "")
+    bot_token = (data.get("bot_token") or os.getenv("TELEGRAM_BOT_TOKEN", "")).strip()
+    chat_id = (data.get("chat_id") or os.getenv("TELEGRAM_CHAT_ID", "")).strip()
+
+    if not bot_token or not chat_id:
+        return jsonify({"error": "Vui lòng nhập Bot Token và Chat ID của bot Telegram."}), 400
+
+    with jobs_lock:
+        job = jobs_store.get(job_id)
+        if not job:
+            return jsonify({"error": "Không tìm thấy video tương ứng."}), 404
+        if job["status"] != "done":
+            return jsonify({"error": "Video chưa xuất xong."}), 400
+
+        out_path = Path(job["out_path"])
+        if not out_path.exists():
+            return jsonify({"error": "Tệp video không tồn tại."}), 404
+
+    # Gửi qua Telegram Bot API sendVideo
+    import json
+    import urllib.request
+    url = f"https://api.telegram.org/bot{bot_token}/sendVideo"
+    boundary = f"----WebKitFormBoundary{uuid.uuid4().hex}"
+
+    with open(out_path, "rb") as vf:
+        video_bytes = vf.read()
+
+    video_filename = job.get("video_name", "TAIO.CoverClip.mp4")
+    caption_text = f"🎬 {video_filename}\n{job.get('caption', '')}".strip()
+
+    body = (
+        f"--{boundary}\r\n"
+        f'Content-Disposition: form-data; name="chat_id"\r\n\r\n'
+        f"{chat_id}\r\n"
+        f"--{boundary}\r\n"
+        f'Content-Disposition: form-data; name="caption"\r\n\r\n'
+        f"{caption_text}\r\n"
+        f"--{boundary}\r\n"
+        f'Content-Disposition: form-data; name="video"; filename="{video_filename}"\r\n'
+        f"Content-Type: video/mp4\r\n\r\n"
+    ).encode("utf-8") + video_bytes + f"\r\n--{boundary}--\r\n".encode("utf-8")
+
+    req = urllib.request.Request(
+        url,
+        data=body,
+        headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            resp_data = json.loads(resp.read().decode("utf-8"))
+            if not resp_data.get("ok"):
+                return jsonify({"error": f"Telegram trả về lỗi: {resp_data.get('description')}"}), 400
+            return jsonify({"ok": True, "message": "Đã gửi video thành công vào Telegram của bạn!"})
+    except Exception as e:
+        return jsonify({"error": f"Lỗi gửi Telegram: {e}"}), 400
 
 
 @app.errorhandler(413)

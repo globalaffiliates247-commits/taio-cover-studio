@@ -4,6 +4,23 @@ Tất cả các thay đổi đáng chú ý của dự án **TAIO Cover Studio** 
 
 ---
 
+## [1.1.0] - 2026-11-07 - Tối ưu UX/UI Siêu Gọn, Khắc Phục Tô Màu Nhấn & Tải Video Mobile / Telegram
+- **Tối ưu UX/UI Simple & Short (WYSIWYG):**
+  - Loại bỏ các khối thẻ dài dòng; đưa khung xem trước làm trọng tâm chính, các nút điều khiển đặt gọn gàng ngay bên dưới khung hình.
+  - Chuyển 4 mẫu lớp phủ thành dải nút chọn nhanh **A · B · C · D** (`[A] Chân trang`, `[B] Trên + Dưới`, `[C] Mờ dần`, `[D] Dọc 9:16`).
+  - Rút gọn thẻ thông tin video: hiển thị kích thước và thời lượng trực quan (`1080×1920 · 0:37`), không hiện tên tệp ngẫu nhiên rườm rà.
+  - Chuẩn hoá định dạng tên video tự động theo quy ước: `TAIO.CoverClip_YYMMDD_XX.mp4` (ví dụ `TAIO.CoverClip_071101.mp4`).
+- **Khắc phục triệt để lỗi tô màu từ khóa `**` (Accent Highlight):**
+  - Hỗ trợ đa dạng cú pháp: `**từ khóa**`, `*từ khóa*`, `** từ khóa **`, `<b>từ khóa</b>` và các biến thể dấu sao unicode.
+  - Tích hợp thanh hiển thị màu chữ thời gian thực ngay bên dưới ô nhập tiêu đề để người dùng thấy ngay từ vàng phát sáng.
+  - Đảm bảo màu vàng `#FFD34D` luôn được áp dụng chuẩn xác trên mọi mẫu template.
+- **Tối ưu Tải video trên Điện thoại & Gửi trung gian qua Telegram:**
+  - Tích hợp **Web Share API**: 1 chạm mở bảng chia sẻ hệ thống iOS/Android để chọn **"Lưu video" vào Cuộn Camera (Photos)** trực tiếp.
+  - Tích hợp trình phát video trực tiếp trên màn hình sau khi xuất để xem và chạm giữ tải về.
+  - Thêm endpoint `POST /api/send-telegram` và nút **✈️ Gửi qua Telegram**: Gửi thẳng file MP4 vào Telegram Bot chat của người dùng.
+
+---
+
 ## [1.0.0] - 2026-11-05 - Giai đoạn 7: Tài liệu & Hoàn thiện Sản phẩm v1.0 MVP
 - Biên soạn tài liệu chi tiết:
   - `README.md`: Hướng dẫn cài đặt, khởi chạy 1 chạm cho macOS và Windows, cấu hình AI, hướng dẫn dùng CLI, MCP Server và tự tạo template JSON.

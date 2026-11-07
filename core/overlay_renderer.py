@@ -144,7 +144,11 @@ def _draw_caption(
 
     # Màu sắc
     main_color = parse_hex_color(layer.get("color", "#FFFFFF"))
-    accent_color = parse_hex_color(layer.get("accent", "#FFD34D"))
+    raw_accent = layer.get("accent")
+    if raw_accent and not str(raw_accent).startswith("$"):
+        accent_color = parse_hex_color(raw_accent)
+    else:
+        accent_color = (255, 211, 77, 255)  # Luôn đảm bảo màu vàng #FFD34D chuẩn xác
 
     # Đổ bóng & Viền
     shadow_cfg = layer.get("shadow")
@@ -229,9 +233,12 @@ def _draw_caption(
                     fill=text_color,
                 )
 
-            # Tăng current_x
-            span_bbox = font.getbbox(span.text)
-            span_w = float(span_bbox[2] - span_bbox[0]) if span_bbox else 0.0
+            # Tăng current_x bằng getlength chính xác
+            try:
+                span_w = float(font.getlength(span.text))
+            except Exception:
+                span_bbox = font.getbbox(span.text)
+                span_w = float(span_bbox[2] - span_bbox[0]) if span_bbox else 0.0
             current_x += span_w
 
         current_y += result.line_height

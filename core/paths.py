@@ -76,3 +76,28 @@ def get_ffprobe_path() -> str:
             return str(cand)
 
     return "ffprobe"
+
+
+import datetime
+import threading
+
+_counter_lock = threading.Lock()
+_daily_counter = {"date": "", "count": 0}
+
+
+def generate_cover_clip_name() -> str:
+    """
+    Tạo tên video chuẩn theo quy ước: TAIO.CoverClip[ngày tạo, số thứ tự, vd: TAIO.CoverClip_071101.mp4]
+    """
+    now = datetime.datetime.now()
+    date_code = now.strftime("%d%m")  # ví dụ 0711
+    with _counter_lock:
+        if _daily_counter["date"] != date_code:
+            _daily_counter["date"] = date_code
+            _daily_counter["count"] = 1
+        else:
+            _daily_counter["count"] += 1
+        num_code = f"{_daily_counter['count']:02d}"
+
+    return f"TAIO.CoverClip_{date_code}{num_code}.mp4"
+

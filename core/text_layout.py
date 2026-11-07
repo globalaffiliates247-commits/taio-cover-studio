@@ -64,11 +64,26 @@ def get_font(weight: str = "Bold", size: int = 32) -> ImageFont.FreeTypeFont:
     return ImageFont.load_default()
 
 
+def normalize_accent_syntax(text: str) -> str:
+    """Chuẩn hoá mọi biến thể dấu sao (unicode, fullwidth) về chuẩn ASCII *."""
+    if not text:
+        return ""
+    # Chuyển fullwidth asterisk ＊ (U+FF0A), operator ∗ (U+2217), star ٭ (U+066D) về *
+    for ch in ("＊", "∗", "٭", "★", "☆"):
+        text = text.replace(ch, "*")
+    return text
+
+
 def parse_accent_spans(text: str) -> List[TextSpan]:
-    """Phân tích cú pháp **từ nhấn** thành danh sách các TextSpan."""
+    """
+    Phân tích cú pháp **từ nhấn**, *từ nhấn* hoặc <b>từ nhấn</b> thành danh sách các TextSpan.
+    Tự động xử lý khoảng trắng trong/ngoài để luôn đổi màu từ khóa chuẩn xác.
+    """
     spans: List[TextSpan] = []
-    # Pattern tìm các khối **...**
-    pattern = re.compile(r"\*\*(.*?)\*\*")
+    text = normalize_accent_syntax(text)
+
+    # Khớp **...**, *...*, <b>...</b>
+    pattern = re.compile(r"(?:\*\*|<b>|<B>)(.*?)(?:\*\*|</b>|</B>)|(?<!\*)\*([^\*]+?)\*(?!\*)")
     last_end = 0
 
     for match in pattern.finditer(text):
@@ -78,9 +93,20 @@ def parse_accent_spans(text: str) -> List[TextSpan]:
             if normal_text:
                 spans.append(TextSpan(text=normal_text, is_accent=False))
 
-        accent_content = match.group(1)
+        accent_content = match.group(1) if match.group(1) is not None else match.group(2)
         if accent_content:
-            spans.append(TextSpan(text=accent_content, is_accent=True))
+            # Tách khoảng trắng ở đầu và cuối nếu có để chỉ tô màu chữ
+            l_spaces = len(accent_content) - len(accent_content.lstrip())
+            r_spaces = len(accent_content) - len(accent_content.rstrip())
+            if l_spaces > 0:
+                spans.append(TextSpan(text=accent_content[:l_spaces], is_accent=False))
+
+            core_content = accent_content.strip()
+            if core_content:
+                spans.append(TextSpan(text=core_content, is_accent=True))
+
+            if r_spaces > 0:
+                spans.append(TextSpan(text=accent_content[-r_spaces:], is_accent=False))
 
         last_end = end
 
@@ -94,20 +120,21 @@ def prepare_caption_text(raw_text: str, uppercase: bool = False) -> str:
     """Chuẩn hoá Unicode sang NFC và in hoa nếu có yêu cầu."""
     if not raw_text:
         return ""
-    # Chuẩn hoá Unicode NFC để dấu tiếng Việt đồng nhất
     norm = unicodedata.normalize("NFC", raw_text)
     if uppercase:
-        # str.upper() chuẩn hoá tiếng Việt chính xác
         norm = norm.upper()
     return norm
 
 
 def _measure_span(span_text: str, font: ImageFont.FreeTypeFont) -> float:
-    """Đo chiều rộng của một đoạn văn bản."""
+    """Đo chiều rộng của một đoạn văn bản chính xác."""
     if not span_text:
         return 0.0
-    bbox = font.getbbox(span_text)
-    return float(bbox[2] - bbox[0])
+    try:
+        return float(font.getlength(span_text))
+    except Exception:
+        bbox = font.getbbox(span_text)
+        return float(bbox[2] - bbox[0]) if bbox else 0.0
 
 
 def wrap_text_into_lines(
