@@ -107,31 +107,47 @@
   }
 
   /**
-   * Handler xử lý cú chạm nút Lưu vào Cuộn Camera
+   * Handler xử lý cú chạm nút Lưu vào Cuộn Camera (FIX-2)
+   * Phải kích hoạt navigator.share NGAY LẬP TỨC trong synchronous user activation call stack,
+   * tuyệt đối không được có bất kỳ lệnh await nào (fetch, blob, setTimeout...) trước share.
    */
-  async function handleSaveClick() {
+  function handleSaveClick() {
+    // 1. Nếu file chưa sẵn sàng (người dùng bấm quá sớm): KHÔNG chờ đợi rồi mới share
     if (state.isPreparing || !state.resultFile) {
       if (btnSaveEl) {
-        btnSaveEl.textContent = "⏳ Đang chuẩn bị, bấm lại sau giây lát";
+        const originalText = btnSaveEl.textContent;
+        btnSaveEl.textContent = "⏳ Video đang được chuẩn bị, bấm lại sau giây lát";
         setTimeout(() => {
           if (btnSaveEl) {
-            btnSaveEl.textContent = state.resultFile ? "📱 Lưu vào Cuộn Camera" : "⏳ Đang chuẩn bị video…";
+            btnSaveEl.textContent = state.resultFile ? "📱 Lưu vào Cuộn Camera" : originalText;
           }
-        }, 2000);
+        }, 2500);
       }
       return;
     }
 
-    // Logic gọi share đồng bộ sẽ được hoàn thiện trong FIX-2
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [state.resultFile] })) {
-      try {
-        await navigator.share({
-          files: [state.resultFile],
-          title: state.filename,
+    // 2. Kiểm tra đồng bộ canShare trước, không có await
+    const shareData = {
+      files: [state.resultFile],
+      title: state.filename,
+    };
+
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      // Kích hoạt ngay lập tức trong cú chạm
+      navigator
+        .share(shareData)
+        .then(() => {
+          console.info("[save-photos] Chia sẻ thành công!");
+          if (btnSaveEl) {
+            btnSaveEl.textContent = "📱 Đã mở bảng lưu!";
+            setTimeout(() => {
+              if (btnSaveEl) btnSaveEl.textContent = "📱 Lưu vào Cuộn Camera";
+            }, 3000);
+          }
+        })
+        .catch((e) => {
+          console.info("[save-photos]", e.name, e.message);
         });
-      } catch (e) {
-        console.info("[save-photos]", e.name, e.message);
-      }
     }
   }
 
