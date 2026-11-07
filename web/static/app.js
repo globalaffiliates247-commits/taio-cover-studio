@@ -8,6 +8,8 @@
 
   const state = {
     video: null,          // { id, name, info }
+    videoFile: null,      // Đối tượng File gốc trong bộ nhớ để tự khôi phục
+    bootId: null,         // boot_id từ máy chủ
     templateId: "footer_band",
     caption: "",
     logoId: null,
@@ -82,6 +84,7 @@
       const res = await fetch("/api/config");
       if (res.ok) {
         state.config = await res.json();
+        state.bootId = state.config.boot_id || null;
         renderAIProviders();
       }
     } catch (e) {
@@ -173,8 +176,88 @@
     btnGenerateAI.addEventListener("click", generateCaptionsAI);
   }
 
-  // ==================== TẢI LÊN VIDEO ====================
+  // ==================== TẢI LÊN VIDEO & TỰ PHỤC HỒI ====================
+  function resetToPickVideo(msg) {
+    state.video = null;
+    state.videoFile = null;
+    state.currentJobId = null;
+    clearInterval(state.pollTimer);
+
+    dropEmptyState.hidden = false;
+    previewImage.hidden = true;
+    playerResultVideo.hidden = true;
+    previewTopPills.hidden = true;
+    previewBottomBar.hidden = true;
+    btnRenderVideo.disabled = true;
+    renderProgressCard.hidden = true;
+
+    if (msg) {
+      alert(msg);
+    }
+  }
+
+  async function ensureVideoOnServer() {
+    if (!state.videoFile) {
+      resetToPickVideo("Phiên làm việc đã hết hạn, vui lòng chọn lại video.");
+      throw new Error("Phiên làm việc đã hết hạn, vui lòng chọn lại video.");
+    }
+
+    renderProgressCard.hidden = false;
+    renderStatusText.textContent = "Máy chủ vừa khởi động lại, đang tải lại video…";
+    renderPctText.textContent = "...";
+    renderProgressBar.style.width = "40%";
+    previewLoadingOverlay.hidden = false;
+
+    const formData = new FormData();
+    formData.append("file", state.videoFile);
+    formData.append("kind", "video");
+
+    const res = await fetch("/api/upload", { method: "POST", body: formData });
+    const data = await res.json();
+    if (!res.ok) {
+      previewLoadingOverlay.hidden = true;
+      throw new Error(data.error || "Không thể tải lại video lên máy chủ");
+    }
+
+    state.video = data;
+    clipNameBadge.textContent = data.name || "TAIO.CoverClip";
+
+    try {
+      const cfgRes = await fetch("/api/config");
+      if (cfgRes.ok) {
+        const cfgData = await cfgRes.json();
+        state.bootId = cfgData.boot_id || null;
+      }
+    } catch (_) {}
+
+    previewLoadingOverlay.hidden = true;
+    return state.video;
+  }
+
+  async function fetchWithVideoRecovery(url, options = {}, retryCount = 1) {
+    const res = await fetch(url, options);
+    if (!res.ok) {
+      const clone = res.clone();
+      const errJson = await clone.json().catch(() => ({}));
+      if (errJson.code === "VIDEO_NOT_FOUND" && retryCount > 0 && state.videoFile) {
+        await ensureVideoOnServer();
+        if (options.body && typeof options.body === "string") {
+          try {
+            const bodyObj = JSON.parse(options.body);
+            if (bodyObj.video_id) {
+              bodyObj.video_id = state.video.id;
+              options.body = JSON.stringify(bodyObj);
+            }
+          } catch (_) {}
+        }
+        return fetchWithVideoRecovery(url, options, retryCount - 1);
+      }
+    }
+    return res;
+  }
+
   async function uploadVideo(file) {
+    state.videoFile = file;
     previewLoadingOverlay.hidden = false;
     renderErrorMsg.hidden = true;
 
@@ -269,7 +352,7 @@
         logo_id: state.logoId,
       };
 
-      const res = await fetch("/api/preview", {
+      const res = await fetchWithVideoRecovery("/api/preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -356,7 +439,7 @@
         logo_id: state.logoId,
       };
 
-      const res = await fetch("/api/render", {
+      const res = await fetchWithVideoRecovery("/api/render", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -539,7 +622,7 @@
         n: 5,
       };
 
-      const res = await fetch("/api/suggest", {
+      const res = await fetchWithVideoRecovery("/api/suggest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
