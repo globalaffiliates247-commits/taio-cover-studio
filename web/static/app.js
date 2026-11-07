@@ -85,6 +85,12 @@
       if (res.ok) {
         state.config = await res.json();
         state.bootId = state.config.boot_id || null;
+        if (state.config.version_info) {
+          const appVersionBadge = document.getElementById("appVersionBadge");
+          if (appVersionBadge) {
+            appVersionBadge.textContent = state.config.version_info.label;
+          }
+        }
         renderTemplatePills();
         renderAIProviders();
       }

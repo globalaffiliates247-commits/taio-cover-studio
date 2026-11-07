@@ -16,6 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from core.paths import BASE_DIR, OUTPUTS_DIR
 from core.templates import list_templates, get_template
 from core.compositor import build_preview, render_video
+from core.version import get_version_info
 from core.video_probe import probe_video
 
 SUPPORTED_VIDEO_EXTS = {".mp4", ".mov", ".m4v", ".mkv", ".webm"}
@@ -253,9 +254,11 @@ def cmd_suggest(args):
 
 
 def main():
+    v_info = get_version_info()
     parser = argparse.ArgumentParser(
         description="TAIO Cover Studio CLI - Công cụ gắn bìa thương hiệu và tạo caption tự động cho video ngắn.",
     )
+    parser.add_argument("--version", action="version", version=v_info["label"])
     subparsers = parser.add_subparsers(dest="command", help="Lệnh cần thực thi")
 
     # 1. templates

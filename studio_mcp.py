@@ -18,7 +18,10 @@ from mcp.server.fastmcp import FastMCP, Image
 from core.compositor import build_preview, render_video
 from core.frames import extract_ai_frames
 from core.templates import get_template, list_templates as core_list_templates
+from core.version import get_version_info
 from core.video_probe import probe_video
+
+v_info = get_version_info()
 
 # Khởi tạo MCP Server
 mcp = FastMCP("TAIO Cover Studio")
@@ -27,8 +30,8 @@ mcp = FastMCP("TAIO Cover Studio")
 @mcp.tool()
 def list_templates() -> List[Dict[str, str]]:
     """
-    Liệt kê tất cả các mẫu lớp phủ (templates) thương hiệu khả dụng.
-    Trả về danh sách các đối tượng {id, name, description}.
+    Liệt kê tất cả các mẫu lớp phủ (templates) thương hiệu khả dụng kèm phiên bản.
+    Trả về danh sách các đối tượng {id, name, description, version}.
     """
     tpls = core_list_templates()
     result = []
@@ -37,6 +40,7 @@ def list_templates() -> List[Dict[str, str]]:
             "id": str(t.get("id", "")),
             "name": str(t.get("name", "")),
             "description": str(t.get("description", "")),
+            "version": v_info["label"],
         })
     return result
 

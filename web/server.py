@@ -5,6 +5,7 @@ web/server.py - Flask API Server phục vụ toàn bộ giao diện và endpoint
 import io
 import os
 import queue
+import re
 import threading
 import time
 import uuid
@@ -18,6 +19,7 @@ from core.canvas import calculate_canvas_layout
 from core.compositor import build_preview, render_video
 from core.paths import BASE_DIR, BRAND_DIR, CONFIG_DIR, OUTPUTS_DIR, UPLOADS_DIR, WORKSPACE_DIR, generate_cover_clip_name
 from core.templates import get_template, list_templates
+from core.version import get_version_info
 from core.video_probe import probe_video
 
 from ai.settings import get_default_provider_id, list_ui_providers
@@ -55,10 +57,12 @@ current_active_renders = 0
 preview_semaphore = threading.BoundedSemaphore(2)
 
 # In log cấu hình hệ thống khi khởi động
+version_info = get_version_info()
 ffmpeg_threads_val = os.getenv("FFMPEG_THREADS", "2").strip()
 output_max_res_val = os.getenv("OUTPUT_MAX_RES", "720").strip()
 print(
-    f"[BOOT] boot_id={boot_id} cpu_count={os.cpu_count()} "
+    f"[BOOT] boot_id={boot_id} version={version_info['version']} build={version_info['build']} "
+    f"label='{version_info['label']}' cpu_count={os.cpu_count()} "
     f"FFMPEG_THREADS={ffmpeg_threads_val} MAX_PARALLEL_RENDERS={max_parallel} "
     f"OUTPUT_MAX_RES={output_max_res_val} WORKSPACE_DIR={WORKSPACE_DIR}",
     flush=True,
@@ -130,15 +134,41 @@ for _ in range(max_parallel):
 # ==================== TRANG CHỦ & HEALTH CHECK ====================
 @app.route("/")
 def index():
-    """Trả về giao diện HTML chính của ứng dụng."""
+    """Trả về giao diện HTML chính của ứng dụng với nhãn phiên bản và chống cache ?v=<build>."""
     index_path = BASE_DIR / "web" / "static" / "index.html"
-    return send_file(str(index_path))
+    if not index_path.exists():
+        return "Index not found", 404
+
+    with open(index_path, "r", encoding="utf-8") as f:
+        html = f.read()
+
+    v_info = get_version_info()
+    b_stamp = v_info.get("build", "")
+
+    # Chống cache: gắn ?v=<build> cho các file CSS và JS
+    if b_stamp:
+        html = re.sub(r'href="(/static/[^"]+\.css)(?:\?v=[^"]*)?"', rf'href="\1?v={b_stamp}"', html)
+        html = re.sub(r'src="(/static/[^"]+\.js)(?:\?v=[^"]*)?"', rf'src="\1?v={b_stamp}"', html)
+
+    # Gắn trực tiếp nhãn phiên bản vào HTML
+    html = re.sub(
+        r'<div class="app-version"[^>]*>.*?</div>',
+        f'<div class="app-version" id="appVersionBadge">{v_info.get("label", "")}</div>',
+        html,
+    )
+
+    resp = Response(html, mimetype="text/html")
+    resp.headers["X-App-Version"] = v_info.get("label", "")
+    return resp
 
 
 @app.route("/healthz")
 def healthz():
     """Health check endpoint cho Docker / Render Blueprint."""
-    return "ok", 200
+    v_info = get_version_info()
+    resp = Response("ok", 200, mimetype="text/plain")
+    resp.headers["X-App-Version"] = v_info.get("label", "")
+    return resp
 
 
 @app.route("/static/brand-logo")
@@ -200,6 +230,7 @@ def api_config():
 
     return jsonify({
         "boot_id": boot_id,
+        "version_info": get_version_info(),
         "templates": tpls,
         "ai": {
             "default": default_ai,

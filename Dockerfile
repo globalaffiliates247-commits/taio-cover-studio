@@ -16,6 +16,9 @@ RUN pip install --no-cache-dir -r requirements-server.txt
 # Sao chép toàn bộ mã nguồn
 COPY . .
 
+# Lưu thời điểm build theo giờ Việt Nam (UTC+7) dạng ddmmyyhh
+RUN date -u -d '+7 hours' +%d%m%y%H > BUILD_STAMP
+
 # Biến môi trường mặc định
 ENV PORT=8765 \
     WORKSPACE_DIR=/app/workspace \
