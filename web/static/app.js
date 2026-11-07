@@ -10,7 +10,7 @@
     video: null,          // { id, name, info }
     videoFile: null,      // Đối tượng File gốc trong bộ nhớ để tự khôi phục
     bootId: null,         // boot_id từ máy chủ
-    templateId: "footer_band",
+    templateId: "lower_third_fade", // Mẫu A (Mờ dần) mặc định
     caption: "",
     logoId: null,
     timeSec: 1.0,
@@ -85,6 +85,7 @@
       if (res.ok) {
         state.config = await res.json();
         state.bootId = state.config.boot_id || null;
+        renderTemplatePills();
         renderAIProviders();
       }
     } catch (e) {
@@ -111,6 +112,34 @@
     renderLiveHighlightPreview("");
   }
 
+  function renderTemplatePills() {
+    if (!state.config || !state.config.templates) return;
+    templatePillsBar.innerHTML = "";
+    const templates = state.config.templates;
+    if (templates.length > 0 && !state.templateId) {
+      state.templateId = templates[0].id;
+    }
+
+    templates.forEach((tpl, idx) => {
+      const letter = String.fromCharCode(65 + idx); // A, B, C, D...
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = `tpl-pill ${tpl.id === state.templateId ? "active" : ""}`;
+      btn.dataset.id = tpl.id;
+      btn.innerHTML = `
+        <span class="tpl-letter">${letter}</span>
+        <span class="tpl-shortname">${escapeHtml(tpl.short_name || tpl.name)}</span>
+      `;
+      btn.addEventListener("click", () => {
+        templatePillsBar.querySelectorAll(".tpl-pill").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        state.templateId = tpl.id;
+        debouncedPreview();
+      });
+      templatePillsBar.appendChild(btn);
+    });
+  }
+
   function renderAIProviders() {
     if (!state.config || !state.config.ai) return;
     aiProviderSelect.innerHTML = "";
@@ -132,15 +161,7 @@
       if (e.target.files && e.target.files[0]) uploadVideo(e.target.files[0]);
     });
 
-    // 2. Mẫu lớp phủ A B C D
-    templatePillsBar.querySelectorAll(".tpl-pill").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        templatePillsBar.querySelectorAll(".tpl-pill").forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-        state.templateId = btn.dataset.id;
-        debouncedPreview();
-      });
-    });
+    // 2. Mẫu lớp phủ được tạo động qua renderTemplatePills()
 
     // 3. Caption & Highlight thời gian thực
     captionInput.addEventListener("input", (e) => {

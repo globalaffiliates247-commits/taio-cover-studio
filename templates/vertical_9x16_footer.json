@@ -1,6 +1,8 @@
 {
   "id": "vertical_9x16_footer",
   "name": "Chuyển dọc 9:16",
+  "order": 4,
+  "short_name": "Dọc 9:16",
   "description": "Đổi khung sang 9:16: video ở ~56% phía trên, nền mờ (blur) lấp chỗ trống, dải thương hiệu + caption + handle ở dưới.",
   "canvas": {
     "aspect": "9:16",
@@ -19,6 +21,7 @@
   },
   "layers": [
     {
+      "id": "bg_footer",
       "type": "rect",
       "x": 0,
       "y": 0.58,
@@ -30,6 +33,7 @@
       "radius": 0
     },
     {
+      "id": "logo",
       "type": "logo",
       "x": 0.06,
       "y": 0.61,
@@ -48,6 +52,7 @@
       }
     },
     {
+      "id": "caption",
       "type": "caption",
       "box": {
         "x": 0.06,
@@ -77,6 +82,7 @@
       }
     },
     {
+      "id": "handle",
       "type": "text",
       "text": "@$handle",
       "box": {

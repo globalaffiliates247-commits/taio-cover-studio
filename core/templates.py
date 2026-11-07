@@ -46,6 +46,8 @@ def list_templates(templates_dir: Optional[Path] = None, brand_data: Optional[Di
             resolved = resolve_variables(raw, brand_data)
             templates.append(resolved)
 
+    # Sắp xếp theo order, sau đó đến id
+    templates.sort(key=lambda t: (t.get("order", 999), t.get("id", "")))
     return templates
 
 

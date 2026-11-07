@@ -1,10 +1,13 @@
 {
   "id": "footer_band",
   "name": "Dải chân trang",
+  "order": 2,
+  "short_name": "Chân trang",
   "description": "Dải màu thương hiệu phủ ~44% phía dưới, logo dạng viên thuốc + tên, caption in hoa ở giữa, từ nhấn màu vàng. Giữ khung gốc.",
   "canvas": "source",
   "layers": [
     {
+      "id": "bg_band",
       "type": "rect",
       "x": 0,
       "y": 0.56,
@@ -18,6 +21,7 @@
       "stroke_width": 0
     },
     {
+      "id": "logo",
       "type": "logo",
       "x": 0.05,
       "y": 0.595,
@@ -36,6 +40,7 @@
       }
     },
     {
+      "id": "caption",
       "type": "caption",
       "box": {
         "x": 0.06,

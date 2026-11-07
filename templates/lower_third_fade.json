@@ -1,10 +1,13 @@
 {
   "id": "lower_third_fade",
   "name": "Mờ dần tối giản",
+  "order": 1,
+  "short_name": "Mờ dần",
   "description": "Nền đen mờ dần ở 45% dưới, caption canh trái kèm vạch màu nhấn, logo nhỏ góc trên phải.",
   "canvas": "source",
   "layers": [
     {
+      "id": "bg_fade",
       "type": "rect",
       "x": 0,
       "y": 0.55,
@@ -16,6 +19,7 @@
       "radius": 0
     },
     {
+      "id": "accent_bar",
       "type": "rect",
       "x": 0.05,
       "y": 0.68,
@@ -25,6 +29,7 @@
       "radius": 0.005
     },
     {
+      "id": "caption",
       "type": "caption",
       "box": {
         "x": 0.085,
@@ -50,6 +55,7 @@
       }
     },
     {
+      "id": "logo",
       "type": "logo",
       "x": 0.95,
       "y": 0.04,

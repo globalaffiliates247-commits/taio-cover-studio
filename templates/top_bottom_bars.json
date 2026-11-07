@@ -1,10 +1,13 @@
 {
   "id": "top_bottom_bars",
   "name": "Phủ trên + dưới",
+  "order": 3,
+  "short_name": "Trên + Dưới",
   "description": "Thanh tối ~20% phía trên chứa caption; thanh thương hiệu ~10% phía dưới chứa logo + @handle.",
   "canvas": "source",
   "layers": [
     {
+      "id": "top_bar",
       "type": "rect",
       "x": 0,
       "y": 0,
@@ -14,6 +17,7 @@
       "radius": 0
     },
     {
+      "id": "caption",
       "type": "caption",
       "box": {
         "x": 0.05,
@@ -39,6 +43,7 @@
       }
     },
     {
+      "id": "bottom_bar",
       "type": "rect",
       "x": 0,
       "y": 0.90,
@@ -48,6 +53,7 @@
       "radius": 0
     },
     {
+      "id": "logo",
       "type": "logo",
       "x": 0.04,
       "y": 0.915,
@@ -59,6 +65,7 @@
       "gap": 0.012
     },
     {
+      "id": "handle",
       "type": "text",
       "text": "@$handle",
       "box": {
