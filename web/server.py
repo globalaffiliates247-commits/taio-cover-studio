@@ -16,7 +16,7 @@ from flask import Flask, jsonify, request, send_file, Response
 from core.brand import load_brand_kit, get_default_logo_path
 from core.canvas import calculate_canvas_layout
 from core.compositor import build_preview, render_video
-from core.paths import BASE_DIR, BRAND_DIR, OUTPUTS_DIR, UPLOADS_DIR, WORKSPACE_DIR, generate_cover_clip_name
+from core.paths import BASE_DIR, BRAND_DIR, CONFIG_DIR, OUTPUTS_DIR, UPLOADS_DIR, WORKSPACE_DIR, generate_cover_clip_name
 from core.templates import get_template, list_templates
 from core.video_probe import probe_video
 
@@ -171,6 +171,15 @@ def api_config():
         "default_chat_id": os.getenv("TELEGRAM_CHAT_ID", "").strip(),
     }
 
+    safe_zones = {}
+    safe_zones_path = CONFIG_DIR / "safe_zones.json"
+    if safe_zones_path.exists():
+        try:
+            with open(safe_zones_path, "r", encoding="utf-8") as sz_f:
+                safe_zones = json.load(sz_f)
+        except Exception:
+            pass
+
     return jsonify({
         "boot_id": boot_id,
         "templates": tpls,
@@ -180,6 +189,7 @@ def api_config():
         },
         "brand": clean_brand,
         "telegram": telegram_cfg,
+        "safe_zones": safe_zones,
     })
 
 

@@ -110,6 +110,28 @@
 
     bindEvents();
     renderLiveHighlightPreview("");
+
+    // Khởi tạo bộ tương tác Sticker (FEATURE v1.2 P3)
+    if (window.TAIOSticker) {
+      window.TAIOSticker.init({
+        previewWrapper: previewWrapper,
+        previewImage: previewImage,
+        onOverridesChanged: () => {
+          debouncedPreview();
+        },
+      });
+      if (state.config && state.config.safe_zones) {
+        window.TAIOSticker.setSafeZonesConfig(state.config.safe_zones);
+      }
+    }
+
+    if (previewImage) {
+      previewImage.addEventListener("load", () => {
+        if (window.TAIOSticker) {
+          window.TAIOSticker.updateCanvasLayout();
+        }
+      });
+    }
   }
 
   function renderTemplatePills() {
@@ -134,10 +156,18 @@
         templatePillsBar.querySelectorAll(".tpl-pill").forEach((b) => b.classList.remove("active"));
         btn.classList.add("active");
         state.templateId = tpl.id;
+        if (window.TAIOSticker) {
+          window.TAIOSticker.setTemplate(tpl, state.config ? state.config.brand : null);
+        }
         debouncedPreview();
       });
       templatePillsBar.appendChild(btn);
     });
+
+    const activeTpl = templates.find((t) => t.id === state.templateId) || templates[0];
+    if (activeTpl && window.TAIOSticker) {
+      window.TAIOSticker.setTemplate(activeTpl, state.config ? state.config.brand : null);
+    }
   }
 
   function renderAIProviders() {
@@ -187,6 +217,9 @@
       logoThumbnailImg.src = "/static/brand-logo";
       logoStatusLabel.textContent = "Logo TAIO";
       btnResetDefaultLogo.hidden = true;
+      if (window.TAIOSticker) {
+        window.TAIOSticker.setLogoId(null);
+      }
       debouncedPreview();
     });
 
@@ -221,6 +254,9 @@
     previewBottomBar.hidden = true;
     btnRenderVideo.disabled = true;
     renderProgressCard.hidden = true;
+
+    const logoSticker = document.getElementById("logoSticker");
+    if (logoSticker) logoSticker.hidden = true;
 
     if (msg) {
       alert(msg);
@@ -340,6 +376,9 @@
       logoThumbnailImg.src = URL.createObjectURL(file);
       logoStatusLabel.textContent = "Logo riêng";
       btnResetDefaultLogo.hidden = false;
+      if (window.TAIOSticker) {
+        window.TAIOSticker.setLogoId(state.logoId);
+      }
       debouncedPreview();
     } catch (err) {
       alert("Lỗi logo: " + err.message);
@@ -375,12 +414,15 @@
     previewLoadingOverlay.hidden = false;
 
     try {
+      const stickerOverrides = window.TAIOSticker ? window.TAIOSticker.getOverrides() : {};
       const payload = {
         video_id: state.video.id,
         template: state.templateId,
         caption: state.caption,
         t: state.timeSec,
         logo_id: state.logoId,
+        overrides: stickerOverrides,
+        exclude_layers: ["logo"],
       };
 
       const res = await fetchWithVideoRecovery("/api/preview", {
@@ -427,6 +469,14 @@
       previewImage.style.opacity = "1";
       previewImage.hidden = false;
       playerResultVideo.hidden = true;
+
+      const logoSticker = document.getElementById("logoSticker");
+      if (logoSticker) {
+        logoSticker.hidden = false;
+      }
+      if (window.TAIOSticker) {
+        window.TAIOSticker.updateCanvasLayout();
+      }
     } catch (err) {
       if (reqId < state.previewRequestId) return;
       // Không giữ ảnh cũ im lặng: hiện cảnh báo và làm mờ ảnh
@@ -462,12 +512,14 @@
     renderProgressBar.style.width = "0%";
 
     try {
+      const stickerOverrides = window.TAIOSticker ? window.TAIOSticker.getOverrides() : {};
       const payload = {
         video_id: state.video.id,
         video_name: state.video.name,
         template: state.templateId,
         caption: state.caption,
         logo_id: state.logoId,
+        overrides: stickerOverrides,
       };
 
       const res = await fetchWithVideoRecovery("/api/render", {

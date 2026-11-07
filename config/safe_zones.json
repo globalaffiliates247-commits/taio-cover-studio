@@ -1,0 +1,26 @@
+{
+  "_note": "Các toạ độ vùng an toàn (safe zones) mang tính ước lượng tham khảo dựa trên giao diện người dùng phổ biến của các nền tảng video ngắn (TikTok, Reels, Shorts), không phải số liệu chính thức.",
+  "platforms": {
+    "tiktok": {
+      "name": "TikTok (9:16)",
+      "top": 0.10,
+      "bottom": 0.22,
+      "right": 0.16,
+      "left": 0.04
+    },
+    "reels": {
+      "name": "Instagram Reels (9:16)",
+      "top": 0.08,
+      "bottom": 0.20,
+      "right": 0.15,
+      "left": 0.04
+    },
+    "shorts": {
+      "name": "YouTube Shorts (9:16)",
+      "top": 0.08,
+      "bottom": 0.18,
+      "right": 0.14,
+      "left": 0.04
+    }
+  }
+}

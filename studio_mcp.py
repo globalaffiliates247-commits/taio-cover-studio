@@ -177,11 +177,6 @@ def render_overlay_video(
             logo_path=logo_path,
             overrides=overrides,
         )
-            template=tpl,
-            caption=caption,
-            output_path=output_path,
-            logo_path=logo_path,
-        )
         return {
             "output": res["output"],
             "width": res["width"],

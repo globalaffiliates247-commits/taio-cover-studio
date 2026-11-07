@@ -44,6 +44,39 @@
         <!-- Ảnh xem trước 100% khớp video -->
         <img src="" alt="Preview frame" id="previewImage" class="preview-screen" hidden>
         
+        <!-- Sân khấu tương tác Sticker & Guides khớp 100% tỷ lệ khung hình video -->
+        <div class="sticker-stage" id="stickerStage">
+          <!-- Vùng an toàn nền tảng (Safe Zones Overlay) -->
+          <div class="safe-zone-overlay" id="safeZoneOverlay" hidden>
+            <div class="safe-zone-top"></div>
+            <div class="safe-zone-bottom"></div>
+            <div class="safe-zone-right"></div>
+            <div class="safe-zone-left"></div>
+            <span class="safe-zone-badge" id="safeZoneBadge">Vùng an toàn: TIKTOK</span>
+          </div>
+
+          <!-- Đường dóng thông minh (Smart Guides - Figma/Canva style) -->
+          <div class="guide-line guide-v" id="guideCenterX" hidden></div>
+          <div class="guide-line guide-h" id="guideCenterY" hidden></div>
+          <div class="guide-line guide-v" id="guideMarginLeft" hidden></div>
+          <div class="guide-line guide-v" id="guideMarginRight" hidden></div>
+          <div class="guide-line guide-h" id="guideMarginTop" hidden></div>
+          <div class="guide-line guide-h" id="guideMarginBottom" hidden></div>
+
+          <!-- Phần tử Sticker Logo kéo thả trực tiếp -->
+          <div class="sticker-box" id="logoSticker" tabindex="0" hidden>
+            <img id="logoStickerImg" class="sticker-img" draggable="false" alt="Logo sticker">
+            <!-- 4 tay cầm đổi cỡ ở 4 góc (Fitts's Law >= 44x44px target) -->
+            <div class="sticker-handle handle-tl" data-handle="tl"></div>
+            <div class="sticker-handle handle-tr" data-handle="tr"></div>
+            <div class="sticker-handle handle-bl" data-handle="bl"></div>
+            <div class="sticker-handle handle-br" data-handle="br"></div>
+            <!-- Tay cầm xoay ở đỉnh -->
+            <div class="sticker-rotator-line"></div>
+            <div class="sticker-rotator" data-handle="rotate" title="Kéo để xoay (Giữ Shift nhảy 15°)"></div>
+          </div>
+        </div>
+        
         <!-- Video phát thử khi xuất xong -->
         <video id="playerResultVideo" class="preview-screen" controls playsinline hidden></video>
 
@@ -103,6 +136,86 @@
         <button type="button" class="btn-micro" id="btnUploadCustomLogo">Đổi logo</button>
         <button type="button" class="btn-micro btn-micro-danger" id="btnResetDefaultLogo" hidden>Dùng lại logo gốc</button>
       </div>
+
+      <!-- Bảng điều khiển Sticker Logo & Vùng an toàn chính xác (thu gọn mặc định) -->
+      <details class="sticker-panel-card" id="stickerPanelCard">
+        <summary class="sticker-panel-summary">
+          <div class="summary-left">
+            <span class="panel-icon">🎯</span>
+            <span class="panel-title">Vị trí & Kích thước Logo</span>
+          </div>
+          <span class="panel-sub">Kéo thả sticker hoặc chỉnh số</span>
+        </summary>
+        <div class="sticker-panel-body">
+          
+          <!-- Lưới 9 vị trí nhanh cách lề 5% -->
+          <div class="panel-section-wrap">
+            <span class="panel-field-label">Vị trí nhanh (lề 5%):</span>
+            <div class="grid-9-positions">
+              <button type="button" class="btn-grid-pos" data-pos="tl" title="Trên - Trái">↖</button>
+              <button type="button" class="btn-grid-pos" data-pos="tc" title="Trên - Giữa">⬆</button>
+              <button type="button" class="btn-grid-pos" data-pos="tr" title="Trên - Phải">↗</button>
+              <button type="button" class="btn-grid-pos" data-pos="ml" title="Giữa - Trái">⬅</button>
+              <button type="button" class="btn-grid-pos" data-pos="mc" title="Chính giữa">⏺</button>
+              <button type="button" class="btn-grid-pos" data-pos="mr" title="Giữa - Phải">➡</button>
+              <button type="button" class="btn-grid-pos" data-pos="bl" title="Dưới - Trái">↙</button>
+              <button type="button" class="btn-grid-pos" data-pos="bc" title="Dưới - Giữa">⬇</button>
+              <button type="button" class="btn-grid-pos" data-pos="br" title="Dưới - Phải">↘</button>
+            </div>
+          </div>
+
+          <!-- Nhập số chính xác: X %, Y %, Cỡ %, Xoay °, Độ mờ % -->
+          <div class="numeric-inputs-row">
+            <div class="num-field">
+              <span class="num-label">X (%)</span>
+              <input type="number" id="numStickerX" class="compact-num-input" min="0" max="100" step="1">
+            </div>
+            <div class="num-field">
+              <span class="num-label">Y (%)</span>
+              <input type="number" id="numStickerY" class="compact-num-input" min="0" max="100" step="1">
+            </div>
+            <div class="num-field">
+              <span class="num-label">Cỡ (%)</span>
+              <input type="number" id="numStickerW" class="compact-num-input" min="5" max="100" step="1">
+            </div>
+            <div class="num-field">
+              <span class="num-label">Xoay (°)</span>
+              <input type="number" id="numStickerRot" class="compact-num-input" min="-180" max="180" step="1">
+            </div>
+            <div class="num-field">
+              <span class="num-label">Mờ (%)</span>
+              <input type="number" id="numStickerOpacity" class="compact-num-input" min="0" max="100" step="1">
+            </div>
+          </div>
+
+          <!-- Hàng công tắc và khôi phục -->
+          <div class="toggles-ctrl-row">
+            <label class="toggle-switch-label">
+              <input type="checkbox" id="chkStickerPill" checked>
+              <span>Viên thuốc</span>
+            </label>
+            <label class="toggle-switch-label">
+              <input type="checkbox" id="chkStickerHide">
+              <span>Ẩn logo</span>
+            </label>
+            <button type="button" class="btn-micro" id="btnResetStickerPos">Mặc định mẫu</button>
+          </div>
+
+          <!-- Vùng an toàn nền tảng -->
+          <div class="safe-zone-ctrl-row">
+            <label class="toggle-switch-label">
+              <input type="checkbox" id="chkShowSafeZone">
+              <span>Hiện vùng an toàn:</span>
+            </label>
+            <select id="selSafePlatformSelect" class="compact-select-mini">
+              <option value="tiktok">TikTok (9:16)</option>
+              <option value="reels">Instagram Reels (9:16)</option>
+              <option value="shorts">YouTube Shorts (9:16)</option>
+            </select>
+          </div>
+
+        </div>
+      </details>
 
       <!-- Thông báo cảnh báo (nếu có) -->
       <div class="warning-strip" id="warningBanner" hidden>
@@ -206,6 +319,7 @@
     </div>
   </div>
 
+  <script src="/static/js/sticker.js"></script>
   <script src="/static/app.js"></script>
 </body>
 </html>

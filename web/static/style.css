@@ -731,3 +731,356 @@ html, body {
   background-color: rgba(239, 68, 68, 0.15);
   color: #FCA5A5;
 }
+
+/* ==================== 10. STICKER DIRECT MANIPULATION (FEATURE v1.2 P3) ==================== */
+.sticker-stage {
+  position: absolute;
+  pointer-events: none;
+  z-index: 15;
+  overflow: visible;
+}
+
+.sticker-box {
+  position: absolute;
+  box-sizing: border-box;
+  touch-action: none;
+  user-select: none;
+  pointer-events: auto;
+  cursor: grab;
+  outline: none;
+  z-index: 18;
+}
+
+.sticker-box:active {
+  cursor: grabbing;
+}
+
+.sticker-box.active {
+  box-shadow: 0 0 0 1.5px #3B82F6, 0 4px 12px rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+}
+
+.sticker-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Tay cầm đổi cỡ ở 4 góc (Fitts's Law: vùng chạm >= 44x44px) */
+.sticker-handle {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background-color: #FFFFFF;
+  border: 2.5px solid #3B82F6;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  pointer-events: auto;
+  z-index: 25;
+}
+
+.sticker-handle::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+.handle-tl { top: 0; left: 0; transform: translate(-50%, -50%); cursor: nwse-resize; }
+.handle-tr { top: 0; right: 0; transform: translate(50%, -50%); cursor: nesw-resize; }
+.handle-bl { bottom: 0; left: 0; transform: translate(-50%, 50%); cursor: nesw-resize; }
+.handle-br { bottom: 0; right: 0; transform: translate(50%, 50%); cursor: nwse-resize; }
+
+/* Tay cầm xoay ở đỉnh */
+.sticker-rotator-line {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  width: 1.5px;
+  height: 24px;
+  background-color: #3B82F6;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.sticker-rotator {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  background-color: #FFD34D;
+  border: 2px solid #000000;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  pointer-events: auto;
+  z-index: 26;
+}
+
+.sticker-rotator::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+/* Đường dóng thông minh (Smart Guides) */
+.guide-line {
+  position: absolute;
+  pointer-events: none;
+  z-index: 22;
+}
+
+.guide-v {
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 1.5px dashed #FFD34D;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
+}
+
+.guide-h {
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1.5px dashed #FFD34D;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
+}
+
+/* Vùng an toàn nền tảng (Safe Zones) */
+.safe-zone-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 12;
+}
+
+.safe-zone-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(239, 68, 68, 0.16);
+  border-bottom: 1px dashed rgba(239, 68, 68, 0.6);
+}
+
+.safe-zone-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(239, 68, 68, 0.16);
+  border-top: 1px dashed rgba(239, 68, 68, 0.6);
+}
+
+.safe-zone-right {
+  position: absolute;
+  right: 0;
+  background: rgba(239, 68, 68, 0.16);
+  border-left: 1px dashed rgba(239, 68, 68, 0.6);
+}
+
+.safe-zone-left {
+  position: absolute;
+  left: 0;
+  background: rgba(239, 68, 68, 0.16);
+  border-right: 1px dashed rgba(239, 68, 68, 0.6);
+}
+
+.safe-zone-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #FCA5A5;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+/* Bảng điều khiển Sticker thu gọn */
+.sticker-panel-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.sticker-panel-card[open] {
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.sticker-panel-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  cursor: pointer;
+  user-select: none;
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.sticker-panel-summary:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.summary-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.panel-icon {
+  font-size: 0.9rem;
+}
+
+.panel-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.panel-sub {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+
+.sticker-panel-body {
+  padding: 10px 12px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.panel-section-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.panel-field-label {
+  font-size: 0.76rem;
+  color: var(--text-dim);
+}
+
+/* Lưới 9 vị trí nhanh */
+.grid-9-positions {
+  display: grid;
+  grid-template-columns: repeat(3, 26px);
+  gap: 3px;
+}
+
+.btn-grid-pos {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: #FFFFFF;
+  font-size: 0.78rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.btn-grid-pos:hover {
+  background-color: #3B82F6;
+  border-color: #3B82F6;
+}
+
+/* Hàng nhập số */
+.numeric-inputs-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+
+.num-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.num-label {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.compact-num-input {
+  width: 100%;
+  padding: 4px 2px;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: #FFFFFF;
+  font-size: 0.78rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+.compact-num-input:focus {
+  outline: none;
+  border-color: #3B82F6;
+}
+
+/* Toggles row */
+.toggles-ctrl-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.toggle-switch-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.76rem;
+  color: #E2E8F0;
+  cursor: pointer;
+}
+
+.toggle-switch-label input[type="checkbox"] {
+  accent-color: #3B82F6;
+}
+
+.safe-zone-ctrl-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.compact-select-mini {
+  padding: 3px 6px;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: #FFFFFF;
+  font-size: 0.74rem;
+}
+
