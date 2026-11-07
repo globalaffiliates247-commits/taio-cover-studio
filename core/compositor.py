@@ -14,6 +14,7 @@ from PIL import Image, ImageEnhance, ImageFilter
 from core.brand import get_default_logo_path
 from core.canvas import calculate_canvas_layout
 from core.frames import extract_frame_at
+from core.overrides import apply_overrides
 from core.overlay_renderer import render_overlay
 from core.paths import get_ffmpeg_path, OUTPUTS_DIR, get_ffmpeg_threads
 from core.video_probe import probe_video
@@ -25,15 +26,18 @@ def build_preview(
     caption: str,
     time_sec: float = 1.0,
     logo_path: Optional[str] = None,
+    overrides: Optional[Dict[str, Any]] = None,
+    exclude_layers: Optional[List[str]] = None,
 ) -> Tuple[Image.Image, List[str]]:
     """
     Tạo 1 ảnh xem trước tại thời điểm time_sec, khớp 100% với khung hình xuất của video.
     """
+    tpl = apply_overrides(template, overrides)
     info = probe_video(video_path)
     # Giới hạn time_sec trong phạm vi video
     clamped_t = min(max(time_sec, 0.0), max(info.duration - 0.1, 0.0))
 
-    layout = calculate_canvas_layout(info.width, info.height, template.get("canvas"))
+    layout = calculate_canvas_layout(info.width, info.height, tpl.get("canvas"))
     raw_frame = extract_frame_at(video_path, clamped_t)
 
     # Nếu chưa truyền logo_path, dùng logo mặc định của brand
@@ -80,7 +84,13 @@ def build_preview(
             canvas_img = raw_frame.convert("RGBA")
 
     # 2. Vẽ lớp phủ overlay
-    overlay_img, warnings = render_overlay(template, layout, caption, logo_path=logo_path)
+    overlay_img, warnings = render_overlay(
+        tpl,
+        layout,
+        caption,
+        logo_path=logo_path,
+        exclude_layers=exclude_layers,
+    )
 
     # 3. Ghép alpha
     final_img = Image.alpha_composite(canvas_img, overlay_img).convert("RGB")
@@ -94,12 +104,14 @@ def render_video(
     output_path: Optional[str] = None,
     logo_path: Optional[str] = None,
     on_progress: Optional[Callable[[float], None]] = None,
+    overrides: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Xuất video MP4 bằng ffmpeg với lớp phủ PNG RGBA, theo dõi tiến độ qua pipe:1.
     """
+    tpl = apply_overrides(template, overrides)
     info = probe_video(video_path)
-    layout = calculate_canvas_layout(info.width, info.height, template.get("canvas"))
+    layout = calculate_canvas_layout(info.width, info.height, tpl.get("canvas"))
 
     if not logo_path:
         default_logo = get_default_logo_path()
@@ -107,7 +119,7 @@ def render_video(
             logo_path = str(default_logo)
 
     # Vẽ lớp phủ overlay PNG
-    overlay_img, warnings = render_overlay(template, layout, caption, logo_path=logo_path)
+    overlay_img, warnings = render_overlay(tpl, layout, caption, logo_path=logo_path)
 
     # Lưu overlay ra file tạm
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_overlay:

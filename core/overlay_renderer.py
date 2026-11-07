@@ -9,6 +9,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 from PIL import Image, ImageDraw, ImageFont
 from core.colors import parse_hex_color
 from core.canvas import CanvasLayout
+from core.layer_blocks import render_logo_block
 from core.text_layout import (
     compute_text_layout,
     get_font,
@@ -244,6 +245,51 @@ def _draw_caption(
         current_y += result.line_height
 
 
+def _draw_sticker_logo(
+    overlay: Image.Image,
+    layer: Dict[str, Any],
+    layout: CanvasLayout,
+    context: Dict[str, Any],
+    warnings: List[str],
+):
+    """Vẽ logo dạng sticker tự do: tâm tại (x*W, y*H), xoay rotation, co giãn theo w, áp opacity."""
+    w, h = layout.out_w, layout.out_h
+    logo_path = context.get("logo_path")
+    pill_override = layer.get("pill_enabled")
+
+    block = render_logo_block(layer, logo_path=logo_path, pill_override=pill_override, base_h=160)
+    if block.width <= 0 or block.height <= 0:
+        return
+
+    # Chiều rộng sticker theo w của layer (tỉ lệ trên out_w)
+    target_w = max(int(round(layer.get("w", 0.22) * w)), 16)
+    scale = target_w / float(block.width)
+    target_h = max(int(round(block.height * scale)), 16)
+    scaled = block.resize((target_w, target_h), Image.Resampling.LANCZOS)
+
+    # Xoay
+    rot = float(layer.get("rotation", 0.0))
+    if rot != 0.0:
+        # Xoay theo góc dương cùng chiều kim đồng hồ
+        scaled = scaled.rotate(-rot, expand=True, resample=Image.Resampling.BICUBIC)
+
+    # Áp opacity
+    opacity = float(layer.get("opacity", 1.0))
+    if opacity < 1.0:
+        alpha = scaled.split()[-1]
+        alpha = alpha.point(lambda p: int(round(p * opacity)))
+        scaled.putalpha(alpha)
+
+    # Toạ độ TÂM (x*W, y*H)
+    center_x = int(round(layer.get("x", 0.5) * w))
+    center_y = int(round(layer.get("y", 0.5) * h))
+
+    top_left_x = center_x - scaled.width // 2
+    top_left_y = center_y - scaled.height // 2
+
+    overlay.paste(scaled, (top_left_x, top_left_y), scaled)
+
+
 def _draw_logo(
     overlay: Image.Image,
     layer: Dict[str, Any],
@@ -252,6 +298,10 @@ def _draw_logo(
     warnings: List[str],
 ):
     """Vẽ logo thương hiệu (ảnh + tên thương hiệu trong khung viên thuốc pill tuỳ chọn)."""
+    if layer.get("is_sticker"):
+        _draw_sticker_logo(overlay, layer, layout, context, warnings)
+        return
+
     w, h = layout.out_w, layout.out_h
     unit = layout.unit
 
@@ -472,6 +522,7 @@ def render_overlay(
     layout: CanvasLayout,
     caption: str,
     logo_path: Optional[str] = None,
+    exclude_layers: Optional[List[str]] = None,
 ) -> Tuple[Image.Image, List[str]]:
     """
     Vẽ toàn bộ các layer của template lên một ảnh RGBA trong suốt có kích thước (out_w, out_h).
@@ -485,8 +536,15 @@ def render_overlay(
         "logo_path": logo_path,
     }
 
+    exclude_set = set(exclude_layers or [])
     layers = template.get("layers", [])
     for layer in layers:
+        layer_id = layer.get("id")
+        layer_type = layer.get("type")
+        if (layer_id and layer_id in exclude_set) or (layer_type and layer_type in exclude_set):
+            continue
+        if not layer.get("visible", True):
+            continue
         if layer.get("hidden", False):
             continue
 

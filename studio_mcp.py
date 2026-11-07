@@ -107,14 +107,15 @@ def suggest_captions(
 @mcp.tool()
 def preview_overlay(
     video_path: str,
-    template_id: str = "footer_band",
+    template_id: str = "lower_third_fade",
     caption: str = "",
     time_sec: float = 1.0,
     logo_path: Optional[str] = None,
+    overrides: Optional[Dict[str, Any]] = None,
 ):
     """
     Tạo 1 ảnh xem trước lớp phủ tại thời điểm time_sec (khớp 100% với video xuất).
-    Trả về ảnh JPEG xem trước và danh sách cảnh báo nếu có.
+    Hỗ trợ tham số overrides để tuỳ chỉnh sticker logo và kiểu chữ.
     """
     if not os.path.exists(video_path):
         return [f"Lỗi: Không tìm thấy file video: {video_path}"]
@@ -130,6 +131,7 @@ def preview_overlay(
             caption=caption,
             time_sec=time_sec,
             logo_path=logo_path,
+            overrides=overrides,
         )
 
         buf = io.BytesIO()
@@ -145,14 +147,15 @@ def preview_overlay(
 @mcp.tool()
 def render_overlay_video(
     video_path: str,
-    template_id: str = "footer_band",
+    template_id: str = "lower_third_fade",
     caption: str = "",
     output_path: Optional[str] = None,
     logo_path: Optional[str] = None,
+    overrides: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Xuất video MP4 với lớp phủ thương hiệu và caption.
-    Mặc định lưu cùng thư mục với file gốc và hậu tố '_taio.mp4'.
+    Hỗ trợ tham số overrides để tuỳ biến sticker logo và kiểu chữ.
     """
     if not os.path.exists(video_path):
         return {"error": f"Không tìm thấy file video: {video_path}"}
@@ -168,6 +171,12 @@ def render_overlay_video(
     try:
         res = render_video(
             video_path=video_path,
+            template=tpl,
+            caption=caption,
+            output_path=output_path,
+            logo_path=logo_path,
+            overrides=overrides,
+        )
             template=tpl,
             caption=caption,
             output_path=output_path,

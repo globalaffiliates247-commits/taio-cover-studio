@@ -48,6 +48,18 @@ def _print_progress_bar(current_file: str, progress: float):
         sys.stdout.write("\n")
 
 
+def load_overrides_arg(path_str: Optional[str]) -> Optional[Dict[str, Any]]:
+    """Đọc tệp JSON overrides nếu có."""
+    if not path_str:
+        return None
+    try:
+        with open(path_str, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Cảnh báo: Không thể nạp file overrides '{path_str}': {e}", file=sys.stderr)
+        return None
+
+
 def cmd_render(args):
     """Xuất một video với lớp phủ."""
     video_path = args.video
@@ -55,7 +67,7 @@ def cmd_render(args):
         print(f"Lỗi: Không tìm thấy file video: {video_path}", file=sys.stderr)
         sys.exit(1)
 
-    template_id = args.template or "footer_band"
+    template_id = args.template or "lower_third_fade"
     tpl = get_template(template_id)
     if not tpl:
         print(f"Lỗi: Không tìm thấy template '{template_id}'", file=sys.stderr)
@@ -79,6 +91,7 @@ def cmd_render(args):
         except Exception as e:
             print(f"Cảnh báo: Không thể gợi ý caption bằng AI ({e}). Tiếp tục với caption mặc định.")
 
+    overrides = load_overrides_arg(getattr(args, "overrides", None))
     out_path = args.output
     print(f"Bắt đầu xuất video: {video_path}")
     print(f"Template: {template_id}")
@@ -95,6 +108,7 @@ def cmd_render(args):
             output_path=out_path,
             logo_path=args.logo,
             on_progress=on_prog,
+            overrides=overrides,
         )
         print(f"\n Xuất video thành công: {res['output']}")
         if res.get("warnings"):
@@ -112,7 +126,7 @@ def cmd_preview(args):
         print(f"Lỗi: Không tìm thấy file video: {video_path}", file=sys.stderr)
         sys.exit(1)
 
-    template_id = args.template or "footer_band"
+    template_id = args.template or "lower_third_fade"
     tpl = get_template(template_id)
     if not tpl:
         print(f"Lỗi: Không tìm thấy template '{template_id}'", file=sys.stderr)
@@ -121,6 +135,7 @@ def cmd_preview(args):
     caption = args.caption or ""
     time_sec = float(args.at or 1.0)
     out_path = args.output or "preview.jpg"
+    overrides = load_overrides_arg(getattr(args, "overrides", None))
 
     try:
         img, warnings = build_preview(
@@ -129,6 +144,7 @@ def cmd_preview(args):
             caption=caption,
             time_sec=time_sec,
             logo_path=args.logo,
+            overrides=overrides,
         )
         img.save(out_path, quality=95)
         print(f" Đã lưu ảnh xem trước tại t={time_sec}s vào: {out_path}")
@@ -147,12 +163,13 @@ def cmd_batch(args):
         print(f"Lỗi: Thư mục không tồn tại: {folder}", file=sys.stderr)
         sys.exit(1)
 
-    template_id = args.template or "footer_band"
+    template_id = args.template or "lower_third_fade"
     tpl = get_template(template_id)
     if not tpl:
         print(f"Lỗi: Không tìm thấy template '{template_id}'", file=sys.stderr)
         sys.exit(1)
 
+    overrides = load_overrides_arg(getattr(args, "overrides", None))
     out_dir = Path(args.out_dir) if args.out_dir else folder / "taio_outputs"
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -197,6 +214,7 @@ def cmd_batch(args):
                 output_path=out_file,
                 logo_path=args.logo,
                 on_progress=on_prog,
+                overrides=overrides,
             )
             print(f" Hoàn tất: {out_file}")
         except Exception as e:
@@ -246,9 +264,10 @@ def main():
     # 2. render
     p_render = subparsers.add_parser("render", help="Xuất video có gắn lớp phủ")
     p_render.add_argument("video", help="Đường dẫn file video đầu vào")
-    p_render.add_argument("-t", "--template", default="footer_band", help="ID mẫu lớp phủ (mặc định: footer_band)")
+    p_render.add_argument("-t", "--template", default="lower_third_fade", help="ID mẫu lớp phủ (mặc định: lower_third_fade)")
     p_render.add_argument("-c", "--caption", default="", help="Nội dung caption (hỗ trợ **từ nhấn**)")
     p_render.add_argument("--logo", default=None, help="Đường dẫn file logo tuỳ chọn")
+    p_render.add_argument("--overrides", default=None, help="Đường dẫn tệp JSON chứa cấu hình overrides")
     p_render.add_argument("--auto-caption", action="store_true", help="Tự động gợi ý caption bằng AI")
     p_render.add_argument("--context", default="", help="Ngữ cảnh / kịch bản video để AI viết caption")
     p_render.add_argument("--style", default="tin_tuc", choices=["tin_tuc", "giao_duc", "ban_hang", "giai_tri"], help="Phong cách caption")
@@ -257,17 +276,19 @@ def main():
     # 3. preview
     p_prev = subparsers.add_parser("preview", help="Tạo ảnh xem trước tại một mốc thời gian")
     p_prev.add_argument("video", help="Đường dẫn file video")
-    p_prev.add_argument("-t", "--template", default="footer_band", help="ID mẫu lớp phủ")
+    p_prev.add_argument("-t", "--template", default="lower_third_fade", help="ID mẫu lớp phủ (mặc định: lower_third_fade)")
     p_prev.add_argument("-c", "--caption", default="", help="Nội dung caption")
     p_prev.add_argument("--at", default=1.0, type=float, help="Thời điểm lấy khung hình (giây, mặc định: 1.0)")
     p_prev.add_argument("--logo", default=None, help="Đường dẫn file logo tuỳ chọn")
+    p_prev.add_argument("--overrides", default=None, help="Đường dẫn tệp JSON chứa cấu hình overrides")
     p_prev.add_argument("-o", "--output", default="preview.jpg", help="File ảnh xuất ra (mặc định: preview.jpg)")
 
     # 4. batch
     p_batch = subparsers.add_parser("batch", help="Xử lý hàng loạt video trong một thư mục")
     p_batch.add_argument("folder", help="Thư mục chứa các file video")
-    p_batch.add_argument("-t", "--template", default="footer_band", help="ID mẫu lớp phủ")
+    p_batch.add_argument("-t", "--template", default="lower_third_fade", help="ID mẫu lớp phủ (mặc định: lower_third_fade)")
     p_batch.add_argument("-c", "--caption", default="", help="Caption cố định (nếu không dùng auto-caption)")
+    p_batch.add_argument("--overrides", default=None, help="Đường dẫn tệp JSON chứa cấu hình overrides")
     p_batch.add_argument("--auto-caption", action="store_true", help="Tự động sinh caption AI cho từng video")
     p_batch.add_argument("--context", default="", help="Ngữ cảnh chung")
     p_batch.add_argument("--style", default="tin_tuc", help="Phong cách caption")

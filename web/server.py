@@ -104,6 +104,7 @@ def render_worker():
                 output_path=out_path,
                 logo_path=logo_path,
                 on_progress=on_progress,
+                overrides=job.get("overrides"),
             )
 
             with jobs_lock:
@@ -266,6 +267,49 @@ def _find_upload_file(file_id: str) -> Optional[Path]:
     return None
 
 
+# ==================== KHỐI ĐỒ HOẠ (LAYER IMAGE CHO STICKER) ====================
+@app.route("/api/layer-image")
+def api_layer_image():
+    """Trả ảnh PNG nền trong suốt của khối logo (cạnh dài 512px) để client kéo thả sticker."""
+    template_id = request.args.get("template", "lower_third_fade")
+    layer_id = request.args.get("layer", "logo")
+    logo_id = request.args.get("logo_id")
+    pill_param = request.args.get("pill")
+
+    tpl = get_template(template_id)
+    if not tpl:
+        return jsonify({"error": f"Không tìm thấy mẫu lớp phủ '{template_id}'"}), 404
+
+    target_layer = None
+    for l in tpl.get("layers", []):
+        if l.get("id") == layer_id or l.get("type") == layer_id:
+            target_layer = l
+            break
+
+    if not target_layer:
+        target_layer = {"id": "logo", "type": "logo", "label": "TAIO.CLUB", "pill": True}
+
+    logo_path = None
+    if logo_id:
+        custom_logo = _find_upload_file(logo_id)
+        if custom_logo and custom_logo.exists():
+            logo_path = str(custom_logo)
+
+    pill_override = None
+    if pill_param == "1":
+        pill_override = True
+    elif pill_param == "0":
+        pill_override = False
+
+    from core.layer_blocks import render_logo_block
+    img = render_logo_block(target_layer, logo_path=logo_path, scale_px=512, pill_override=pill_override)
+
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+    return send_file(buf, mimetype="image/png")
+
+
 # ==================== XEM TRƯỚC (PREVIEW) ====================
 @app.route("/api/preview", methods=["POST"])
 def api_preview():
@@ -277,10 +321,12 @@ def api_preview():
     try:
         data = request.get_json(force=True, silent=True) or {}
         video_id = data.get("video_id", "")
-        template_id = data.get("template", "footer_band")
+        template_id = data.get("template", "lower_third_fade")
         caption = data.get("caption", "")
         time_sec = float(data.get("t", 1.0))
         logo_id = data.get("logo_id")
+        overrides = data.get("overrides")
+        exclude_layers = data.get("exclude_layers")
 
         video_file = _find_upload_file(video_id)
         if not video_file or not video_file.exists():
@@ -305,6 +351,8 @@ def api_preview():
             caption=caption,
             time_sec=time_sec,
             logo_path=logo_path,
+            overrides=overrides,
+            exclude_layers=exclude_layers,
         )
 
         buf = io.BytesIO()
@@ -362,9 +410,10 @@ def api_render():
     data = request.get_json(force=True, silent=True) or {}
     video_id = data.get("video_id", "")
     video_name = data.get("video_name", "video")
-    template_id = data.get("template", "footer_band")
+    template_id = data.get("template", "lower_third_fade")
     caption = data.get("caption", "")
     logo_id = data.get("logo_id")
+    overrides = data.get("overrides")
 
     video_file = _find_upload_file(video_id)
     if not video_file or not video_file.exists():
@@ -393,6 +442,7 @@ def api_render():
         "template_id": template_id,
         "caption": caption,
         "logo_path": logo_path,
+        "overrides": overrides,
         "out_path": out_path,
         "status": "queued",
         "progress": 0.0,
