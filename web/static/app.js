@@ -91,11 +91,21 @@
       console.warn("Chưa tải được config:", e);
     }
 
-    // Nạp sẵn thông tin Telegram nếu đã lưu trước đó
-    const savedToken = localStorage.getItem("taio_tele_token") || "";
-    const savedChatId = localStorage.getItem("taio_tele_chatid") || "";
-    if (savedToken) teleBotTokenInput.value = savedToken;
+    // Xoá token khỏi localStorage để bảo vệ bảo mật
+    localStorage.removeItem("taio_tele_token");
+
+    const defaultChatId = (state.config && state.config.telegram) ? state.config.telegram.default_chat_id : "";
+    const savedChatId = localStorage.getItem("taio_tele_chatid") || defaultChatId || "";
     if (savedChatId) teleChatIdInput.value = savedChatId;
+
+    // Ẩn trường nhập bot token trên giao diện vì token cấu hình tại server
+    if (teleBotTokenInput) {
+      teleBotTokenInput.style.display = "none";
+      const tokenLabel = teleBotTokenInput.previousElementSibling;
+      if (tokenLabel && tokenLabel.classList && tokenLabel.classList.contains("tele-label")) {
+        tokenLabel.style.display = "none";
+      }
+    }
 
     bindEvents();
     renderLiveHighlightPreview("");
@@ -601,16 +611,15 @@
   }
 
   async function sendVideoToTelegram() {
-    const token = teleBotTokenInput.value.trim();
     const chatId = teleChatIdInput.value.trim();
 
-    if (!token || !chatId) {
-      showTeleStatus("Vui lòng điền đủ Bot Token và Chat ID.", false);
+    if (!chatId) {
+      showTeleStatus("Vui lòng điền Chat ID Telegram của bạn.", false);
       return;
     }
 
-    // Lưu vào localStorage
-    localStorage.setItem("taio_tele_token", token);
+    // Lưu chatId vào localStorage, xoá bỏ token cũ nếu có
+    localStorage.removeItem("taio_tele_token");
     localStorage.setItem("taio_tele_chatid", chatId);
 
     btnConfirmSendTelegram.disabled = true;
@@ -620,7 +629,6 @@
     try {
       const payload = {
         job_id: state.currentJobId,
-        bot_token: token,
         chat_id: chatId,
       };
 

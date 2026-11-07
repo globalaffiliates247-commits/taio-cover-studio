@@ -165,6 +165,11 @@ def api_config():
         "colors": brand_data.get("colors", {}),
     }
 
+    telegram_cfg = {
+        "configured": bool(os.getenv("TELEGRAM_BOT_TOKEN", "").strip()),
+        "default_chat_id": os.getenv("TELEGRAM_CHAT_ID", "").strip(),
+    }
+
     return jsonify({
         "boot_id": boot_id,
         "templates": tpls,
@@ -173,6 +178,7 @@ def api_config():
             "providers": ai_providers,
         },
         "brand": clean_brand,
+        "telegram": telegram_cfg,
     })
 
 
@@ -459,11 +465,14 @@ def api_send_telegram():
     """Gửi video đã xuất qua Telegram Bot trung gian."""
     data = request.get_json(force=True, silent=True) or {}
     job_id = data.get("job_id", "")
-    bot_token = (data.get("bot_token") or os.getenv("TELEGRAM_BOT_TOKEN", "")).strip()
+    bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
     chat_id = (data.get("chat_id") or os.getenv("TELEGRAM_CHAT_ID", "")).strip()
 
-    if not bot_token or not chat_id:
-        return jsonify({"error": "Vui lòng nhập Bot Token và Chat ID của bot Telegram."}), 400
+    if not bot_token:
+        return jsonify({"error": "Vui lòng nhập Bot Token và Chat ID của bot Telegram (hoặc cấu hình TELEGRAM_BOT_TOKEN)."}), 400
+
+    if not chat_id:
+        return jsonify({"error": "Vui lòng nhập Chat ID của bot Telegram."}), 400
 
     with jobs_lock:
         job = jobs_store.get(job_id)
