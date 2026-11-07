@@ -78,6 +78,16 @@ def get_ffprobe_path() -> str:
     return "ffprobe"
 
 
+def get_ffmpeg_threads() -> int:
+    """Trả về số luồng tối đa cho ffmpeg từ biến FFMPEG_THREADS (mặc định 2)."""
+    val = os.getenv("FFMPEG_THREADS", "2").strip()
+    try:
+        threads = int(val)
+        return max(1, threads)
+    except ValueError:
+        return 2
+
+
 import datetime
 import threading
 

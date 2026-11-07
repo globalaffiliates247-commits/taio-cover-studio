@@ -15,7 +15,7 @@ from core.brand import get_default_logo_path
 from core.canvas import calculate_canvas_layout
 from core.frames import extract_frame_at
 from core.overlay_renderer import render_overlay
-from core.paths import get_ffmpeg_path, OUTPUTS_DIR
+from core.paths import get_ffmpeg_path, OUTPUTS_DIR, get_ffmpeg_threads
 from core.video_probe import probe_video
 
 
@@ -148,15 +148,23 @@ def render_video(
         else:
             filter_complex = "[0:v][1:v]overlay=0:0[outv]"
 
+    threads_str = str(get_ffmpeg_threads())
+
     cmd = [
         ffmpeg_bin,
         "-y",
+        "-nostats",
+        "-loglevel", "error",
+        "-threads", threads_str,
         "-i", str(video_path),
         "-i", overlay_tmp_path,
+        "-filter_complex_threads", "1",
         "-filter_complex", filter_complex,
+        "-threads", threads_str,
         "-map", "[outv]",
         "-map", "0:a?",
         "-c:v", "libx264",
+        "-x264-params", "rc-lookahead=10",
         "-crf", "20",
         "-preset", preset,
         "-pix_fmt", "yuv420p",

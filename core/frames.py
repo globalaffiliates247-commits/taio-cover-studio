@@ -26,6 +26,7 @@ def extract_frame_at(
 
     cmd = [
         ffmpeg_bin,
+        "-threads", "1",
         "-ss", f"{time_sec:.3f}",
         "-i", str(video_path),
         *scale_filter,
