@@ -4,6 +4,30 @@ Tất cả các thay đổi đáng chú ý của dự án **TAIO Cover Studio** 
 
 ---
 
+## [1.3.0] - 2026-11-07 - Nhãn Phiên Bản & Độ Mờ / Màu Sắc Cho Lớp Phủ A/B/C (FEATURE v1.3)
+- **Nhãn phiên bản toàn hệ thống TAIO.CLUB:**
+  - Thiết lập file `VERSION` làm nguồn duy nhất theo SemVer (`1.3.0`). Dấu thời gian `BUILD_STAMP` tạo lúc build theo giờ Việt Nam (UTC+7, dạng `ddmmyyhh`).
+  - Giao diện hiển thị huy hiệu phiên bản dạng `v1.3.0 · ddmmyyhh` ngay dưới logo TAIO ở góc trên bên trái, nhỏ gọn và không làm lệch bố cục trên màn hình mobile 390px.
+  - Cơ chế chống lưu cache trình duyệt tự động: tự động gắn `?v=<build>` vào toàn bộ các tệp `.js` và `.css`.
+  - Endpoint `/healthz` và `/api/config` phản hồi thông tin phiên bản; CLI bổ sung `--version` và MCP server tích hợp phiên bản trong `list_templates`.
+- **Nâng cấp nền tảng vẽ lớp phủ:**
+  - Khắc phục triệt để hiện tượng dải mờ bị xỉn đen ở vùng chuyển tiếp: điểm đầu và điểm cuối dải mờ luôn cùng kênh RGB, biến thiên alpha tuyến tính từ 0 đến độ mờ thiết lập.
+  - Áp dụng `opacity` chính xác cho cả khối màu gradient lẫn màu đặc trong `_draw_rect`.
+  - Thay thế `img.paste` bằng `Image.alpha_composite` vẽ ảnh độc lập kết hợp mask bo góc chuẩn Porter-Duff, chống đè mất lớp bên dưới.
+  - Thêm các tiện ích màu sắc chuẩn trong `core/colors.py`: `with_alpha`, `darken`, `rgba_to_hex`, `contrast_ratio` theo chuẩn WCAG 2.1.
+- **Tuỳ chỉnh lớp phủ động theo mẫu (Adjustment Sliders):**
+  - Mẫu lớp phủ tự khai báo các nút điều khiển trong thuộc tính `"controls"` của file JSON (`lower_third_fade`, `footer_band`, `top_bottom_bars`).
+  - Module mới `web/static/js/layer-controls.js` tự động sinh thanh trượt độ đậm (0–100%) và bảng 7 chấm màu (Mặc định + 6 màu từ `config/palettes.json` + nút `+` màu tự do).
+  - Lưu cấu hình riêng biệt cho từng mẫu qua `localStorage` và nút khôi phục "↺ Mặc định".
+  - Tối ưu hiệu năng cho Render Free (512MB): không gửi request lên server khi đang kéo thanh trượt; chỉ gửi khi nhả chuột hoặc dừng kéo sau 250ms debounce.
+- **Tự động giữ chữ dễ đọc (Auto Contrast):**
+  - Module mới `core/auto_contrast.py` tính toán tỷ lệ tương phản chữ/nền theo WCAG 2.1 tại mép dưới của dải màu.
+  - Khi người dùng chọn màu nền sáng (Vàng, Cam...), chữ tự động chuyển sang `#111111` và màu nhấn tự động chuyển sang màu đạt tỷ lệ $\ge 3:1$ (như `$primary` hoặc `#FFFFFF`).
+  - Hiển thị thông báo nhỏ gọn trên giao diện: *"Đã tự đổi màu chữ để dễ đọc trên nền Vàng"*.
+  - Giữ nguyên màu chữ và màu nhấn nếu người dùng đã tự tay tuỳ chỉnh trong bảng Aa.
+
+---
+
 ## [1.2.0] - 2026-11-07 - Logo Kéo Thả Như Sticker & Tuỳ Chỉnh Chữ Nâng Cao (FEATURE v1.2)
 - **Thứ tự mẫu từ dữ liệu & Mẫu A mặc định:**
   - Bổ sung `order` và `short_name` vào các file mẫu JSON. `list_templates()` tự động sắp xếp theo `order`.

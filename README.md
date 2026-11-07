@@ -1,7 +1,7 @@
 # TAIO Cover Studio
 
 > **"Thả video vào → chọn mẫu lớp phủ, caption, logo → nhận video đã gắn bìa thương hiệu; caption có thể để AI gợi ý."**  
-> *Thuộc hệ sinh thái **TAIO (TAIO.CLUB)*** · Phiên bản: **v1.2.0** · Ngôn ngữ giao diện: **Tiếng Việt**
+> *Thuộc hệ sinh thái **TAIO (TAIO.CLUB)*** · Phiên bản: **v1.3.0** · Ngôn ngữ giao diện: **Tiếng Việt**
 
 ---
 
@@ -79,6 +79,31 @@ Trình duyệt sẽ tự động mở địa chỉ: `http://127.0.0.1:8765`.
   - **2 Màu nhấn kép:** Dùng cú pháp `**từ khóa 1**` để tô màu vàng và `==từ khóa 2==` để tô màu xanh dương.
   - **Nền chữ TikTok & Viền, Bóng:** Nền ôm theo từng dòng chữ (`lines`), màu nền, độ mờ, độ dày viền chữ và bóng đổ.
   - **Kiểm tra tương phản WCAG 2.1:** Cảnh báo tự động nếu màu chữ và màu nền có độ tương phản dưới 4.5:1.
+
+---
+
+## 🎨 5. Tính năng mới v1.3: Tuỳ chỉnh Lớp phủ (Màu & Độ mờ) & Nhãn Phiên Bản
+
+### 1. Nhãn phiên bản toàn hệ sinh thái TAIO.CLUB
+- Hiển thị huy hiệu dạng `v1.3.0 · ddmmyyhh` (giờ Việt Nam UTC+7) ngay dưới logo TAIO ở góc trên bên trái.
+- Tự động chống lưu cache trên trình duyệt điện thoại/máy tính với tham số `?v=<build>` cho CSS và JS.
+
+### 2. Tuỳ chỉnh lớp phủ theo từng mẫu (Adjustment Sliders)
+- **Thanh trượt Độ mờ (0–100%):**
+  - Mẫu A (`lower_third_fade`): Điều chỉnh độ đậm vùng mờ dần tuyến tính (0% trong suốt mép trên, tăng đều đến độ mờ mép dưới).
+  - Mẫu B (`footer_band`): Điều chỉnh độ đậm dải màu chân trang (mặc định 100%).
+  - Mẫu C (`top_bottom_bars`): Một thanh trượt áp đồng nhất độ đậm cho cả thanh trên và thanh dưới (mặc định 90%).
+- **Bảng 7 chấm chọn màu (Palette Basic 6):**
+  - Chấm đầu tiên: **Mặc định** (màu gốc của mẫu, ký hiệu `⊘`).
+  - 6 chấm màu cơ bản: **Đỏ** (`#E53935`), **Cam** (`#FB8C00`), **Vàng** (`#FDD835`), **Xanh lá** (`#43A047`), **Xanh dương** (`#1E88E5`), **Tím** (`#8E24AA`).
+  - Chấm thứ 8 `+`: Mở bảng chọn màu tự do theo ý muốn.
+- **Tự động giữ chữ dễ đọc (WCAG 2.1 Auto Contrast):**
+  - Khi chọn màu nền sáng (Vàng, Cam...), hệ thống tự động đổi màu chữ caption sang `#111111` và màu nhấn sang màu có độ tương phản $\ge 3:1$ (như `$primary` hoặc `#FFFFFF`).
+  - Luôn tôn trọng lựa chọn cá nhân hoá nếu người dùng đã tự chỉnh màu trong bảng `Aa`.
+- **Khôi phục 1 chạm & Lưu tự động:**
+  - Nút **↺ Mặc định** để đưa mẫu về thiết lập ban đầu.
+  - Tự động ghi nhớ thiết lập theo từng mẫu vào `localStorage`.
+
 
 ---
 
