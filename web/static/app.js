@@ -152,6 +152,17 @@
       }
     }
 
+    // Khởi tạo module lưu ảnh Cuộn Camera (FIX v1.3.1)
+    if (window.TAIOSavePhotos) {
+      window.TAIOSavePhotos.init({
+        btnSave: btnSaveToPhotos,
+        statusEl: renderErrorMsg,
+        onRetryRender: () => {
+          showRenderFailedWithRetry();
+        },
+      });
+    }
+
     if (previewImage) {
       previewImage.addEventListener("load", () => {
         if (window.TAIOSticker) {
@@ -259,8 +270,7 @@
     // 6. Action Render
     btnRenderVideo.addEventListener("click", startRender);
 
-    // 7. Save to Camera Roll (Web Share API)
-    btnSaveToPhotos.addEventListener("click", saveVideoToPhotos);
+    // 7. Save to Camera Roll (được quản lý bởi save-photos.js)
 
     // 8. Telegram Modal
     btnSendTelegram.addEventListener("click", openTelegramModal);
@@ -676,6 +686,11 @@
           btnDownloadVideo.href = downloadUrl;
           btnDownloadVideo.download = state.video.name || "TAIO.CoverClip.mp4";
 
+          // Chuẩn bị tải sẵn file để lưu Cuộn Camera tức thì (FIX v1.3.1)
+          if (window.TAIOSavePhotos) {
+            window.TAIOSavePhotos.prepareResultFile(state.currentJobId, state.video.name || "TAIO.CoverClip.mp4");
+          }
+
           // Hiển thị trực tiếp video phát thử trên khung preview
           playerResultVideo.src = downloadUrl;
           playerResultVideo.hidden = false;
@@ -697,41 +712,6 @@
         }
       }
     }, 700);
-  }
-
-  // ==================== LƯU VÀO CUỘN CAMERA (iOS / ANDROID) ====================
-  async function saveVideoToPhotos() {
-    if (!state.currentJobId) return;
-
-    const downloadUrl = `/api/download/${state.currentJobId}`;
-    const filename = state.video ? state.video.name : "TAIO.CoverClip.mp4";
-
-    try {
-      btnSaveToPhotos.textContent = "Đang tải tệp để lưu...";
-      const resp = await fetch(downloadUrl);
-      const blob = await resp.blob();
-      const file = new File([blob], filename, { type: "video/mp4" });
-
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: filename,
-        });
-        btnSaveToPhotos.textContent = "📱 Đã mở bảng lưu!";
-      } else {
-        // Fallback: Mở video trong tab mới để chạm giữ "Lưu video"
-        window.open(downloadUrl, "_blank");
-        btnSaveToPhotos.textContent = "📱 Chạm giữ video để Lưu";
-      }
-    } catch (e) {
-      if (e.name !== "AbortError") {
-        window.open(downloadUrl, "_blank");
-      }
-    } finally {
-      setTimeout(() => {
-        btnSaveToPhotos.textContent = "📱 Lưu vào Cuộn Camera";
-      }, 3000);
-    }
   }
 
   // ==================== GỬI QUA TELEGRAM BOT ====================
