@@ -91,6 +91,15 @@
             appVersionBadge.textContent = state.config.version_info.label;
           }
         }
+        if (window.TAIOLayerControls) {
+          window.TAIOLayerControls.init({
+            container: document.getElementById("layerControlsStrip"),
+            palettes: state.config.palettes || null,
+            onChange: () => {
+              debouncedPreview();
+            },
+          });
+        }
         renderTemplatePills();
         renderAIProviders();
       }
@@ -177,6 +186,9 @@
         if (window.TAIOSticker) {
           window.TAIOSticker.setTemplate(tpl, state.config ? state.config.brand : null);
         }
+        if (window.TAIOLayerControls) {
+          window.TAIOLayerControls.setTemplate(tpl, state.config ? state.config.palettes : null);
+        }
         debouncedPreview();
       });
       templatePillsBar.appendChild(btn);
@@ -185,6 +197,9 @@
     const activeTpl = templates.find((t) => t.id === state.templateId) || templates[0];
     if (activeTpl && window.TAIOSticker) {
       window.TAIOSticker.setTemplate(activeTpl, state.config ? state.config.brand : null);
+    }
+    if (activeTpl && window.TAIOLayerControls) {
+      window.TAIOLayerControls.setTemplate(activeTpl, state.config ? state.config.palettes : null);
     }
   }
 
@@ -438,8 +453,10 @@
     try {
       const stickerOverrides = window.TAIOSticker ? window.TAIOSticker.getOverrides() : {};
       const captionOverrides = window.TAIOTextPanel ? window.TAIOTextPanel.getCaptionOverrides() : {};
+      const layerOverrides = window.TAIOLayerControls ? window.TAIOLayerControls.getOverrides() : {};
       const combinedOverrides = {
         layers: {
+          ...(layerOverrides.layers || {}),
           ...(stickerOverrides.layers || {}),
           caption: captionOverrides,
         },
@@ -544,8 +561,10 @@
     try {
       const stickerOverrides = window.TAIOSticker ? window.TAIOSticker.getOverrides() : {};
       const captionOverrides = window.TAIOTextPanel ? window.TAIOTextPanel.getCaptionOverrides() : {};
+      const layerOverrides = window.TAIOLayerControls ? window.TAIOLayerControls.getOverrides() : {};
       const combinedOverrides = {
         layers: {
+          ...(layerOverrides.layers || {}),
           ...(stickerOverrides.layers || {}),
           caption: captionOverrides,
         },
