@@ -58,6 +58,10 @@ def parse_hex_color(hex_str: Union[str, Tuple[int, int, int, int], None], defaul
         "white": (255, 255, 255, default_alpha),
         "black": (0, 0, 0, default_alpha),
         "transparent": (0, 0, 0, 0),
+        "yellow": (255, 211, 77, default_alpha),
+        "gold": (255, 211, 77, default_alpha),
+        "accent": (255, 211, 77, default_alpha),
+        "$accent": (255, 211, 77, default_alpha),
     }
     if s.lower() in named:
         return named[s.lower()]
