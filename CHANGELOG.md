@@ -4,6 +4,18 @@ Tất cả các thay đổi đáng chú ý của dự án **TAIO Cover Studio** 
 
 ---
 
+## [1.1.1] - 2026-11-07 - Khắc phục Hết RAM Render (512MB) & Tự Khôi Phục Video
+- **FIX-1 (Giới hạn luồng ffmpeg):** Thêm biến `FFMPEG_THREADS` (mặc định 2), thêm `-threads 2`, `-filter_complex_threads 1`, `-x264-params rc-lookahead=10`, `-nostats -loglevel error` trong `core/compositor.py` và `-threads 1` trong `core/frames.py`. Đảm bảo RAM đỉnh < 250 MB trên container đa nhân của Render.
+- **FIX-2 (Loại bỏ nguy cơ treo do stderr):** Chuyển stderr của ffmpeg sang `tempfile.TemporaryFile` không giới hạn bộ đệm pipe; trả thông báo lỗi tiếng Việt ngắn gọn và cảnh báo rõ khi hệ thống dừng tiến trình do thiếu RAM (mã thoát -9, 137).
+- **FIX-3 (Giới hạn tải & Ghi log khởi động):** Ghi log `[BOOT]` chi tiết cấu hình CPU/RAM/Threads/Workspace; sinh `boot_id` nhận diện phiên chạy máy chủ; đặt `BoundedSemaphore(2)` cho API preview (trả 429 khi quá tải); trả mã lỗi chuẩn `code: "VIDEO_NOT_FOUND"` khi video bị xoá.
+- **FIX-4 (Không nuốt lỗi xem trước):** `triggerPreview()` làm mờ ảnh cũ (`stale`, opacity 0.4) và hiện banner cảnh báo lỗi khi máy chủ gặp sự cố; đánh số thứ tự `previewRequestId` để chống kết quả phản hồi sai thứ tự.
+- **FIX-5 (Tự phục hồi khi máy chủ mất file):** Lưu `state.videoFile` trong bộ nhớ trang; tự động upload lại file video trong suốt khi nhận mã `VIDEO_NOT_FOUND` hoặc khi phát hiện `boot_id` máy chủ thay đổi.
+- **FIX-6 (Theo dõi tiến độ chịu lỗi):** `pollJobStatus()` tự dừng khi gặp 404, `boot_id` đổi hoặc mất mạng 3 lần liên tiếp; hiển thị nút **Xuất lại** gọi tự động FIX-5 để phục hồi video và tiếp tục render; đặt timeout tối đa 20 phút.
+- **FIX-7 (Tối ưu cấu hình Render Free):** Cấu hình `render.yaml` đặt `plan: free`, `MAX_UPLOAD_MB=300`, `FFMPEG_THREADS=2`, `OUTPUT_MAX_RES=720`; bổ sung hướng dẫn lưu ý bộ nhớ tạm trong `DEPLOY.md`.
+- **FIX-8 (Bảo mật Telegram Token):** Chuyển cấu hình `TELEGRAM_BOT_TOKEN` về biến môi trường trên server; client chỉ gửi `chat_id`; tự động dọn dẹp token cũ khỏi localStorage của trình duyệt.
+
+---
+
 ## [1.1.0] - 2026-11-07 - Tối ưu UX/UI Siêu Gọn, Khắc Phục Tô Màu Nhấn & Tải Video Mobile / Telegram
 - **Tối ưu UX/UI Simple & Short (WYSIWYG):**
   - Loại bỏ các khối thẻ dài dòng; đưa khung xem trước làm trọng tâm chính, các nút điều khiển đặt gọn gàng ngay bên dưới khung hình.
