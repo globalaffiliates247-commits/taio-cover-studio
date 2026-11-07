@@ -175,44 +175,48 @@ def render_video(
     ]
 
     try:
-        proc = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            bufsize=1,
-            universal_newlines=True,
-        )
+        with tempfile.TemporaryFile(mode="w+", encoding="utf-8", errors="ignore") as stderr_file:
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=stderr_file,
+                text=True,
+                bufsize=1,
+                universal_newlines=True,
+            )
 
-        duration_us = max(info.duration * 1_000_000.0, 1.0)
+            duration_us = max(info.duration * 1_000_000.0, 1.0)
 
-        for line in proc.stdout:
-            line = line.strip()
-            if line.startswith("out_time_us="):
-                try:
-                    val_str = line.split("=")[1].strip()
-                    val_us = float(val_str)
-                    prog = min(max(val_us / duration_us, 0.0), 1.0)
+            for line in proc.stdout:
+                line = line.strip()
+                if line.startswith("out_time_us="):
+                    try:
+                        val_str = line.split("=")[1].strip()
+                        val_us = float(val_str)
+                        prog = min(max(val_us / duration_us, 0.0), 1.0)
+                        if on_progress:
+                            on_progress(prog)
+                    except Exception:
+                        pass
+                elif line.startswith("progress=end"):
                     if on_progress:
-                        on_progress(prog)
-                except Exception:
-                    pass
-            elif line.startswith("progress=end"):
-                if on_progress:
-                    on_progress(1.0)
+                        on_progress(1.0)
 
-        proc.wait()
+            proc.wait()
 
-        if proc.stdout:
-            proc.stdout.close()
-        if proc.stderr:
-            err_msg = proc.stderr.read()
-            proc.stderr.close()
-        else:
-            err_msg = ""
+            if proc.stdout:
+                proc.stdout.close()
 
-        if proc.returncode != 0:
-            raise RuntimeError(f"ffmpeg thất bại: {err_msg}")
+            if proc.returncode != 0:
+                stderr_file.seek(0)
+                err_content = stderr_file.read()
+                err_lines = [l.strip() for l in err_content.strip().splitlines() if l.strip()]
+                last_err = "\n".join(err_lines[-2:]) if err_lines else "Lỗi không xác định"
+
+                if proc.returncode in (-9, 137):
+                    raise RuntimeError("ffmpeg bị hệ thống dừng (có thể do thiếu RAM)")
+                else:
+                    raise RuntimeError(f"ffmpeg thất bại (mã thoát {proc.returncode}): {last_err}")
 
     finally:
         if os.path.exists(overlay_tmp_path):
