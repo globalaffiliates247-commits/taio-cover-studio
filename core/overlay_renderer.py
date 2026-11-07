@@ -6,7 +6,7 @@ Mỗi loại layer được thực thi bởi một hàm riêng và đăng ký tr
 import os
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFont
 from core.colors import parse_hex_color
 from core.canvas import CanvasLayout
 from core.layer_blocks import render_logo_block
@@ -28,7 +28,10 @@ def _draw_gradient_rect(
     direction: str = "vertical",
     radius: int = 0,
 ):
-    """Vẽ hình chữ nhật dải màu gradient (dọc hoặc ngang), hỗ trợ bo góc."""
+    """
+    Vẽ hình chữ nhật dải màu gradient (dọc hoặc ngang), hỗ trợ bo góc.
+    Sử dụng Image.alpha_composite để ghép lớp đúng chuẩn Porter-Duff.
+    """
     x1, y1, x2, y2 = bbox
     w = max(x2 - x1, 1)
     h = max(y2 - y1, 1)
@@ -57,9 +60,12 @@ def _draw_gradient_rect(
         mask = Image.new("L", (w, h), 0)
         mask_draw = ImageDraw.Draw(mask)
         mask_draw.rounded_rectangle([0, 0, w, h], radius=radius, fill=255)
-        img.paste(grad, (x1, y1), mask)
-    else:
-        img.paste(grad, (x1, y1), grad)
+        # Nhân mask vào alpha của grad
+        r, g, b, a = grad.split()
+        a = ImageChops.multiply(a, mask)
+        grad.putalpha(a)
+
+    img.alpha_composite(grad, (x1, y1))
 
 
 def _draw_rect(
@@ -91,27 +97,45 @@ def _draw_rect(
     c_fill = parse_hex_color(fill_hex) if fill_hex else None
     c_stroke = parse_hex_color(stroke_hex) if stroke_hex else None
 
-    if fill_to_hex and c_fill:
+    # Áp dụng độ mờ opacity cho cả gradient lẫn khối màu đặc
+    opacity = layer.get("opacity")
+    if opacity is not None:
+        op_val = max(0.0, min(1.0, float(opacity)))
+        if fill_to_hex and c_fill:
+            c_fill_to_raw = parse_hex_color(fill_to_hex)
+            max_a = max(c_fill[3], c_fill_to_raw[3], 1)
+            target_max_a = int(round(op_val * 255))
+            c_fill = (c_fill[0], c_fill[1], c_fill[2], int(round(c_fill[3] / max_a * target_max_a)))
+            c_fill_to = (c_fill_to_raw[0], c_fill_to_raw[1], c_fill_to_raw[2], int(round(c_fill_to_raw[3] / max_a * target_max_a)))
+        elif c_fill:
+            target_a = int(round(op_val * 255))
+            c_fill = (c_fill[0], c_fill[1], c_fill[2], target_a)
+            c_fill_to = None
+    else:
+        c_fill_to = parse_hex_color(fill_to_hex) if fill_to_hex else None
+
+    if fill_to_hex and c_fill and c_fill_to:
         # Gradient
-        c_fill_to = parse_hex_color(fill_to_hex)
         direction = layer.get("direction", "vertical")
         _draw_gradient_rect(overlay, (lx, ly, lx + lw, ly + lh), c_fill, c_fill_to, direction=direction, radius=radius)
     elif c_fill:
-        draw = ImageDraw.Draw(overlay)
-        bbox = [lx, ly, lx + lw, ly + lh]
+        block = Image.new("RGBA", (lw, lh), (0, 0, 0, 0))
+        block_draw = ImageDraw.Draw(block)
         if radius > 0:
-            draw.rounded_rectangle(bbox, radius=radius, fill=c_fill)
+            block_draw.rounded_rectangle([0, 0, lw, lh], radius=radius, fill=c_fill)
         else:
-            draw.rectangle(bbox, fill=c_fill)
+            block_draw.rectangle([0, 0, lw, lh], fill=c_fill)
+        overlay.alpha_composite(block, (lx, ly))
 
     # Stroke nếu có
     if c_stroke and stroke_w > 0:
-        draw = ImageDraw.Draw(overlay)
-        bbox = [lx, ly, lx + lw, ly + lh]
+        stroke_img = Image.new("RGBA", (lw, lh), (0, 0, 0, 0))
+        stroke_draw = ImageDraw.Draw(stroke_img)
         if radius > 0:
-            draw.rounded_rectangle(bbox, radius=radius, outline=c_stroke, width=stroke_w)
+            stroke_draw.rounded_rectangle([0, 0, lw, lh], radius=radius, outline=c_stroke, width=stroke_w)
         else:
-            draw.rectangle(bbox, outline=c_stroke, width=stroke_w)
+            stroke_draw.rectangle([0, 0, lw, lh], outline=c_stroke, width=stroke_w)
+        overlay.alpha_composite(stroke_img, (lx, ly))
 
 
 def _draw_caption(
