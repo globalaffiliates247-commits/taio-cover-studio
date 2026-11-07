@@ -11,10 +11,11 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 from PIL import Image, ImageEnhance, ImageFilter
 
-from core.brand import get_default_logo_path
+from core.brand import get_default_logo_path, load_brand_kit
 from core.canvas import calculate_canvas_layout
 from core.frames import extract_frame_at
 from core.overrides import apply_overrides
+from core.auto_contrast import adjust_caption_contrast
 from core.overlay_renderer import render_overlay
 from core.paths import get_ffmpeg_path, OUTPUTS_DIR, get_ffmpeg_threads
 from core.video_probe import probe_video
@@ -32,7 +33,9 @@ def build_preview(
     """
     Tạo 1 ảnh xem trước tại thời điểm time_sec, khớp 100% với khung hình xuất của video.
     """
-    tpl = apply_overrides(template, overrides)
+    brand_data = load_brand_kit()
+    effective_overrides, auto_notice = adjust_caption_contrast(template, overrides, brand_data)
+    tpl = apply_overrides(template, effective_overrides)
     info = probe_video(video_path)
     # Giới hạn time_sec trong phạm vi video
     clamped_t = min(max(time_sec, 0.0), max(info.duration - 0.1, 0.0))
@@ -91,6 +94,8 @@ def build_preview(
         logo_path=logo_path,
         exclude_layers=exclude_layers,
     )
+    if auto_notice and auto_notice not in warnings:
+        warnings.insert(0, auto_notice)
 
     # 3. Ghép alpha
     final_img = Image.alpha_composite(canvas_img, overlay_img).convert("RGB")
@@ -109,7 +114,9 @@ def render_video(
     """
     Xuất video MP4 bằng ffmpeg với lớp phủ PNG RGBA, theo dõi tiến độ qua pipe:1.
     """
-    tpl = apply_overrides(template, overrides)
+    brand_data = load_brand_kit()
+    effective_overrides, _ = adjust_caption_contrast(template, overrides, brand_data)
+    tpl = apply_overrides(template, effective_overrides)
     info = probe_video(video_path)
     layout = calculate_canvas_layout(info.width, info.height, tpl.get("canvas"))
 

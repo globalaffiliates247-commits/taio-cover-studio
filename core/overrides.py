@@ -98,6 +98,11 @@ def apply_overrides(
         # 6. Style tuỳ chỉnh cho text / caption
         if "style" in ov and isinstance(ov["style"], dict):
             layer["style_override"] = ov["style"]
+        if layer.get("type") == "caption":
+            if "color" in ov:
+                layer["color"] = ov["color"]
+            if "accent" in ov:
+                layer["accent"] = ov["accent"]
 
         # 7. Màu tuỳ chỉnh cho rect / gradient (color: hex string hoặc None)
         if "color" in ov:
