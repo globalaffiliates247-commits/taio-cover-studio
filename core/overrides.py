@@ -5,6 +5,7 @@ Hỗ trợ sticker logo (vị trí tâm, xoay, phóng to/thu nhỏ, opacity) và
 
 import copy
 from typing import Any, Dict, Optional
+from core.colors import parse_hex_color
 
 
 def clamp(val: float, min_val: float, max_val: float) -> float:
@@ -97,5 +98,29 @@ def apply_overrides(
         # 6. Style tuỳ chỉnh cho text / caption
         if "style" in ov and isinstance(ov["style"], dict):
             layer["style_override"] = ov["style"]
+
+        # 7. Màu tuỳ chỉnh cho rect / gradient (color: hex string hoặc None)
+        if "color" in ov:
+            new_col = ov["color"]
+            if new_col and isinstance(new_col, str) and new_col.strip():
+                try:
+                    c_rgb = parse_hex_color(new_col.strip())
+                    nr, ng, nb = c_rgb[0], c_rgb[1], c_rgb[2]
+                    darken_k = float(ov.get("gradient_darken", layer.get("gradient_darken", 0)))
+                    if "fill" in layer and layer["fill"]:
+                        old_fill = parse_hex_color(layer["fill"])
+                        layer["fill"] = f"#{nr:02X}{ng:02X}{nb:02X}{old_fill[3]:02X}"
+                    if "fill_to" in layer and layer["fill_to"]:
+                        old_fill_to = parse_hex_color(layer["fill_to"])
+                        if darken_k > 0:
+                            mult = max(0.0, 1.0 - darken_k)
+                            dr = max(0, min(255, int(round(nr * mult))))
+                            dg = max(0, min(255, int(round(ng * mult))))
+                            db = max(0, min(255, int(round(nb * mult))))
+                            layer["fill_to"] = f"#{dr:02X}{dg:02X}{db:02X}{old_fill_to[3]:02X}"
+                        else:
+                            layer["fill_to"] = f"#{nr:02X}{ng:02X}{nb:02X}{old_fill_to[3]:02X}"
+                except Exception:
+                    pass
 
     return tpl_copy

@@ -1,0 +1,10 @@
+{
+  "basic6": [
+    {"name": "Đỏ", "hex": "#E53935"},
+    {"name": "Cam", "hex": "#FB8C00"},
+    {"name": "Vàng", "hex": "#FDD835"},
+    {"name": "Xanh lá", "hex": "#43A047"},
+    {"name": "Xanh dương", "hex": "#1E88E5"},
+    {"name": "Tím", "hex": "#8E24AA"}
+  ]
+}

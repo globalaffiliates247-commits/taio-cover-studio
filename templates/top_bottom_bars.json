@@ -5,6 +5,18 @@
   "short_name": "Trên + Dưới",
   "description": "Thanh tối ~20% phía trên chứa caption; thanh thương hiệu ~10% phía dưới chứa logo + @handle.",
   "canvas": "source",
+  "controls": [
+    {
+      "id": "bars_strength",
+      "type": "opacity",
+      "label": "Độ đậm",
+      "layers": ["top_bar", "bottom_bar"],
+      "default": 0.9,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    }
+  ],
   "layers": [
     {
       "id": "top_bar",

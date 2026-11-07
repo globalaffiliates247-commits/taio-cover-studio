@@ -5,6 +5,27 @@
   "short_name": "Mờ dần",
   "description": "Nền đen mờ dần ở 45% dưới, caption canh trái kèm vạch màu nhấn, logo nhỏ góc trên phải.",
   "canvas": "source",
+  "controls": [
+    {
+      "id": "fade_strength",
+      "type": "opacity",
+      "label": "Độ đậm vùng mờ",
+      "layers": ["bg_fade"],
+      "default": 0.95,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "fade_color",
+      "type": "color",
+      "label": "Màu",
+      "layers": ["bg_fade"],
+      "palette": "basic6",
+      "default": null,
+      "gradient_darken": 0
+    }
+  ],
   "layers": [
     {
       "id": "bg_fade",

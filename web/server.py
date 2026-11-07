@@ -228,10 +228,20 @@ def api_config():
         except Exception:
             pass
 
+    palettes = {}
+    palettes_path = CONFIG_DIR / "palettes.json"
+    if palettes_path.exists():
+        try:
+            with open(palettes_path, "r", encoding="utf-8") as f:
+                palettes = json.load(f)
+        except Exception:
+            pass
+
     return jsonify({
         "boot_id": boot_id,
         "version_info": get_version_info(),
         "templates": tpls,
+        "palettes": palettes,
         "ai": {
             "default": default_ai,
             "providers": ai_providers,

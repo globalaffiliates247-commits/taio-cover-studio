@@ -5,6 +5,27 @@
   "short_name": "Chân trang",
   "description": "Dải màu thương hiệu phủ ~44% phía dưới, logo dạng viên thuốc + tên, caption in hoa ở giữa, từ nhấn màu vàng. Giữ khung gốc.",
   "canvas": "source",
+  "controls": [
+    {
+      "id": "band_strength",
+      "type": "opacity",
+      "label": "Độ đậm",
+      "layers": ["bg_band"],
+      "default": 1.0,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "band_color",
+      "type": "color",
+      "label": "Màu",
+      "layers": ["bg_band"],
+      "palette": "basic6",
+      "default": null,
+      "gradient_darken": 0.25
+    }
+  ],
   "layers": [
     {
       "id": "bg_band",
