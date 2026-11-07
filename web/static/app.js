@@ -458,8 +458,36 @@
     }
   }
 
+  function showRenderFailedWithRetry(customMsg) {
+    btnRenderVideo.disabled = false;
+    renderProgressBar.style.width = "0%";
+    renderPctText.textContent = "";
+    renderStatusText.textContent = "Tiến trình bị gián đoạn";
+
+    const msg = customMsg || "Máy chủ bị khởi động lại khi đang xuất (thường do thiếu RAM).";
+    renderErrorMsg.innerHTML = `${escapeHtml(msg)} <button type="button" id="btnRetryRender" style="margin-left:8px;padding:4px 12px;border-radius:6px;background:#3B82F6;color:#fff;border:none;cursor:pointer;font-weight:600">Xuất lại</button>`;
+    renderErrorMsg.hidden = false;
+
+    const retryBtn = document.getElementById("btnRetryRender");
+    if (retryBtn) {
+      retryBtn.onclick = async () => {
+        renderErrorMsg.hidden = true;
+        try {
+          await ensureVideoOnServer();
+          startRender();
+        } catch (e) {
+          renderErrorMsg.textContent = e.message;
+          renderErrorMsg.hidden = false;
+        }
+      };
+    }
+  }
+
   function pollJobStatus() {
     clearInterval(state.pollTimer);
+    let networkErrorCount = 0;
+    const pollStartTime = Date.now();
+    const MAX_POLL_MS = 20 * 60 * 1000; // Thời gian chờ tối đa 20 phút
 
     state.pollTimer = setInterval(async () => {
       if (!state.currentJobId) {
@@ -467,9 +495,31 @@
         return;
       }
 
+      if (Date.now() - pollStartTime > MAX_POLL_MS) {
+        clearInterval(state.pollTimer);
+        showRenderFailedWithRetry("Quá thời gian chờ xuất video (20 phút). Bấm Xuất lại.");
+        return;
+      }
+
       try {
         const res = await fetch(`/api/job/${state.currentJobId}`);
+        networkErrorCount = 0;
+
+        if (res.status === 404) {
+          clearInterval(state.pollTimer);
+          showRenderFailedWithRetry();
+          return;
+        }
+
         const job = await res.json();
+
+        // Kiểm tra nếu máy chủ khởi động lại và đổi boot_id
+        if (job.boot_id && state.bootId && job.boot_id !== state.bootId) {
+          clearInterval(state.pollTimer);
+          state.bootId = job.boot_id;
+          showRenderFailedWithRetry();
+          return;
+        }
 
         if (job.status === "running") {
           const pct = Math.round((job.progress || 0) * 100);
@@ -500,10 +550,11 @@
           btnRenderVideo.disabled = false;
         }
       } catch (err) {
-        clearInterval(state.pollTimer);
-        renderErrorMsg.textContent = err.message;
-        renderErrorMsg.hidden = false;
-        btnRenderVideo.disabled = false;
+        networkErrorCount++;
+        if (networkErrorCount >= 3) {
+          clearInterval(state.pollTimer);
+          showRenderFailedWithRetry();
+        }
       }
     }, 700);
   }
