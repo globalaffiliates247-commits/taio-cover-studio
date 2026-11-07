@@ -16,6 +16,7 @@
     currentJobId: null,
     pollTimer: null,
     previewDebounceTimer: null,
+    previewRequestId: 0,
   };
 
   // DOM Elements
@@ -256,6 +257,7 @@
   async function triggerPreview() {
     if (!state.video) return;
 
+    const reqId = ++state.previewRequestId;
     previewLoadingOverlay.hidden = false;
 
     try {
@@ -273,9 +275,15 @@
         body: JSON.stringify(payload),
       });
 
+      if (reqId < state.previewRequestId) {
+        return; // Request cũ hơn, bỏ qua
+      }
+
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || "Lỗi cập nhật ảnh xem trước");
+        const err = new Error(errJson.error || "Lỗi cập nhật ảnh xem trước");
+        err.code = errJson.code;
+        throw err;
       }
 
       // Đọc cảnh báo từ header X-Warnings
@@ -298,13 +306,25 @@
       }
 
       const blob = await res.blob();
+      if (reqId < state.previewRequestId) return;
+
       previewImage.src = URL.createObjectURL(blob);
+      previewImage.classList.remove("stale");
+      previewImage.style.opacity = "1";
       previewImage.hidden = false;
       playerResultVideo.hidden = true;
     } catch (err) {
-      console.warn("Preview warning:", err.message);
+      if (reqId < state.previewRequestId) return;
+      // Không giữ ảnh cũ im lặng: hiện cảnh báo và làm mờ ảnh
+      previewImage.classList.add("stale");
+      previewImage.style.opacity = "0.4";
+      warningText.textContent = "Không thể cập nhật xem trước: " + (err.message || "Mất kết nối máy chủ");
+      warningBanner.hidden = false;
+      console.warn("Preview warning:", err);
     } finally {
-      previewLoadingOverlay.hidden = true;
+      if (reqId === state.previewRequestId) {
+        previewLoadingOverlay.hidden = true;
+      }
     }
   }
 
