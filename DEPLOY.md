@@ -19,6 +19,11 @@ Dự án đã được cấu hình sẵn **`render.yaml`** (Render Blueprint) v�
 6. Nhấn **Apply**. Web service sẽ tự động build container Docker và khởi chạy tại khu vực Singapore (độ trễ thấp nhất về Việt Nam).
 7. Đường dẫn kiểm tra trạng thái dịch vụ (Health Check): `/healthz`.
 
+> [!IMPORTANT]
+> **Lưu ý trên Render Free Plan:**
+> - Ổ đĩa của Render Free là tạm thời (ephemeral disk). Khi container khởi động lại hoặc tắt sau thời gian rảnh, các file trong `workspace/uploads` và `workspace/outputs` sẽ bị xoá. Do đó, người dùng nên **tải video về ngay** sau khi xuất xong.
+> - Giao diện web đã tích hợp cơ chế tự phục hồi: nếu server vừa khởi động lại trong phiên làm việc, ứng dụng sẽ tự động tải lại video từ bộ nhớ trình duyệt mà không yêu cầu người dùng thao tác lại từ đầu.
+
 ---
 
 ## 🐳 2. Triển khai trên VPS bằng Docker & Docker Compose
@@ -69,10 +74,11 @@ Dịch vụ sẽ lắng nghe tại cổng `8765` trên máy chủ (`http://IP_C�
 | `ANTHROPIC_API_KEY` | *(trống)* | Tuỳ chọn | Khóa Anthropic Claude API. |
 | `OPENAI_API_KEY` | *(trống)* | Tuỳ chọn | Khóa OpenAI API. |
 | `OPENROUTER_API_KEY` | *(trống)* | Tuỳ chọn | Khóa OpenRouter API. |
-| `MAX_UPLOAD_MB` | `4096` | Không | Giới hạn dung lượng tệp tải lên tối đa (MB). Vượt quá sẽ trả mã 413. |
+| `MAX_UPLOAD_MB` | `300` | Không | Giới hạn dung lượng tệp tải lên tối đa (MB). Vượt quá sẽ trả mã 413. |
 | `MAX_PARALLEL_RENDERS` | `1` | Không | Số lượng video xuất song song tối đa (mặc định 1 để bảo vệ CPU/RAM). |
+| `FFMPEG_THREADS` | `2` | Không | Số luồng giải mã & mã hoá tối đa của ffmpeg (mặc định 2 để RAM < 512MB). |
 | `FFMPEG_PRESET` | `veryfast` | Không | Tốc độ mã hóa video của ffmpeg (`ultrafast`, `superfast`, `veryfast`, `fast`). |
-| `OUTPUT_MAX_RES` | *(trống)* | Không | Giới hạn độ phân giải cạnh ngắn của video xuất (ví dụ: `720`). |
+| `OUTPUT_MAX_RES` | `720` | Không | Giới hạn độ phân giải cạnh ngắn của video xuất (mặc định 720 trên Render Free). |
 | `FILE_TTL_HOURS` | `6` | Không | Tự động dọn dẹp các tệp tạm cũ sau X giờ (`0` = tắt tự dọn dẹp). |
 | `WORKSPACE_DIR` | `./workspace` | Không | Thư mục lưu trữ tệp tải lên và tệp video xuất. |
 

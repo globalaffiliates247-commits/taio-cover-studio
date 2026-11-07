@@ -5,7 +5,8 @@ services:
     name: taio-cover-studio
     runtime: docker
     region: singapore
-    plan: starter
+    # Gói dịch vụ: đặt plan: free nếu dùng gói miễn phí (hoặc starter nếu có trả phí)
+    plan: free
     healthCheckPath: /healthz
     envVars:
       - key: PORT
@@ -25,9 +26,13 @@ services:
       - key: OPENROUTER_API_KEY
         sync: false
       - key: MAX_UPLOAD_MB
-        value: "4096"
+        value: "300"
       - key: MAX_PARALLEL_RENDERS
         value: "1"
+      - key: FFMPEG_THREADS
+        value: "2"
+      - key: OUTPUT_MAX_RES
+        value: "720"
       - key: FFMPEG_PRESET
         value: veryfast
       - key: FILE_TTL_HOURS
