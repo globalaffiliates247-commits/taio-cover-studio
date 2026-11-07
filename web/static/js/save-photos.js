@@ -106,10 +106,101 @@
     }
   }
 
+  function isIOS() {
+    return (
+      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+    );
+  }
+
+  function triggerSameTabDownload(blobUrl, filename) {
+    const a = document.createElement("a");
+    a.href = blobUrl || (state.currentJobId ? `/api/download/${state.currentJobId}` : "#");
+    a.download = filename || "TAIO.CoverClip.mp4";
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  function handleShareError(e) {
+    console.info("[save-photos]", e.name, e.message);
+
+    if (e.name === "AbortError") {
+      // 1. AbortError: Người dùng đóng bảng chia sẻ -> Im lặng, trả nút về trạng thái thường
+      if (btnSaveEl) {
+        btnSaveEl.textContent = "📱 Lưu vào Cuộn Camera";
+      }
+      return;
+    }
+
+    if (e.name === "NotAllowedError") {
+      // 2. NotAllowedError: Thời gian transient user activation trễ -> Nhắc bấm lại ngay
+      // Giữ nguyên state.resultFile để lần bấm kế tiếp gọi share đồng bộ ngay tức thì
+      if (btnSaveEl) {
+        btnSaveEl.textContent = "📱 Bấm lại nút Lưu một lần nữa";
+        setTimeout(() => {
+          if (btnSaveEl && state.resultFile) {
+            btnSaveEl.textContent = "📱 Lưu vào Cuộn Camera";
+          }
+        }, 3000);
+      }
+      return;
+    }
+
+    // 3. Lỗi khác: Hiện tên lỗi (e.name) trong dòng trạng thái nhỏ để dễ chẩn đoán
+    if (statusEl) {
+      statusEl.textContent = `Lỗi lưu video (${e.name}): ${e.message || "Không thể mở bảng chia sẻ"}`;
+      statusEl.hidden = false;
+      setTimeout(() => {
+        if (statusEl) statusEl.hidden = true;
+      }, 5000);
+    }
+
+    if (btnSaveEl) {
+      btnSaveEl.textContent = `⚠️ ${e.name} - Bấm để thử lại`;
+      setTimeout(() => {
+        if (btnSaveEl && state.resultFile) {
+          btnSaveEl.textContent = "📱 Lưu vào Cuộn Camera";
+        }
+      }, 3000);
+    }
+  }
+
+  function handleNoShareFallback() {
+    console.info("[save-photos] Trình duyệt không hỗ trợ canShare file");
+
+    if (isIOS()) {
+      // Trên iOS mà không hỗ trợ share: hướng dẫn chạm giữ video đang phát trên preview
+      if (btnSaveEl) {
+        btnSaveEl.textContent = "👆 Chạm giữ video đang phát → Lưu video";
+        setTimeout(() => {
+          if (btnSaveEl && state.resultFile) {
+            btnSaveEl.textContent = "📱 Lưu vào Cuộn Camera";
+          }
+        }, 4000);
+      }
+      if (statusEl) {
+        statusEl.textContent = "Hướng dẫn: Chạm và giữ vào video đang phát trong khung xem trước → chọn 'Lưu video' vào Ảnh.";
+        statusEl.hidden = false;
+      }
+    } else {
+      // Máy tính / Trình duyệt không hỗ trợ Web Share: Tải xuống bằng thẻ <a> trong CÙNG TAB, tuyệt đối không window.open
+      triggerSameTabDownload(state.blobUrl, state.filename);
+      if (btnSaveEl) {
+        btnSaveEl.textContent = "📥 Đã tải video về máy!";
+        setTimeout(() => {
+          if (btnSaveEl) btnSaveEl.textContent = "📱 Lưu vào Cuộn Camera";
+        }, 3000);
+      }
+    }
+  }
+
   /**
-   * Handler xử lý cú chạm nút Lưu vào Cuộn Camera (FIX-2)
+   * Handler xử lý cú chạm nút Lưu vào Cuộn Camera (FIX-2 & FIX-3)
    * Phải kích hoạt navigator.share NGAY LẬP TỨC trong synchronous user activation call stack,
    * tuyệt đối không được có bất kỳ lệnh await nào (fetch, blob, setTimeout...) trước share.
+   * Xử lý lỗi theo từng loại, tuyệt đối không gọi window.open gây mở tab about:blank.
    */
   function handleSaveClick() {
     // 1. Nếu file chưa sẵn sàng (người dùng bấm quá sớm): KHÔNG chờ đợi rồi mới share
@@ -146,8 +237,11 @@
           }
         })
         .catch((e) => {
-          console.info("[save-photos]", e.name, e.message);
+          handleShareError(e);
         });
+    } else {
+      // 3. Fallback khi không hỗ trợ chia sẻ file (FIX-3)
+      handleNoShareFallback();
     }
   }
 
