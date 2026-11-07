@@ -232,15 +232,16 @@ class TestV13LayerControls(unittest.TestCase):
 
     def test_t7_version_badge_and_cache_busting(self):
         """
-        T7: Nhãn phiên bản hiện v1.3.0 · ddmmyyhh, JS/CSS có ?v=.
+        T7: Nhãn phiên bản hiện đúng phiên bản trong VERSION, JS/CSS có ?v=.
         """
+        expected_ver = (BASE_DIR / "VERSION").read_text("utf-8").strip()
         client = app.test_client()
         res = client.get("/api/config")
         self.assertEqual(res.status_code, 200)
         data = res.get_json()
         v_info = data.get("version_info", {})
-        self.assertEqual(v_info.get("version"), "1.3.0")
-        self.assertTrue(v_info.get("label", "").startswith("v1.3.0 · "))
+        self.assertEqual(v_info.get("version"), expected_ver)
+        self.assertTrue(v_info.get("label", "").startswith(f"v{expected_ver} · "))
 
         # HTML có ?v= cho js/css
         html_res = client.get("/")
