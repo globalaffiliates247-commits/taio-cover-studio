@@ -492,6 +492,61 @@ def api_layer_image():
     return send_file(buf, mimetype="image/png")
 
 
+# ==================== ĐỐI TƯỢNG SCENE (OBJECT IMAGE - FEATURE v1.4) ====================
+@app.route("/api/object-image", methods=["POST"])
+def api_object_image():
+    """
+    Kết xuất ảnh PNG transparent RGBA của 1 đối tượng scene (cạnh dài <= 1024px).
+    Có bộ nhớ đệm LRU tối đa 50 ảnh.
+    """
+    acquired = preview_semaphore.acquire(blocking=False)
+    if not acquired:
+        return jsonify({"error": "Hệ thống đang bận, vui lòng thử lại sau"}), 429
+
+    try:
+        data = request.get_json(force=True, silent=True) or {}
+        obj = data.get("object")
+        if not obj or not isinstance(obj, dict):
+            return jsonify({"error": "Thiếu dữ liệu 'object'"}), 400
+
+        logo_id = data.get("logo_id")
+        logo_path = None
+        if logo_id:
+            custom_logo = _find_upload_file(logo_id)
+            if custom_logo and custom_logo.exists():
+                logo_path = str(custom_logo)
+
+        ctx = {"logo_path": logo_path}
+
+        from core.scene import (
+            render_single_object_image,
+            _OBJECT_IMAGE_CACHE,
+            _OBJECT_CACHE_KEYS,
+            MAX_OBJECT_CACHE_SIZE,
+        )
+
+        img, cache_key = render_single_object_image(obj, max_edge=1024, ctx=ctx)
+
+        if cache_key in _OBJECT_IMAGE_CACHE:
+            png_bytes = _OBJECT_IMAGE_CACHE[cache_key]
+        else:
+            buf = io.BytesIO()
+            img.save(buf, format="PNG")
+            png_bytes = buf.getvalue()
+
+            if len(_OBJECT_CACHE_KEYS) >= MAX_OBJECT_CACHE_SIZE:
+                oldest_key = _OBJECT_CACHE_KEYS.pop(0)
+                _OBJECT_IMAGE_CACHE.pop(oldest_key, None)
+            _OBJECT_IMAGE_CACHE[cache_key] = png_bytes
+            _OBJECT_CACHE_KEYS.append(cache_key)
+
+        return Response(png_bytes, mimetype="image/png")
+    except Exception as e:
+        return jsonify({"error": f"Lỗi render object image: {str(e)}"}), 500
+    finally:
+        preview_semaphore.release()
+
+
 # ==================== XEM TRƯỚC (PREVIEW) ====================
 @app.route("/api/preview", methods=["POST"])
 def api_preview():
@@ -509,6 +564,7 @@ def api_preview():
         logo_id = data.get("logo_id")
         overrides = data.get("overrides")
         exclude_layers = data.get("exclude_layers")
+        exclude_objects = bool(data.get("exclude_objects", False))
 
         video_file = _find_upload_file(video_id)
         if not video_file or not video_file.exists():
@@ -535,6 +591,7 @@ def api_preview():
             logo_path=logo_path,
             overrides=overrides,
             exclude_layers=exclude_layers,
+            exclude_objects=exclude_objects,
         )
 
         buf = io.BytesIO()

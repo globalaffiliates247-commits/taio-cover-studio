@@ -41,7 +41,80 @@
     onOverridesChangedCallback = callback;
   }
 
-  function resolveTemplateDefault(template) {
+  function createDefaultLogoGroup(template, brandData) {
+    if (!template || !template.layers) return null;
+    const logoLayer = template.layers.find((l) => l.type === "logo" || l.id === "logo");
+    if (!logoLayer) return null;
+
+    const brandName = (brandData && brandData.name) || "TAIO.CLUB";
+    const label = logoLayer.label === "$name" ? brandName : (logoLayer.label || brandName);
+    const pillEnabled = logoLayer.pill !== undefined ? Boolean(logoLayer.pill) : true;
+    const def = resolveTemplateDefault(template);
+
+    return {
+      id: "logo",
+      type: "group",
+      x: def.x,
+      y: def.y,
+      rotation: def.rotation || 0,
+      z: 10,
+      pill: { enabled: pillEnabled },
+      children: [
+        {
+          id: "logo_img",
+          type: "image",
+          src: "brand",
+          dx: -0.05,
+          dy: 0,
+          w: 0.055,
+          visible: true,
+        },
+        {
+          id: "logo_text",
+          type: "text",
+          text: label,
+          dx: 0.035,
+          dy: 0,
+          style: {
+            font: "BeVietnamPro",
+            weight: logoLayer.weight || "Black",
+            size: 0.032,
+            color: "#FFFFFF",
+          },
+          visible: true,
+        },
+      ],
+    };
+  }
+
+  function initTemplateScene(template, brandData) {
+    currentTemplate = template;
+    brandColors = brandData ? brandData.colors : null;
+    templateDefaults = resolveTemplateDefault(template);
+
+    const hasSaved = loadFromLocalStorage();
+    if (!hasSaved) {
+      const def = templateDefaults;
+      stickerState.x = def.x;
+      stickerState.y = def.y;
+      stickerState.w = def.w;
+      stickerState.rotation = def.rotation || 0;
+      stickerState.opacity = def.opacity !== undefined ? def.opacity : 1.0;
+      stickerState.visible = def.visible !== undefined ? def.visible : true;
+      stickerState.pill = def.pill !== undefined ? def.pill : true;
+    }
+
+    if (objects.length === 0) {
+      const defGroup = createDefaultLogoGroup(template, brandData);
+      if (defGroup) {
+        defGroup.x = stickerState.x;
+        defGroup.y = stickerState.y;
+        defGroup.rotation = stickerState.rotation;
+        defGroup.pill = { enabled: stickerState.pill };
+        objects = [defGroup];
+      }
+    }
+  }
     if (!template || !template.layers) {
       return { x: 0.82, y: 0.06, w: 0.22, rotation: 0, opacity: 1.0, visible: true, pill: true };
     }
@@ -255,6 +328,8 @@
   window.TAIOSceneStore = {
     subscribe,
     resolveTemplateDefault,
+    initTemplateScene,
+    createDefaultLogoGroup,
     saveToLocalStorage,
     loadFromLocalStorage,
     recordSnapshot,

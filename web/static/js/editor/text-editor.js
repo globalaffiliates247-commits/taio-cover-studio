@@ -63,22 +63,8 @@
       const transform = window.TAIOEditorTransform;
       if (!store) return;
 
-      store.currentTemplate = template;
-      store.brandColors = brandData ? brandData.colors : null;
-      store.templateDefaults = store.resolveTemplateDefault(template);
+      store.initTemplateScene(template, brandData);
       store.clearSelection();
-
-      const hasSaved = store.loadFromLocalStorage();
-      if (!hasSaved) {
-        const def = store.templateDefaults;
-        store.stickerState.x = def.x;
-        store.stickerState.y = def.y;
-        store.stickerState.w = def.w;
-        store.stickerState.rotation = def.rotation || 0;
-        store.stickerState.opacity = def.opacity !== undefined ? def.opacity : 1.0;
-        store.stickerState.visible = def.visible !== undefined ? def.visible : true;
-        store.stickerState.pill = def.pill !== undefined ? def.pill : true;
-      }
 
       if (views) {
         views.loadStickerImage();

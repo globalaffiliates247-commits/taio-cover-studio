@@ -29,10 +29,17 @@ def build_preview(
     logo_path: Optional[str] = None,
     overrides: Optional[Dict[str, Any]] = None,
     exclude_layers: Optional[List[str]] = None,
+    exclude_objects: bool = False,
 ) -> Tuple[Image.Image, List[str]]:
     """
     Tạo 1 ảnh xem trước tại thời điểm time_sec, khớp 100% với khung hình xuất của video.
     """
+    if exclude_objects:
+        if exclude_layers is None:
+            exclude_layers = ["__objects__"]
+        elif "__objects__" not in exclude_layers:
+            exclude_layers = list(exclude_layers) + ["__objects__"]
+
     brand_data = load_brand_kit()
     effective_overrides, auto_notice = adjust_caption_contrast(template, overrides, brand_data)
     tpl = apply_overrides(template, effective_overrides)

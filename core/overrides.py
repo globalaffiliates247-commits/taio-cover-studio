@@ -27,7 +27,7 @@ def apply_overrides(
 
     layer_overrides = overrides.get("layers")
     if not isinstance(layer_overrides, dict):
-        return tpl_copy
+        layer_overrides = {}
 
     layers = tpl_copy.get("layers", [])
     for layer in layers:
@@ -127,5 +127,60 @@ def apply_overrides(
                             layer["fill_to"] = f"#{nr:02X}{ng:02X}{nb:02X}{old_fill_to[3]:02X}"
                 except Exception:
                     pass
+
+        # 8. Chiều cao & vị trí y cho dải nền (h, y)
+        if "h" in ov:
+            try:
+                h_val = clamp(float(ov["h"]), 0.10, 0.90)
+                layer["h"] = h_val
+                if "y" in ov:
+                    layer["y"] = clamp(float(ov["y"]), -0.5, 1.5)
+                else:
+                    layer["y"] = 1.0 - h_val
+            except (ValueError, TypeError):
+                pass
+
+    # 9. Xử lý cơ chế parent: layer con tự động co giãn và di chuyển tương đối trong khung cha
+    orig_layers_map = {l.get("id"): l for l in template.get("layers", []) if l.get("id")}
+    for layer in layers:
+        parent_id = layer.get("parent")
+        if not parent_id or parent_id not in orig_layers_map:
+            continue
+        orig_parent = orig_layers_map[parent_id]
+        cur_parent = next((l for l in layers if l.get("id") == parent_id), None)
+        if not cur_parent:
+            continue
+
+        p_orig_y = float(orig_parent.get("y", 0))
+        p_orig_h = float(orig_parent.get("h", 1))
+        p_cur_y = float(cur_parent.get("y", p_orig_y))
+        p_cur_h = float(cur_parent.get("h", p_orig_h))
+
+        p_orig_x = float(orig_parent.get("x", 0))
+        p_orig_w = float(orig_parent.get("w", 1))
+        p_cur_x = float(cur_parent.get("x", p_orig_x))
+        p_cur_w = float(cur_parent.get("w", p_orig_w))
+
+        if p_orig_h > 0 and (p_cur_h != p_orig_h or p_cur_y != p_orig_y or p_cur_x != p_orig_x or p_cur_w != p_orig_w):
+            if "box" in layer and isinstance(layer["box"], dict):
+                orig_box = orig_layers_map[layer.get("id", "")].get("box", layer["box"])
+                rel_y = (float(orig_box.get("y", 0)) - p_orig_y) / p_orig_h
+                rel_h = float(orig_box.get("h", 0)) / p_orig_h
+                rel_x = (float(orig_box.get("x", 0)) - p_orig_x) / (p_orig_w if p_orig_w > 0 else 1)
+                rel_w = float(orig_box.get("w", 0)) / (p_orig_w if p_orig_w > 0 else 1)
+
+                layer["box"] = copy.deepcopy(layer["box"])
+                layer["box"]["y"] = p_cur_y + rel_y * p_cur_h
+                layer["box"]["h"] = rel_h * p_cur_h
+                layer["box"]["x"] = p_cur_x + rel_x * p_cur_w
+                layer["box"]["w"] = rel_w * p_cur_w
+
+    # 10. Xử lý scene objects (v1.4.0)
+    scene_objects = overrides.get("objects")
+    if scene_objects and isinstance(scene_objects, list):
+        from core.scene import validate_scene
+        is_valid, err_msg = validate_scene(scene_objects)
+        if is_valid:
+            tpl_copy["objects"] = scene_objects
 
     return tpl_copy

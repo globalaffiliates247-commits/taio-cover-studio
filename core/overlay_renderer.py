@@ -697,11 +697,17 @@ def render_overlay(
     }
 
     exclude_set = set(exclude_layers or [])
+    scene_objects = template.get("objects") or []
+    has_scene_logo = any(isinstance(o, dict) and o.get("id") == "logo" for o in scene_objects)
+
     layers = template.get("layers", [])
     for layer in layers:
         layer_id = layer.get("id")
         layer_type = layer.get("type")
         if (layer_id and layer_id in exclude_set) or (layer_type and layer_type in exclude_set):
+            continue
+        if has_scene_logo and (layer_id == "logo" or layer_type == "logo"):
+            # Scene đã có đối tượng logo thay thế hoàn toàn layer logo của template
             continue
         if not layer.get("visible", True):
             continue
@@ -719,5 +725,13 @@ def render_overlay(
             drawer(overlay, layer, layout, context, warnings)
         except Exception as e:
             warnings.append(f"Lỗi khi vẽ layer {l_type}: {e}")
+
+    # Vẽ các đối tượng scene (v1.4.0) nếu có và không bị loại trừ
+    if scene_objects and "__objects__" not in exclude_set:
+        from core.scene import render_objects
+        try:
+            render_objects(overlay, scene_objects, layout, context, warnings)
+        except Exception as e:
+            warnings.append(f"Lỗi khi vẽ scene objects: {e}")
 
     return overlay, warnings

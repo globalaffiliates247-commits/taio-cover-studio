@@ -62,6 +62,7 @@
     },
     {
       "id": "caption",
+      "parent": "bg_band",
       "type": "caption",
       "box": {
         "x": 0.06,
