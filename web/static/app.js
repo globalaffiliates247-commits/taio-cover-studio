@@ -9,6 +9,7 @@
   const state = {
     video: null,          // { id, name, info }
     videoFile: null,      // Đối tượng File gốc trong bộ nhớ để tự khôi phục
+    videoUrl: null,       // Đường dẫn URL video gốc để tự khôi phục
     bootId: null,         // boot_id từ máy chủ
     templateId: "lower_third_fade", // Mẫu A (Mờ dần) mặc định
     caption: "",
@@ -26,6 +27,10 @@
   const btnTriggerUpload = document.getElementById("btnTriggerUpload");
   const videoFileInput = document.getElementById("videoFileInput");
   const dropEmptyState = document.getElementById("dropEmptyState");
+  const dropUrlBox = document.getElementById("dropUrlBox");
+  const videoUrlInput = document.getElementById("videoUrlInput");
+  const btnLoadVideoUrl = document.getElementById("btnLoadVideoUrl");
+  const urlErrorHint = document.getElementById("urlErrorHint");
   const previewImage = document.getElementById("previewImage");
   const playerResultVideo = document.getElementById("playerResultVideo");
   const previewLoadingOverlay = document.getElementById("previewLoadingOverlay");
@@ -228,12 +233,33 @@
 
   // ==================== SỰ KIỆN GIAO DIỆN ====================
   function bindEvents() {
-    // 1. Tải Video
+    // 1. Tải Video (Tệp hoặc URL)
     btnTriggerUpload.addEventListener("click", () => videoFileInput.click());
-    btnChangeVideo.addEventListener("click", () => videoFileInput.click());
+    btnChangeVideo.addEventListener("click", () => resetToPickVideo());
     videoFileInput.addEventListener("change", (e) => {
       if (e.target.files && e.target.files[0]) uploadVideo(e.target.files[0]);
     });
+
+    if (dropUrlBox) {
+      dropUrlBox.addEventListener("click", (e) => {
+        e.stopPropagation();
+      });
+    }
+
+    if (btnLoadVideoUrl) {
+      btnLoadVideoUrl.addEventListener("click", () => {
+        if (videoUrlInput) loadVideoFromUrl(videoUrlInput.value.trim());
+      });
+    }
+
+    if (videoUrlInput) {
+      videoUrlInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          loadVideoFromUrl(videoUrlInput.value.trim());
+        }
+      });
+    }
 
     // 2. Mẫu lớp phủ được tạo động qua renderTemplatePills()
 
@@ -290,8 +316,12 @@
     }
     state.video = null;
     state.videoFile = null;
+    state.videoUrl = null;
     state.currentJobId = null;
     clearInterval(state.pollTimer);
+
+    if (videoUrlInput) videoUrlInput.value = "";
+    if (urlErrorHint) urlErrorHint.hidden = true;
 
     dropEmptyState.hidden = false;
     previewImage.hidden = true;
@@ -310,30 +340,50 @@
   }
 
   async function ensureVideoOnServer() {
-    if (!state.videoFile) {
+    if (state.videoFile) {
+      renderProgressCard.hidden = false;
+      renderStatusText.textContent = "Máy chủ vừa khởi động lại, đang tải lại video…";
+      renderPctText.textContent = "...";
+      renderProgressBar.style.width = "40%";
+      previewLoadingOverlay.hidden = false;
+
+      const formData = new FormData();
+      formData.append("file", state.videoFile);
+      formData.append("kind", "video");
+
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) {
+        previewLoadingOverlay.hidden = true;
+        throw new Error(data.error || "Không thể tải lại video lên máy chủ");
+      }
+
+      state.video = data;
+      clipNameBadge.textContent = data.name || "TAIO.CoverClip";
+    } else if (state.videoUrl) {
+      renderProgressCard.hidden = false;
+      renderStatusText.textContent = "Máy chủ vừa khởi động lại, đang tải lại URL video…";
+      renderPctText.textContent = "...";
+      renderProgressBar.style.width = "40%";
+      previewLoadingOverlay.hidden = false;
+
+      const res = await fetch("/api/upload-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: state.videoUrl }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        previewLoadingOverlay.hidden = true;
+        throw new Error(data.error || "Không thể tải lại video từ URL");
+      }
+
+      state.video = data;
+      clipNameBadge.textContent = data.name || "TAIO.CoverClip";
+    } else {
       resetToPickVideo("Phiên làm việc đã hết hạn, vui lòng chọn lại video.");
       throw new Error("Phiên làm việc đã hết hạn, vui lòng chọn lại video.");
     }
-
-    renderProgressCard.hidden = false;
-    renderStatusText.textContent = "Máy chủ vừa khởi động lại, đang tải lại video…";
-    renderPctText.textContent = "...";
-    renderProgressBar.style.width = "40%";
-    previewLoadingOverlay.hidden = false;
-
-    const formData = new FormData();
-    formData.append("file", state.videoFile);
-    formData.append("kind", "video");
-
-    const res = await fetch("/api/upload", { method: "POST", body: formData });
-    const data = await res.json();
-    if (!res.ok) {
-      previewLoadingOverlay.hidden = true;
-      throw new Error(data.error || "Không thể tải lại video lên máy chủ");
-    }
-
-    state.video = data;
-    clipNameBadge.textContent = data.name || "TAIO.CoverClip";
 
     try {
       const cfgRes = await fetch("/api/config");
@@ -407,6 +457,79 @@
     } catch (err) {
       alert("Lỗi tải video: " + err.message);
     } finally {
+      previewLoadingOverlay.hidden = true;
+    }
+  }
+
+  async function loadVideoFromUrl(url) {
+    if (!url) {
+      if (urlErrorHint) {
+        urlErrorHint.textContent = "Vui lòng nhập đường dẫn URL video.";
+        urlErrorHint.hidden = false;
+      }
+      return;
+    }
+
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      if (urlErrorHint) {
+        urlErrorHint.textContent = "Đường dẫn URL phải bắt đầu bằng http:// hoặc https://";
+        urlErrorHint.hidden = false;
+      }
+      return;
+    }
+
+    if (urlErrorHint) urlErrorHint.hidden = true;
+    if (btnLoadVideoUrl) {
+      btnLoadVideoUrl.disabled = true;
+      btnLoadVideoUrl.textContent = "Đang tải…";
+    }
+    previewLoadingOverlay.hidden = false;
+    renderErrorMsg.hidden = true;
+
+    if (window.TAIOSavePhotos) {
+      window.TAIOSavePhotos.cleanup();
+    }
+
+    try {
+      const res = await fetch("/api/upload-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: url }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Không thể tải video từ URL");
+
+      state.video = data;
+      state.videoUrl = url;
+      state.videoFile = null;
+
+      clipNameBadge.textContent = data.name || "TAIO.CoverClip";
+      if (data.info) {
+        videoMetaBadge.textContent = `${data.info.width}×${data.info.height} · ${data.info.formatted_duration || "0:00"}`;
+        timelineSlider.max = Math.max(data.info.duration || 10, 1);
+        timelineDurationLabel.textContent = `/ ${data.info.formatted_duration || "0:00"}`;
+      }
+
+      dropEmptyState.hidden = true;
+      playerResultVideo.hidden = true;
+      previewTopPills.hidden = false;
+      previewBottomBar.hidden = false;
+      btnRenderVideo.disabled = false;
+      renderDoneActions.hidden = true;
+
+      formatTimelineLabels();
+      triggerPreview();
+      if (videoUrlInput) videoUrlInput.value = "";
+    } catch (err) {
+      if (urlErrorHint) {
+        urlErrorHint.textContent = err.message || "Lỗi khi tải URL";
+        urlErrorHint.hidden = false;
+      }
+    } finally {
+      if (btnLoadVideoUrl) {
+        btnLoadVideoUrl.disabled = false;
+        btnLoadVideoUrl.textContent = "Tải URL";
+      }
       previewLoadingOverlay.hidden = true;
     }
   }

@@ -144,24 +144,118 @@ html, body {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
 }
 
-/* Trạng thái chạm để chọn video */
+/* Trạng thái chạm để chọn video hoặc dán URL */
 .drop-empty-overlay {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   width: 100%;
   height: 100%;
-  padding: 20px;
-  cursor: pointer;
+  padding: 16px;
   background: radial-gradient(circle, rgba(26, 86, 219, 0.1) 0%, rgba(9, 13, 22, 0.8) 100%);
+  gap: 12px;
+  box-sizing: border-box;
 }
 
 .drop-inner {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   text-align: center;
+  cursor: pointer;
+  padding: 10px 14px;
+  border-radius: 12px;
+  transition: background-color 0.2s;
+  width: 100%;
+  max-width: 340px;
+}
+
+.drop-inner:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.drop-url-box {
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.url-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.url-divider::before,
+.url-divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.url-divider span {
+  padding: 0 8px;
+}
+
+.url-input-row {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.video-url-input {
+  flex: 1;
+  background-color: rgba(15, 23, 42, 0.85);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: #FFFFFF;
+  font-size: 0.78rem;
+  outline: none;
+  transition: border-color 0.2s;
+  min-width: 0;
+}
+
+.video-url-input:focus {
+  border-color: #2563EB;
+}
+
+.btn-load-url {
+  background-color: #2563EB;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #FFFFFF;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s, opacity 0.2s;
+}
+
+.btn-load-url:hover {
+  background-color: #1D4ED8;
+}
+
+.btn-load-url:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.url-error-hint {
+  font-size: 0.74rem;
+  color: #EF4444;
+  text-align: center;
+  line-height: 1.3;
 }
 
 .drop-icon-circle {

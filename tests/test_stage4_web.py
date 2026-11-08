@@ -123,6 +123,23 @@ class TestStage4Web(unittest.TestCase):
         self.assertEqual(res.status_code, 400)
         self.assertIn("Vui lòng nhập Bot Token và Chat ID", res.get_json()["error"])
 
+    def test_upload_url_validation(self):
+        """Kiểm tra kiểm tra hợp lệ URL trên /api/upload-url."""
+        # 1. Rỗng
+        res_empty = self.client.post("/api/upload-url", json={"url": ""})
+        self.assertEqual(res_empty.status_code, 400)
+        self.assertIn("Vui lòng nhập", res_empty.get_json()["error"])
+
+        # 2. Sai scheme (không phải http/https)
+        res_scheme = self.client.post("/api/upload-url", json={"url": "ftp://example.com/video.mp4"})
+        self.assertEqual(res_scheme.status_code, 400)
+        self.assertIn("http:// hoặc https://", res_scheme.get_json()["error"])
+
+        # 3. Qua /api/upload với JSON { url: ... }
+        res_upload_alias = self.client.post("/api/upload", json={"url": "ftp://test.com/v.mp4"})
+        self.assertEqual(res_upload_alias.status_code, 400)
+        self.assertIn("http:// hoặc https://", res_upload_alias.get_json()["error"])
+
 
 if __name__ == "__main__":
     unittest.main()

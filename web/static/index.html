@@ -29,7 +29,7 @@
     <section class="preview-stage">
       <div class="preview-wrapper" id="previewWrapper">
         
-        <!-- Trạng thái chưa có video: Chạm để chọn -->
+        <!-- Trạng thái chưa có video: Chạm để chọn hoặc dán URL -->
         <div class="drop-empty-overlay" id="dropEmptyState">
           <input type="file" id="videoFileInput" accept="video/mp4,video/quicktime,video/x-matroska,video/webm" hidden>
           <div class="drop-inner" id="btnTriggerUpload">
@@ -41,6 +41,18 @@
             </div>
             <p class="drop-main-text">Chạm để chọn hoặc thả video vào</p>
             <p class="drop-sub-text">Hỗ trợ MP4, MOV, MKV · Tự xoay chuẩn dọc</p>
+          </div>
+
+          <!-- Dán liên kết video (URL) -->
+          <div class="drop-url-box" id="dropUrlBox">
+            <div class="url-divider">
+              <span>hoặc dán liên kết URL</span>
+            </div>
+            <div class="url-input-row">
+              <input type="url" id="videoUrlInput" class="video-url-input" placeholder="Dán link video (MP4, webm, drive...)..." autocomplete="off" spellcheck="false">
+              <button type="button" id="btnLoadVideoUrl" class="btn-load-url">Tải URL</button>
+            </div>
+            <div class="url-error-hint" id="urlErrorHint" hidden></div>
           </div>
         </div>
 

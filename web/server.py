@@ -8,6 +8,8 @@ import queue
 import re
 import threading
 import time
+import urllib.parse
+import urllib.request
 import uuid
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -254,12 +256,121 @@ def api_config():
     })
 
 
-# ==================== TẢI LÊN FILE ====================
+# ==================== TẢI LÊN FILE & URL ====================
+@app.route("/api/upload-url", methods=["POST"])
+def api_upload_url():
+    """Tải video từ liên kết URL trên mạng về thư mục uploads."""
+    data = request.get_json(silent=True) or {}
+    url = (data.get("url") or request.form.get("url") or "").strip()
+
+    if not url:
+        return jsonify({"error": "Vui lòng nhập đường dẫn URL video."}), 400
+
+    if not (url.startswith("http://") or url.startswith("https://")):
+        return jsonify({"error": "Đường dẫn URL phải bắt đầu bằng http:// hoặc https://"}), 400
+
+    cleanup_old_files()
+
+    temp_id = f"url_{uuid.uuid4().hex[:10]}"
+    temp_path = UPLOADS_DIR / f"{temp_id}.tmp"
+
+    try:
+        req = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Accept": "*/*",
+            },
+        )
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            cl = resp.headers.get("Content-Length")
+            max_bytes = MAX_UPLOAD_MB * 1024 * 1024
+            if cl and int(cl) > max_bytes:
+                return jsonify({"error": f"Kích thước video ({int(cl) // (1024*1024)}MB) vượt quá giới hạn {MAX_UPLOAD_MB}MB."}), 413
+
+            downloaded = 0
+            with open(temp_path, "wb") as f:
+                while True:
+                    chunk = resp.read(64 * 1024)
+                    if not chunk:
+                        break
+                    downloaded += len(chunk)
+                    if downloaded > max_bytes:
+                        if temp_path.exists():
+                            temp_path.unlink()
+                        return jsonify({"error": f"Tệp video vượt quá giới hạn {MAX_UPLOAD_MB}MB."}), 413
+                    f.write(chunk)
+
+            # Lấy tên file
+            clean_name = "url_video.mp4"
+            cd = resp.headers.get("Content-Disposition")
+            if cd and "filename=" in cd:
+                fname = cd.split("filename=")[-1].strip('"\'; ')
+                if fname:
+                    clean_name = secure_filename(fname)
+            else:
+                parsed_path = urllib.parse.urlparse(url).path
+                base_name = Path(parsed_path).name
+                if base_name:
+                    clean_name = secure_filename(base_name)
+    except urllib.error.HTTPError as e:
+        if temp_path.exists():
+            temp_path.unlink()
+        return jsonify({"error": f"Không thể tải từ URL (Lỗi HTTP {e.code}: {e.reason})."}), 400
+    except urllib.error.URLError as e:
+        if temp_path.exists():
+            temp_path.unlink()
+        return jsonify({"error": f"Lỗi kết nối tới URL: {e.reason}"}), 400
+    except Exception as e:
+        if temp_path.exists():
+            temp_path.unlink()
+        return jsonify({"error": f"Lỗi khi tải video từ URL: {e}"}), 400
+
+    # Kiểm tra tính hợp lệ bằng ffprobe
+    try:
+        info = probe_video(str(temp_path))
+    except Exception as e:
+        if temp_path.exists():
+            temp_path.unlink()
+        return jsonify({"error": f"Liên kết không chứa video hợp lệ hoặc định dạng không hỗ trợ ({e})."}), 400
+
+    file_ext = Path(clean_name).suffix.lower()
+    if not file_ext or file_ext not in [".mp4", ".mov", ".mkv", ".webm", ".m4v"]:
+        file_ext = ".mp4"
+    video_id = f"vid_{uuid.uuid4().hex[:10]}"
+    final_filename = f"{video_id}{file_ext}"
+    final_path = UPLOADS_DIR / final_filename
+    temp_path.rename(final_path)
+
+    standard_name = generate_cover_clip_name()
+
+    return jsonify({
+        "id": video_id,
+        "name": standard_name,
+        "raw_name": clean_name,
+        "kind": "video",
+        "url": url,
+        "info": {
+            "width": info.width,
+            "height": info.height,
+            "duration": info.duration,
+            "formatted_duration": info.formatted_duration,
+            "fps": info.fps,
+            "has_audio": info.has_audio,
+            "summary": info.summary,
+        },
+    })
+
+
 @app.route("/api/upload", methods=["POST"])
 def api_upload():
-    """Tiếp nhận video hoặc logo tải lên."""
+    """Tiếp nhận video hoặc logo tải lên (hỗ trợ cả tệp file và URL)."""
     if "file" not in request.files:
-        return jsonify({"error": "Không tìm thấy tệp tải lên."}), 400
+        data = request.get_json(silent=True) or {}
+        url = data.get("url") or request.form.get("url")
+        if url:
+            return api_upload_url()
+        return jsonify({"error": "Không tìm thấy tệp tải lên hoặc liên kết URL."}), 400
 
     file = request.files["file"]
     if not file or not file.filename:
