@@ -420,6 +420,72 @@
     notifyChange();
   }
 
+  function addFreeText() {
+    const textCount =
+      objects.filter((o) => o.type === "text").length +
+      objects
+        .filter((o) => o.type === "group")
+        .reduce((acc, g) => acc + (g.children || []).filter((c) => c.type === "text").length, 0);
+
+    if (textCount >= 10) {
+      alert("Đã đạt giới hạn tối đa 10 đối tượng chữ mỗi video.");
+      return null;
+    }
+
+    const id = `text_${Date.now().toString(36)}`;
+    const newObj = {
+      id: id,
+      type: "text",
+      text: "Nhập chữ…",
+      x: 0.5,
+      y: 0.28,
+      rotation: 0,
+      z: 20,
+      style: {
+        font: "BeVietnamPro",
+        weight: "Bold",
+        size: 0.045,
+        color: "#FFFFFF",
+        accent: "#FFD34D",
+        stroke_width: 1,
+        stroke_color: "#000000",
+        shadow_dy: 2,
+        shadow_color: "#00000088",
+        align: "center",
+      },
+    };
+
+    recordSnapshot();
+    objects.push(newObj);
+    selectObject(id);
+    notifyChange();
+
+    setTimeout(() => {
+      const res = window.prompt("Nhập nội dung chữ:", "Nhập chữ…");
+      if (res !== null && res.trim()) {
+        recordSnapshot();
+        newObj.text = res.trim();
+        notifyChange();
+      }
+    }, 100);
+
+    return newObj;
+  }
+
+  function moveLayer(direction) {
+    if (!selectedId) return;
+    const obj = objects.find((o) => o.id === selectedId);
+    if (!obj) return;
+
+    recordSnapshot();
+    if (direction === "up") {
+      obj.z = (obj.z || 10) + 1;
+    } else if (direction === "down") {
+      obj.z = Math.max(1, (obj.z || 10) - 1);
+    }
+    notifyChange();
+  }
+
   window.TAIOSceneStore = {
     subscribe,
     resolveTemplateDefault,
@@ -437,6 +503,8 @@
     ungroupLogo,
     deleteSelected,
     duplicateSelected,
+    addFreeText,
+    moveLayer,
     get selectedId() {
       return selectedId;
     },

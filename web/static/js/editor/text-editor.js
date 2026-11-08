@@ -7,7 +7,14 @@
   "use strict";
 
   function initTextEditor() {
-    // Sẽ kết nối bảng tuỳ chọn chữ dùng chung ở P6
+    const btnAddText = document.getElementById("btnAddFreeText");
+    if (btnAddText) {
+      btnAddText.addEventListener("click", () => {
+        if (window.TAIOSceneStore) {
+          window.TAIOSceneStore.addFreeText();
+        }
+      });
+    }
   }
 
   // ==================== FACADE TAIOSticker (Tương thích ngược 100%) ====================

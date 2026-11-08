@@ -237,6 +237,50 @@ class TestV14Scene(unittest.TestCase):
         render_objects(overlay3, ungrouped_objects, self.layout, ctx={})
         self.assertEqual(overlay3.size, (1080, 1920))
 
+    def test_multiple_free_text_objects_and_layer_order(self):
+        """T6: Kiểm tra thêm nhiều đối tượng chữ (+ Chữ × 3), khác font/màu/góc xoay và đổi thứ tự lớp."""
+        text_objs = [
+            {
+                "id": "txt_1",
+                "type": "text",
+                "text": "DÒNG 1: VIỆT NAM",
+                "x": 0.5,
+                "y": 0.20,
+                "rotation": -8,
+                "z": 10,
+                "style": {"font": "BeVietnamPro", "weight": "Black", "size": 0.04, "color": "#FFFFFF"},
+            },
+            {
+                "id": "txt_2",
+                "type": "text",
+                "text": "DÒNG 2: **NHẤN VÀNG**",
+                "x": 0.5,
+                "y": 0.30,
+                "rotation": 0,
+                "z": 20,
+                "style": {"font": "Montserrat", "weight": "Bold", "size": 0.045, "color": "#FFFFFF", "accent": "#FFD34D"},
+            },
+            {
+                "id": "txt_3",
+                "type": "text",
+                "text": "DÒNG 3: XANH BIỂN",
+                "x": 0.5,
+                "y": 0.40,
+                "rotation": 12,
+                "z": 30,
+                "style": {"font": "BeVietnamPro", "weight": "ExtraBold", "size": 0.038, "color": "#38BDF8"},
+            },
+        ]
+        overlay = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
+        render_objects(overlay, text_objs, self.layout, ctx={})
+        self.assertEqual(overlay.size, (1080, 1920))
+
+        # Đổi thứ tự lớp (z của txt_1 tăng lên 40)
+        text_objs[0]["z"] = 40
+        overlay2 = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
+        render_objects(overlay2, text_objs, self.layout, ctx={})
+        self.assertEqual(overlay2.size, (1080, 1920))
+
 
 if __name__ == "__main__":
     unittest.main()

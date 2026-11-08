@@ -71,6 +71,40 @@
     }
   }
 
+  const objectImageCache = new Map();
+
+  async function loadObjectImage(obj) {
+    const store = window.TAIOSceneStore;
+    const payload = {
+      object: obj,
+      logo_id: store ? store.currentLogoId : null,
+    };
+    try {
+      const resp = await fetch("/api/object-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (resp.ok) {
+        const blob = await resp.blob();
+        const objUrl = URL.createObjectURL(blob);
+        const tempImg = new Image();
+        tempImg.onload = () => {
+          objectImageCache.set(obj.id, {
+            url: objUrl,
+            aspect: tempImg.naturalHeight / (tempImg.naturalWidth || 1),
+            w: tempImg.naturalWidth,
+            h: tempImg.naturalHeight,
+          });
+          renderDOM();
+        };
+        tempImg.src = objUrl;
+      }
+    } catch (e) {
+      console.warn("Không thể tải object image:", e);
+    }
+  }
+
   function renderDOM() {
     const store = window.TAIOSceneStore;
     const transform = window.TAIOEditorTransform;
@@ -139,6 +173,81 @@
         bandHandleEl.style.display = "none";
       }
     }
+
+    // Render các đối tượng scene độc lập (text, image ngoài logo)
+    const existingBoxes = new Map();
+    stageEl.querySelectorAll(".scene-obj-box").forEach((el) => {
+      existingBoxes.set(el.dataset.id, el);
+    });
+
+    const activeIds = new Set();
+    const objs = store.objects || [];
+
+    objs.forEach((obj) => {
+      if (obj.id === "logo") return;
+      activeIds.add(obj.id);
+
+      let box = existingBoxes.get(obj.id);
+      if (!box) {
+        box = document.createElement("div");
+        box.className = "sticker-box scene-obj-box";
+        box.dataset.id = obj.id;
+        box.tabIndex = 0;
+        box.innerHTML = `
+          <img class="sticker-img scene-obj-img" draggable="false" alt="${obj.id}">
+          <div class="sticker-handle handle-tl" data-handle="tl"></div>
+          <div class="sticker-handle handle-tr" data-handle="tr"></div>
+          <div class="sticker-handle handle-bl" data-handle="bl"></div>
+          <div class="sticker-handle handle-br" data-handle="br"></div>
+          <div class="sticker-rotator-line"></div>
+          <div class="sticker-rotator" data-handle="rotate" title="Kéo để xoay (Giữ Shift nhảy 15°)"></div>
+        `;
+        stageEl.appendChild(box);
+      }
+
+      if (obj.visible === false) {
+        box.style.display = "none";
+        return;
+      }
+      box.style.display = "block";
+
+      const cached = objectImageCache.get(obj.id);
+      const imgEl = box.querySelector(".scene-obj-img");
+      if (cached) {
+        if (imgEl && imgEl.src !== cached.url) {
+          imgEl.src = cached.url;
+        }
+        const aspect = cached.aspect || 0.3;
+        const objW = (obj.w || (obj.style && obj.style.size ? obj.style.size * 3.5 : 0.28)) * stageW;
+        const objH = objW * aspect;
+        box.style.width = `${Math.max(24, objW)}px`;
+        box.style.height = `${Math.max(24, objH)}px`;
+      } else {
+        const estW = (obj.w || 0.28) * stageW;
+        box.style.width = `${Math.max(24, estW)}px`;
+        box.style.height = `${Math.max(24, estW * 0.3)}px`;
+        loadObjectImage(obj);
+      }
+
+      box.style.left = `${(obj.x || 0.5) * stageW}px`;
+      box.style.top = `${(obj.y || 0.5) * stageH}px`;
+      box.style.transform = `translate(-50%, -50%) rotate(${obj.rotation || 0}deg)`;
+      box.style.opacity = `${obj.opacity !== undefined ? obj.opacity : 1.0}`;
+
+      if (store.selectedId === obj.id) {
+        box.classList.add("selected");
+      } else {
+        box.classList.remove("selected");
+      }
+    });
+
+    // Dọn dẹp DOM của đối tượng bị xoá
+    existingBoxes.forEach((el, id) => {
+      if (!activeIds.has(id)) {
+        el.remove();
+        objectImageCache.delete(id);
+      }
+    });
 
     syncInputs();
   }

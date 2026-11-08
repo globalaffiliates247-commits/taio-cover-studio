@@ -15,8 +15,9 @@
   let canvasRect = { left: 0, top: 0, width: 1, height: 1, canvasW: 1080, canvasH: 1920 };
 
   // Pointer tracking
-  let transformMode = "idle"; // 'idle' | 'move' | 'resize' | 'rotate' | 'pinch'
+  let transformMode = "idle"; // 'idle' | 'move' | 'resize' | 'rotate' | 'pinch' | 'band-height'
   let activeHandle = null;
+  let activeObjId = null;
   const activePointers = new Map();
   let dragStartPointer = { x: 0, y: 0 };
   let dragStartState = {};
@@ -144,6 +145,45 @@
           return;
         }
 
+        const sceneBox = e.target.closest(".scene-obj-box");
+        if (sceneBox) {
+          e.preventDefault();
+          const objId = sceneBox.dataset.id;
+          activeObjId = objId;
+          const store = window.TAIOSceneStore;
+          store.selectObject(objId);
+
+          activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+          updateCanvasBounds();
+
+          const targetHandle = e.target.dataset.handle;
+          const obj = (store.objects || []).find((o) => o.id === objId);
+
+          if (targetHandle === "rotate") {
+            transformMode = "rotate";
+            activeHandle = "rotate";
+          } else if (targetHandle) {
+            transformMode = "resize";
+            activeHandle = targetHandle;
+          } else {
+            transformMode = "move";
+            dragStartPointer = { x: e.clientX, y: e.clientY };
+            dragStartState = {
+              x: obj ? (obj.x || 0.5) : 0.5,
+              y: obj ? (obj.y || 0.5) : 0.5,
+              w: obj ? (obj.w || 0.28) : 0.28,
+              rotation: obj ? (obj.rotation || 0) : 0,
+            };
+          }
+
+          if (sceneBox.setPointerCapture) {
+            try {
+              sceneBox.setPointerCapture(e.pointerId);
+            } catch (_) {}
+          }
+          return;
+        }
+
         const store = window.TAIOSceneStore;
         // Chạm vào dải chân trang (mẫu footer_band) -> Chọn dải chân trang
         if (store.currentTemplate && store.currentTemplate.id === "footer_band") {
@@ -242,6 +282,7 @@
     if (window.TAIOSceneStore.selectedId !== "logo" || window.TAIOSceneStore.selectedChildId) {
       window.TAIOSceneStore.selectObject("logo", null);
     }
+    activeObjId = "logo";
 
     activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     updateCanvasBounds();
@@ -309,6 +350,58 @@
       }
       if (window.TAIOEditorViews) {
         window.TAIOEditorViews.updateBandHandlePosition(candH);
+      }
+      return;
+    }
+
+    if (activeObjId && activeObjId !== "logo") {
+      const store = window.TAIOSceneStore;
+      const obj = (store.objects || []).find((o) => o.id === activeObjId);
+      if (!obj) return;
+
+      const stageW = canvasRect.width;
+      const stageH = canvasRect.height;
+      const centerScreen = normalizedToScreen(obj.x || 0.5, obj.y || 0.5);
+
+      if (transformMode === "move") {
+        const deltaScreenX = e.clientX - dragStartPointer.x;
+        const deltaScreenY = e.clientY - dragStartPointer.y;
+
+        const candX = dragStartState.x + deltaScreenX / stageW;
+        const candY = dragStartState.y + deltaScreenY / stageH;
+
+        let snapped = { x: candX, y: candY };
+        if (window.TAIOEditorGuides) {
+          snapped = window.TAIOEditorGuides.applySmartGuides(candX, candY, obj.w || 0.28, null, canvasRect);
+        }
+        obj.x = Math.max(0, Math.min(1.0, snapped.x));
+        obj.y = Math.max(0, Math.min(1.0, snapped.y));
+
+        if (window.TAIOEditorViews) window.TAIOEditorViews.renderDOM();
+      } else if (transformMode === "resize") {
+        const distFromCenter = Math.hypot(e.clientX - centerScreen.x, e.clientY - centerScreen.y);
+        const newScreenW = distFromCenter * 2 * Math.cos(Math.PI / 4);
+        const candW = newScreenW / stageW;
+        if (obj.type === "text" && obj.style) {
+          obj.style.size = Math.max(0.015, Math.min(0.12, candW / 3.5));
+        } else {
+          obj.w = Math.max(0.04, Math.min(0.9, candW));
+        }
+        if (window.TAIOEditorViews) window.TAIOEditorViews.renderDOM();
+      } else if (transformMode === "rotate") {
+        const angleRad = Math.atan2(e.clientY - centerScreen.y, e.clientX - centerScreen.x);
+        let angleDeg = angleRad * (180 / Math.PI) + 90;
+        while (angleDeg > 180) angleDeg -= 360;
+        while (angleDeg < -180) angleDeg += 360;
+        if (e.shiftKey) {
+          angleDeg = Math.round(angleDeg / 15) * 15;
+        } else {
+          [0, 90, -90, 180, -180].forEach((snapAngle) => {
+            if (Math.abs(angleDeg - snapAngle) <= 3) angleDeg = snapAngle;
+          });
+        }
+        obj.rotation = angleDeg;
+        if (window.TAIOEditorViews) window.TAIOEditorViews.renderDOM();
       }
       return;
     }
@@ -395,6 +488,7 @@
 
     if (activePointers.size === 0) {
       transformMode = "idle";
+      activeObjId = null;
       if (window.TAIOEditorGuides) {
         window.TAIOEditorGuides.hideGuides();
       }
