@@ -92,6 +92,11 @@
           </div>
         </div>
         
+        <!-- Thanh công cụ nổi cho đối tượng đang chọn (FEATURE v1.4) -->
+        <div class="editor-floating-toolbar" id="editorFloatingToolbar" hidden>
+          <div class="floating-toolbar-inner" id="floatingToolbarInner"></div>
+        </div>
+
         <!-- Video phát thử khi xuất xong -->
         <video id="playerResultVideo" class="preview-screen" controls playsinline hidden></video>
 
@@ -104,7 +109,19 @@
         <!-- Overlay thanh thông tin video rút gọn -->
         <div class="preview-top-pills" id="previewTopPills" hidden>
           <span class="pill-meta" id="videoMetaBadge">1080×1920 · 0:37</span>
+          <button type="button" class="btn-pill-action" id="btnEditorUndo" title="Hoàn tác (Ctrl+Z)">↶</button>
+          <button type="button" class="btn-pill-action" id="btnEditorRedo" title="Làm lại (Ctrl+Shift+Z)">↷</button>
+          <button type="button" class="btn-pill-action" id="btnToggleLayers" title="Danh sách lớp">☰ Lớp</button>
           <button type="button" class="btn-pill-change" id="btnChangeVideo">📁 Đổi video</button>
+        </div>
+
+        <!-- Danh sách lớp (Layers Drawer) -->
+        <div class="editor-layers-drawer" id="editorLayersDrawer" hidden>
+          <div class="layers-drawer-header">
+            <span class="layers-drawer-title">Danh sách lớp</span>
+            <button type="button" class="btn-layers-close" id="btnCloseLayersDrawer">✕</button>
+          </div>
+          <div class="layers-list" id="editorLayersList"></div>
         </div>
 
         <!-- Timeline scrub bar nằm sát đáy khung xem trước -->
@@ -133,6 +150,9 @@
       <div class="caption-box-compact">
         <div class="caption-input-wrapper">
           <input type="text" id="captionInput" class="caption-quick-input" placeholder="Nhập tiêu đề (dùng **từ khóa** hoặc ==nhấn 2==)...">
+          <button type="button" class="btn-icon-add-text" id="btnAddFreeText" title="Thêm chữ tự do (+ Chữ)">
+            + Chữ
+          </button>
           <button type="button" class="btn-icon-aa" id="btnOpenTextStyleModal" title="Tuỳ chỉnh kiểu chữ (Aa)">
             Aa
           </button>

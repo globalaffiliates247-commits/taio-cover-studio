@@ -175,6 +175,68 @@ class TestV14Scene(unittest.TestCase):
         self.assertEqual(res2.status_code, 200)
         self.assertEqual(res2.data, res.data)
 
+    def test_logo_group_subobjects_and_ungroup(self):
+        """T3, T4, T5: Kiểm tra sửa chữ logo, xoá ảnh con trong nhóm, và bỏ nhóm logo."""
+        # 1. T3: Sửa chữ logo thành TAIO.CLUB, màu vàng
+        logo_group = {
+            "id": "logo",
+            "type": "group",
+            "x": 0.80,
+            "y": 0.06,
+            "pill": {"enabled": True},
+            "children": [
+                {"id": "logo_img", "type": "image", "src": "brand", "dx": -0.05, "dy": 0, "w": 0.06},
+                {
+                    "id": "logo_text",
+                    "type": "text",
+                    "text": "TAIO.CLUB",
+                    "dx": 0.04,
+                    "dy": 0,
+                    "style": {"font": "Montserrat", "weight": "Black", "size": 0.035, "color": "#FFD34D"},
+                },
+            ],
+        }
+        overlay = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
+        render_objects(overlay, [logo_group], self.layout, ctx={})
+        self.assertEqual(overlay.size, (1080, 1920))
+
+        # 2. T4: Xoá ảnh logo con, chỉ còn chữ
+        logo_only_text = {
+            "id": "logo",
+            "type": "group",
+            "x": 0.80,
+            "y": 0.06,
+            "children": [
+                {
+                    "id": "logo_text",
+                    "type": "text",
+                    "text": "TAIO.CLUB",
+                    "dx": 0,
+                    "dy": 0,
+                    "style": {"font": "BeVietnamPro", "weight": "Black", "size": 0.035, "color": "#FFFFFF"},
+                }
+            ],
+        }
+        overlay2 = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
+        render_objects(overlay2, [logo_only_text], self.layout, ctx={})
+        self.assertEqual(overlay2.size, (1080, 1920))
+
+        # 3. T5: Bỏ nhóm thành 2 đối tượng độc lập ở 2 vị trí khác nhau
+        ungrouped_objects = [
+            {"id": "logo_img", "type": "image", "src": "brand", "x": 0.15, "y": 0.10, "w": 0.10},
+            {
+                "id": "logo_text",
+                "type": "text",
+                "text": "TAIO.CLUB",
+                "x": 0.85,
+                "y": 0.90,
+                "style": {"font": "BeVietnamPro", "weight": "Bold", "size": 0.04, "color": "#FFFFFF"},
+            },
+        ]
+        overlay3 = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
+        render_objects(overlay3, ungrouped_objects, self.layout, ctx={})
+        self.assertEqual(overlay3.size, (1080, 1920))
+
 
 if __name__ == "__main__":
     unittest.main()

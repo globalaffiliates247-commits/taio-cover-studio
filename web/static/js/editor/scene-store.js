@@ -325,6 +325,101 @@
     }
   }
 
+  function ungroupLogo() {
+    const idx = objects.findIndex((o) => o.id === "logo" && o.type === "group");
+    if (idx === -1) return;
+    const group = objects[idx];
+    recordSnapshot();
+
+    const newObjs = [];
+    const children = group.children || [];
+    const imgChild = children.find((c) => c.type === "image" || c.id === "logo_img");
+    const txtChild = children.find((c) => c.type === "text" || c.id === "logo_text");
+
+    if (imgChild) {
+      newObjs.push({
+        id: "logo_img",
+        type: "image",
+        src: imgChild.src || "brand",
+        x: Math.max(0, Math.min(1, group.x + (imgChild.dx || 0))),
+        y: Math.max(0, Math.min(1, group.y + (imgChild.dy || 0))),
+        w: imgChild.w || 0.08,
+        rotation: group.rotation || 0,
+        z: group.z || 10,
+        visible: imgChild.visible !== false,
+      });
+    }
+
+    if (txtChild) {
+      newObjs.push({
+        id: "logo_text",
+        type: "text",
+        text: txtChild.text || "TAIO.CLUB",
+        x: Math.max(0, Math.min(1, group.x + (txtChild.dx || 0))),
+        y: Math.max(0, Math.min(1, group.y + (txtChild.dy || 0))),
+        style: txtChild.style || {
+          font: "BeVietnamPro",
+          weight: "Black",
+          size: 0.035,
+          color: "#FFFFFF",
+        },
+        rotation: group.rotation || 0,
+        z: (group.z || 10) + 1,
+        visible: txtChild.visible !== false,
+      });
+    }
+
+    objects.splice(idx, 1, ...newObjs);
+    selectedId = newObjs.length > 0 ? newObjs[0].id : null;
+    selectedChildId = null;
+    notifyChange();
+  }
+
+  function deleteSelected() {
+    recordSnapshot();
+    if (selectedChildId && selectedId === "logo") {
+      const group = objects.find((o) => o.id === "logo");
+      if (group && group.children) {
+        group.children = group.children.filter((c) => c.id !== selectedChildId);
+        if (group.children.length === 1) {
+          group.children[0].dx = 0;
+          group.children[0].dy = 0;
+        } else if (group.children.length === 0) {
+          objects = objects.filter((o) => o.id !== "logo");
+          selectedId = null;
+        }
+        selectedChildId = null;
+        notifyChange();
+        return;
+      }
+    }
+
+    if (selectedId) {
+      objects = objects.filter((o) => o.id !== selectedId);
+      selectedId = null;
+      selectedChildId = null;
+      notifyChange();
+    }
+  }
+
+  function duplicateSelected() {
+    if (!selectedId) return;
+    const obj = objects.find((o) => o.id === selectedId);
+    if (!obj) return;
+
+    recordSnapshot();
+    const cloned = JSON.parse(JSON.stringify(obj));
+    cloned.id = `${obj.type}_${Date.now().toString(36)}`;
+    cloned.x = Math.min(0.95, (cloned.x || 0.5) + 0.04);
+    cloned.y = Math.min(0.95, (cloned.y || 0.5) + 0.04);
+    cloned.z = (cloned.z || 10) + 1;
+
+    objects.push(cloned);
+    selectedId = cloned.id;
+    selectedChildId = null;
+    notifyChange();
+  }
+
   window.TAIOSceneStore = {
     subscribe,
     resolveTemplateDefault,
@@ -339,6 +434,9 @@
     getOverrides,
     selectObject,
     clearSelection,
+    ungroupLogo,
+    deleteSelected,
+    duplicateSelected,
     get selectedId() {
       return selectedId;
     },

@@ -107,8 +107,18 @@
 
     if (store.selectedId === "logo") {
       stickerEl.classList.add("selected");
+      if (store.selectedChildId) {
+        stickerEl.classList.add("group-selected-child");
+      } else {
+        stickerEl.classList.remove("group-selected-child");
+      }
     } else {
       stickerEl.classList.remove("selected");
+      stickerEl.classList.remove("group-selected-child");
+    }
+
+    if (window.TAIOEditorToolbar) {
+      window.TAIOEditorToolbar.updateToolbar();
     }
 
     // Render tay cầm dải chân trang (mẫu footer_band / bg_band)

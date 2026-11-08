@@ -209,7 +209,13 @@
 
     stickerEl.addEventListener("dblclick", (e) => {
       e.preventDefault();
-      resetToDefault();
+      const rect = stickerEl.getBoundingClientRect();
+      const relX = (e.clientX - rect.left) / rect.width;
+      if (relX < 0.45) {
+        window.TAIOSceneStore.selectObject("logo", "logo_img");
+      } else {
+        window.TAIOSceneStore.selectObject("logo", "logo_text");
+      }
     });
   }
 
@@ -217,16 +223,25 @@
     e.preventDefault();
     stickerEl.focus();
 
-    // Chọn đối tượng khi chạm vào (FEATURE v1.4 P2)
-    window.TAIOSceneStore.selectObject("logo");
-
     const now = Date.now();
     if (now - lastTapTime < 300) {
-      resetToDefault();
+      // Chạm lần 2 / chạm đúp: chọn đối tượng con dưới ngón tay (FEATURE v1.4 P5)
+      const rect = stickerEl.getBoundingClientRect();
+      const relX = (e.clientX - rect.left) / rect.width;
+      if (relX < 0.45) {
+        window.TAIOSceneStore.selectObject("logo", "logo_img");
+      } else {
+        window.TAIOSceneStore.selectObject("logo", "logo_text");
+      }
       lastTapTime = 0;
       return;
     }
     lastTapTime = now;
+
+    // Chọn cả nhóm khi chạm lần đầu
+    if (window.TAIOSceneStore.selectedId !== "logo" || window.TAIOSceneStore.selectedChildId) {
+      window.TAIOSceneStore.selectObject("logo", null);
+    }
 
     activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     updateCanvasBounds();

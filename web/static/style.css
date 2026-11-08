@@ -1014,6 +1014,165 @@ html, body {
   height: 44px;
 }
 
+/* Thanh công cụ nổi kiểu Canva / Figma (FEATURE v1.4) */
+.editor-floating-toolbar {
+  position: absolute;
+  z-index: 35;
+  pointer-events: auto;
+  transform: translate(-50%, -100%);
+  margin-top: -12px;
+  background: #1E293B;
+  border: 1px solid #334155;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+  padding: 4px 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.floating-toolbar-inner {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-float-action {
+  background: transparent;
+  border: none;
+  color: #F8FAFC;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: background 0.15s ease;
+}
+
+.btn-float-action:hover {
+  background: #334155;
+}
+
+.btn-float-action.btn-danger {
+  color: #EF4444;
+}
+
+.btn-float-action.btn-danger:hover {
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.btn-pill-action {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+
+.btn-pill-action:hover {
+  background: rgba(30, 41, 59, 0.9);
+}
+
+.btn-icon-add-text {
+  background: #2563EB;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.btn-icon-add-text:hover {
+  background: #1D4ED8;
+}
+
+/* Drawer danh sách lớp (Layers Drawer) */
+.editor-layers-drawer {
+  position: absolute;
+  top: 40px;
+  right: 10px;
+  width: 240px;
+  max-height: 280px;
+  background: #1E293B;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  z-index: 40;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.layers-drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #0F172A;
+  border-bottom: 1px solid #334155;
+  font-size: 13px;
+  font-weight: 700;
+  color: #F8FAFC;
+}
+
+.btn-layers-close {
+  background: none;
+  border: none;
+  color: #94A3B8;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.layers-list {
+  padding: 6px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.layer-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: #334155;
+  color: #F8FAFC;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.layer-item-row.active {
+  background: #2563EB;
+}
+
+.layer-item-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.layer-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 /* Đường dóng thông minh (Smart Guides) */
 .guide-line {
   position: absolute;
