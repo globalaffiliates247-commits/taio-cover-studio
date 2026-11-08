@@ -1,7 +1,7 @@
 # TAIO Cover Studio
 
 > **"Thả video vào → chọn mẫu lớp phủ, caption, logo → nhận video đã gắn bìa thương hiệu; caption có thể để AI gợi ý."**  
-> *Thuộc hệ sinh thái **TAIO (TAIO.CLUB)*** · Phiên bản: **v1.3.0** · Ngôn ngữ giao diện: **Tiếng Việt**
+> *Thuộc hệ sinh thái **TAIO (TAIO.CLUB)*** · Phiên bản: **v1.4.0** · Ngôn ngữ giao diện: **Tiếng Việt**
 
 ---
 
@@ -104,10 +104,51 @@ Trình duyệt sẽ tự động mở địa chỉ: `http://127.0.0.1:8765`.
   - Nút **↺ Mặc định** để đưa mẫu về thiết lập ban đầu.
   - Tự động ghi nhớ thiết lập theo từng mẫu vào `localStorage`.
 
+---
+
+## 🎨 6. Chỉnh đối tượng (Scene Editor) & Kéo giãn dải chân trang (v1.4.0)
+
+### 1. Chọn đối tượng tinh gọn (Aesthetic & Minimalist Design)
+- **Mặc định sạch sẽ:** Mở ứng dụng không hiện sẵn bất kỳ tay cầm nào, giúp quan sát video rõ ràng.
+- **Chạm/Click để chọn:** Chỉ đối tượng được chọn mới xuất hiện đường viền xanh, 4 tay cầm đổi cỡ và tay cầm xoay.
+- **Rê chuột xem trước:** Trên máy tính, rê chuột qua đối tượng hiện đường viền mảnh nhận diện.
+- **Bỏ chọn nhanh:** Chạm vào khoảng trống ngoài khung preview, bấm phím `Esc`, hoặc bấm nút "Xong".
+
+### 2. Kéo giãn trực tiếp dải chân trang (Mẫu B)
+- **Tay cầm mép trên:** Chạm vào dải chân trang để kích hoạt thanh kéo ngang mép trên (vùng chạm $\ge 44\times 44$px). Mép dưới luôn gắn chặt đáy khung video.
+- **Hít tự động (Snap points):** Tự động hít vào các mốc 0.25, 0.33, 0.44 (mặc định), 0.50 khi cách $\le 8$px.
+- **Thanh trượt "Chiều cao dải":** Trong bảng điều khiển Mẫu B đồng bộ hai chiều thời gian thực với thao tác kéo trực tiếp.
+- **Cơ chế cha-con (`parent: "bg_band"`):** Khung caption tự động điều chỉnh vị trí và co giãn tỷ lệ thuận theo chiều cao dải.
+
+### 3. Nhóm Logo đa thành phần (Image + Text)
+- Logo mặc định của **TAIO.CLUB** được phân tách thành 2 thành phần độc lập: Ảnh (`logo_img`) và Chữ (`logo_text`).
+- **Chạm đúp (Double-tap/click):** Chọn trực tiếp thành phần con bên trong nhóm (khung nhóm chuyển sang nét đứt).
+- **Thanh công cụ nổi:** Hiển thị trực quan ngay trên đối tượng:
+  - `✏️ Sửa chữ`: Đổi chữ (vd: "TAIO.CLUB"), hỗ trợ cú pháp `**nhấn vàng**`.
+  - `Aa Kiểu`: Tuỳ biến phông chữ, cỡ chữ, màu sắc độc lập.
+  - `🖼 Thay ảnh`: Đổi file ảnh logo.
+  - `Bỏ nhóm`: Phân rã Logo thành 2 đối tượng rời rạc tại đúng toạ độ hiện hành.
+  - `🗑 Xoá`: Xoá ảnh chỉ giữ lại chữ, hoặc xoá chữ chỉ giữ lại ảnh.
+
+### 4. Thêm chữ tự do ("+ Chữ")
+- Nút **"+ Chữ"** đặt cạnh nút "Aa" cho phép tạo các lớp chữ tự do tại tâm video.
+- Đầy đủ tính năng: Đổi phông chữ, cỡ, màu sắc, viền, bóng, nền ôm từng dòng (`lines`) kiểu TikTok, xoay tự do và nhân bản.
+- Giới hạn hệ thống: Tối đa 10 đối tượng chữ và 3 đối tượng ảnh cho mỗi video để giữ app nhẹ và tối ưu bộ nhớ.
+
+### 5. Danh sách lớp (☰ Lớp), Hoàn tác / Làm lại & Phím tắt
+- **☰ Lớp (Layers Drawer):** Dễ dàng chọn các đối tượng kích thước nhỏ hoặc bị che khuất trên màn hình cảm ứng điện thoại; hỗ trợ ẩn/hiện (👁) và xoá nhanh.
+- **↶ Hoàn tác / ↷ Làm lại:** Lưu trữ tới 50 snapshot JSON tức thì, khôi phục mọi thao tác nhầm lẫn.
+- **Phím tắt máy tính:**
+  - `Ctrl/Cmd + Z`: Hoàn tác.
+  - `Ctrl/Cmd + Shift + Z`: Làm lại.
+  - `Ctrl/Cmd + D`: Nhân bản đối tượng.
+  - `Delete / Backspace`: Xoá đối tượng đang chọn.
+  - `Phím mũi tên`: Dịch chuyển 1px (giữ `Shift` dịch chuyển 10px).
+  - `Esc`: Bỏ chọn tất cả.
 
 ---
 
-## 🤖 5. Cấu hình AI gợi ý Caption
+## 🤖 7. Cấu hình AI gợi ý Caption
 
 Hệ thống hỗ trợ đa nhà cung cấp AI: **Google Gemini**, **Anthropic Claude**, **OpenAI GPT-4o**, **OpenRouter**, và **Ollama Local**.
 
@@ -125,7 +166,7 @@ OPENAI_API_KEY=your_openai_api_key_here
 
 ---
 
-## 💻 6. Sử dụng Giao diện Dòng lệnh (CLI)
+## 💻 8. Sử dụng Giao diện Dòng lệnh (CLI)
 
 `studio_cli.py` hỗ trợ tự động hoá mạnh mẽ:
 
@@ -161,7 +202,7 @@ python studio_cli.py suggest input.mp4 --context "Kịch bản phóng sự đi�
 
 ---
 
-## 🔌 7. Tích hợp MCP Server (Model Context Protocol)
+## 🔌 9. Tích hợp MCP Server (Model Context Protocol)
 
 TAIO Cover Studio tích hợp sẵn **MCP Server** (`studio_mcp.py`) theo chuẩn FastMCP, cho phép các trợ lý AI (Claude Desktop, Cursor, Antigravity) trực tiếp phân tích khung hình video và xuất video qua câu lệnh tự nhiên.
 
@@ -188,7 +229,7 @@ TAIO Cover Studio tích hợp sẵn **MCP Server** (`studio_mcp.py`) theo chuẩ
 
 ---
 
-## 🎨 8. Hướng dẫn tự tạo Mẫu lớp phủ mới (Templates)
+## 🎨 10. Hướng dẫn tự tạo Mẫu lớp phủ mới (Templates)
 
 Mỗi mẫu là một tệp JSON đặt trong thư mục `templates/<id>.json`. Để thêm mẫu mới, bạn chỉ cần tạo 1 tệp JSON, **hoàn toàn không cần sửa code**.
 
@@ -235,7 +276,7 @@ Mỗi mẫu là một tệp JSON đặt trong thư mục `templates/<id>.json`. 
 
 ---
 
-## 📜 9. Giấy phép & Bản quyền
+## 📜 11. Giấy phép & Bản quyền
 - **Phần mềm**: Phát triển bởi TAIO Team cho hệ sinh thái TAIO.CLUB.
 - **Font chữ**: Be Vietnam Pro (Giấy phép SIL Open Font License - OFL).
 - **Thư viện mã nguồn mở**: Pillow (HPND), Flask (BSD), FastMCP (MIT).

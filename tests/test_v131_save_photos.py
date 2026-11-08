@@ -12,12 +12,12 @@ from web.server import app
 
 class TestV131SavePhotos(unittest.TestCase):
     def test_version_131(self):
-        """Kiểm tra VERSION = 1.3.1 và get_version_info phản ánh đúng."""
+        """Kiểm tra VERSION >= 1.3.1 và get_version_info phản ánh đúng."""
         ver = (BASE_DIR / "VERSION").read_text("utf-8").strip()
-        self.assertEqual(ver, "1.3.1")
+        self.assertTrue(ver >= "1.3.1")
         info = get_version_info()
-        self.assertEqual(info["version"], "1.3.1")
-        self.assertTrue(info["label"].startswith("v1.3.1 · "))
+        self.assertEqual(info["version"], ver)
+        self.assertTrue(info["label"].startswith(f"v{ver} · "))
 
     def test_save_photos_script_loaded(self):
         """Kiểm tra index.html nạp script save-photos.js kèm ?v= cache busting."""

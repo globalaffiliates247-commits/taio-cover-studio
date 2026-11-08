@@ -4,6 +4,38 @@ Tất cả các thay đổi đáng chú ý của dự án **TAIO Cover Studio** 
 
 ---
 
+## [1.4.0] - 2026-11-09 - Trình Chỉnh Đối Tượng & Kéo Giãn Dải Chân Trang (FEATURE v1.4)
+- **Chọn đối tượng tinh gọn (Aesthetic & Minimalist Design - Nielsen):**
+  - Mặc định khi mở ứng dụng hoặc đổi mẫu: không chọn đối tượng nào, giao diện sạch sẽ không che khuất video.
+  - Khung bao và 4 tay cầm đổi cỡ + tay cầm xoay chỉ xuất hiện khi đối tượng được click/chạm.
+  - Chạm vào vùng trống ngoài khung preview, bấm `Esc` hoặc nút "Xong" để bỏ chọn và ẩn tay cầm.
+  - Trên máy tính, rê chuột qua đối tượng hiển thị đường viền mảnh nhận diện trước khi bấm.
+- **Kéo giãn trực tiếp dải chân trang (Mẫu B):**
+  - Kéo mép trên của dải chân trang trực tiếp trên khung preview (tay cầm ngang giữa mép trên, vùng chạm $\ge 44\times 44$px). Mép dưới luôn dính đáy video.
+  - Tự động hít (snap) vào các mốc chuẩn: 0.25, 0.33, 0.44 (mặc định), 0.50 khi cách $\le 8$px. Giới hạn độ cao 0.12–0.80.
+  - Thanh trượt "Chiều cao dải" trong bảng điều khiển Mẫu B đồng bộ hai chiều mượt mà với thao tác kéo trực tiếp.
+  - **Cơ chế cha-con (`parent: "bg_band"`):** Khung caption tự động co giãn và di chuyển tương đối theo dải chân trang, giữ nguyên độ thẩm mỹ và tỷ lệ trên video xuất.
+- **Nhóm Logo đa thành phần (Image + Text):**
+  - Logo được phân rã thành nhóm đối tượng gồm ảnh (`logo_img`) và chữ (`logo_text`, mặc định "TAIO.CLUB").
+  - Chạm 1 lần chọn toàn bộ nhóm; chạm đúp (hoặc chạm lần 2) chọn trực tiếp thành phần con (hiển thị viền nét đứt của nhóm).
+  - Thanh công cụ nổi trên đối tượng: `Sửa chữ`, `Aa Kiểu`, `Thay ảnh`, `Nhân bản`, `Bỏ nhóm`, `🗑 Xoá`.
+  - Thay đổi nội dung chữ, font chữ, màu sắc, cỡ chữ độc lập; xoá ảnh chỉ giữ lại chữ hoặc ngược lại.
+  - Tính năng "Bỏ nhóm" tách Logo thành 2 đối tượng độc lập tại đúng toạ độ hiện tại.
+- **Thêm chữ tự do ("+ Chữ") & Quản lý lớp:**
+  - Nút "+ Chữ" bên cạnh nút "Aa" cho phép thêm các đoạn văn bản độc lập vào tâm canvas, hỗ trợ cú pháp `**nhấn vàng**` và `==nhấn xanh==`.
+  - Tuỳ biến toàn diện kiểu chữ: bộ phông Google Fonts tiếng Việt, màu sắc, viền, bóng đổ, nền chữ ôm dòng kiểu TikTok và góc xoay.
+  - Giới hạn tải nhẹ cho máy chủ: tối đa 10 đối tượng chữ và 3 đối tượng ảnh cho mỗi video.
+- **Danh sách lớp (☰ Lớp), Lịch sử Hoàn tác / Làm lại & Phím tắt:**
+  - Ngăn kéo "☰ Lớp" hỗ trợ người dùng điện thoại chạm chọn đối tượng nhỏ hoặc bị che khuất, bật/tắt hiển thị (👁) và xoá nhanh.
+  - Hệ thống Undo / Redo (nút ↶ / ↷) lưu trữ tới 50 snapshot JSON tức thì, tiêu tốn cực ít bộ nhớ.
+  - Phím tắt máy tính: `Ctrl/Cmd+Z` (Undo), `Ctrl/Cmd+Shift+Z` (Redo), `Ctrl/Cmd+D` (Nhân bản), `Delete/Backspace` (Xoá), phím mũi tên dịch chuyển 1px (giữ Shift dịch 10px).
+- **Kiến trúc mô-đun frontend & Render WYSIWYG nhẹ tối ưu:**
+  - Tách tệp nguyên khối `sticker.js` thành các mô-đun chuyên biệt: `scene-store.js`, `transform.js`, `guides.js`, `object-views.js`, `toolbar.js`, `text-editor.js` dưới thư mục `web/static/js/editor/`.
+  - Cung cấp facade `window.TAIOSticker` tương thích ngược 100% với các tính năng cũ.
+  - Endpoint mới `POST /api/object-image` kết hợp bộ nhớ đệm LRU 50 ảnh trên server: chỉ gọi khi dừng thao tác 250ms, tuyệt đối không gọi server trong lúc kéo/xoay/pinch (sử dụng CSS transform 60fps), đảm bảo tài nguyên cho Render Free (512MB RAM).
+
+---
+
 ## [1.3.1] - 2026-11-07 - Khắc phục Lỗi "Lưu vào Cuộn Camera" trên iPhone / iOS (FIX v1.3.1)
 - **Tải sẵn video vào bộ nhớ ngay khi xuất xong (FIX-1):**
   - Tách toàn bộ logic lưu Cuộn Camera sang file mới `web/static/js/save-photos.js`.
