@@ -107,7 +107,7 @@
       item.className = "layer-control-item";
       item.dataset.controlId = ctrl.id;
 
-      if (ctrl.type === "opacity") {
+      if (ctrl.type === "opacity" || ctrl.type === "slider" || ctrl.prop === "h") {
         renderOpacityControl(item, ctrl, val);
       } else if (ctrl.type === "color") {
         renderColorControl(item, ctrl, val);
@@ -337,6 +337,11 @@
           if (val !== undefined && val !== null) {
             layersOverride[layerId].opacity = Number(val);
           }
+        } else if (ctrl.prop === "h" || ctrl.id === "band_height") {
+          if (val !== undefined && val !== null) {
+            layersOverride[layerId].h = Number(val);
+            layersOverride[layerId].y = 1.0 - Number(val);
+          }
         } else if (ctrl.type === "color") {
           if (val !== undefined && val !== null && val !== "null") {
             layersOverride[layerId].color = String(val);
@@ -349,6 +354,27 @@
     });
 
     return { layers: layersOverride };
+  }
+
+  function setControlValue(ctrlId, val, triggerChange = true) {
+    currentValues[ctrlId] = val;
+    if (currentTemplate) {
+      saveValues(currentTemplate.id, currentValues);
+    }
+    if (containerEl) {
+      const slider = containerEl.querySelector(`#slider_${ctrlId}`);
+      const badge = containerEl.querySelector(`#val_${ctrlId}`);
+      const pct = Math.round(val * 100);
+      if (slider) slider.value = pct;
+      if (badge) badge.textContent = `${pct}%`;
+    }
+    if (triggerChange) {
+      notifyChange();
+    }
+  }
+
+  function getControlValue(ctrlId) {
+    return currentValues[ctrlId];
   }
 
   function escapeHtml(text) {
@@ -367,5 +393,7 @@
     setTemplate: setTemplate,
     getOverrides: getOverrides,
     resetToDefault: resetToDefault,
+    setControlValue: setControlValue,
+    getControlValue: getControlValue,
   };
 })();

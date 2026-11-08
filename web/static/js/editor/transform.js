@@ -131,6 +131,34 @@
     // Chạm vào vùng trống trên khung xem trước -> Bỏ chọn (ẩn toàn bộ tay cầm)
     if (stageEl) {
       stageEl.addEventListener("pointerdown", (e) => {
+        const bandHandle = e.target.closest(".band-handle");
+        if (bandHandle) {
+          e.preventDefault();
+          transformMode = "band-height";
+          activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+          if (bandHandle.setPointerCapture) {
+            try {
+              bandHandle.setPointerCapture(e.pointerId);
+            } catch (_) {}
+          }
+          return;
+        }
+
+        const store = window.TAIOSceneStore;
+        // Chạm vào dải chân trang (mẫu footer_band) -> Chọn dải chân trang
+        if (store.currentTemplate && store.currentTemplate.id === "footer_band") {
+          let bandH = 0.44;
+          if (window.TAIOLayerControls) {
+            const val = window.TAIOLayerControls.getControlValue("band_height");
+            if (typeof val === "number") bandH = val;
+          }
+          const normY = (e.clientY - canvasRect.top) / canvasRect.height;
+          if (normY >= 1.0 - bandH - 0.02 && normY <= 1.05 && !e.target.closest(".sticker-box")) {
+            store.selectObject("bg_band");
+            return;
+          }
+        }
+
         if (
           !e.target.closest(".sticker-box") &&
           !e.target.closest(".band-handle") &&
@@ -245,6 +273,30 @@
     if (!activePointers.has(e.pointerId)) return;
     activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     e.preventDefault();
+
+    if (transformMode === "band-height") {
+      const stageH = canvasRect.height;
+      const normY = (e.clientY - canvasRect.top) / stageH;
+      let candH = 1.0 - normY;
+
+      // Hít vào các mốc 0.25 / 0.33 / 0.44 / 0.50 khi cách <= 8px
+      const snapPoints = [0.25, 0.33, 0.44, 0.50];
+      for (const pt of snapPoints) {
+        if (Math.abs(candH - pt) * stageH <= 8) {
+          candH = pt;
+          break;
+        }
+      }
+      candH = Math.max(0.12, Math.min(0.80, candH));
+
+      if (window.TAIOLayerControls) {
+        window.TAIOLayerControls.setControlValue("band_height", candH, false);
+      }
+      if (window.TAIOEditorViews) {
+        window.TAIOEditorViews.updateBandHandlePosition(candH);
+      }
+      return;
+    }
 
     const state = window.TAIOSceneStore.stickerState;
 

@@ -9,6 +9,8 @@
   let stageEl = null;
   let stickerEl = null;
   let stickerImgEl = null;
+  let bandHandleEl = null;
+  let bandLineEl = null;
 
   // Numeric inputs DOM
   let numXEl = null;
@@ -25,6 +27,20 @@
     stageEl = document.getElementById("stickerStage");
     stickerEl = document.getElementById("logoSticker");
     stickerImgEl = document.getElementById("logoStickerImg");
+
+    if (stageEl && !bandHandleEl) {
+      bandLineEl = document.createElement("div");
+      bandLineEl.className = "band-edge-line";
+      bandLineEl.style.display = "none";
+      stageEl.appendChild(bandLineEl);
+
+      bandHandleEl = document.createElement("div");
+      bandHandleEl.className = "band-handle";
+      bandHandleEl.dataset.handle = "band-top";
+      bandHandleEl.style.display = "none";
+      bandHandleEl.title = "Kéo lên/xuống để đổi chiều cao dải chân trang";
+      stageEl.appendChild(bandHandleEl);
+    }
 
     bindPanelControls();
   }
@@ -95,7 +111,35 @@
       stickerEl.classList.remove("selected");
     }
 
+    // Render tay cầm dải chân trang (mẫu footer_band / bg_band)
+    if (bandHandleEl && bandLineEl) {
+      const isBand = store.currentTemplate && store.currentTemplate.id === "footer_band";
+      const isBandSelected = store.selectedId === "bg_band";
+      if (isBand && isBandSelected) {
+        let bandH = 0.44;
+        if (window.TAIOLayerControls) {
+          const val = window.TAIOLayerControls.getControlValue("band_height");
+          if (typeof val === "number") bandH = val;
+        }
+        updateBandHandlePosition(bandH);
+        bandLineEl.style.display = "block";
+        bandHandleEl.style.display = "block";
+      } else {
+        bandLineEl.style.display = "none";
+        bandHandleEl.style.display = "none";
+      }
+    }
+
     syncInputs();
+  }
+
+  function updateBandHandlePosition(bandH) {
+    if (!bandHandleEl || !bandLineEl || !window.TAIOEditorTransform) return;
+    const canvasRect = window.TAIOEditorTransform.canvasRect;
+    const stageH = canvasRect.height;
+    const topPx = (1.0 - bandH) * stageH;
+    bandLineEl.style.top = `${topPx}px`;
+    bandHandleEl.style.top = `${topPx}px`;
   }
 
   function syncInputs() {
@@ -294,6 +338,7 @@
     initViews,
     loadStickerImage,
     renderDOM,
+    updateBandHandlePosition,
     applyQuickGridPosition,
   };
 })();
