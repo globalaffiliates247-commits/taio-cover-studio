@@ -281,6 +281,22 @@ class TestV14Scene(unittest.TestCase):
         render_objects(overlay2, text_objs, self.layout, ctx={})
         self.assertEqual(overlay2.size, (1080, 1920))
 
+    def test_t8_no_objects_backward_compatibility(self):
+        """T8: Khi không gửi objects, 4 mẫu lớp phủ hoạt động 100% như v1.3.1."""
+        template_ids = ["lower_third_fade", "footer_band", "top_bottom_bars", "vertical_9x16_footer"]
+        for tid in template_ids:
+            tpl = get_template(tid)
+            self.assertIsNotNone(tpl)
+            applied = apply_overrides(tpl, None)
+            self.assertNotIn("objects", applied)
+
+            overlay, warnings = render_overlay(
+                applied,
+                self.layout,
+                caption="Kiểm tra tương thích",
+            )
+            self.assertEqual(overlay.size, (1080, 1920))
+
 
 if __name__ == "__main__":
     unittest.main()

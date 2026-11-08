@@ -65,6 +65,10 @@
     const transform = window.TAIOEditorTransform;
     if (!toolbarEl || !innerEl || !store) return;
 
+    if (layersDrawerEl && !layersDrawerEl.hidden) {
+      renderLayersList();
+    }
+
     const selId = store.selectedId;
     const selChild = store.selectedChildId;
 

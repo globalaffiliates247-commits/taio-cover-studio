@@ -220,30 +220,86 @@
       });
     }
 
-    // Nhấn Esc -> Bỏ chọn
+    // Phím tắt bàn phím máy tính (FEATURE v1.4 P7)
     window.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") {
-        window.TAIOSceneStore.clearSelection();
+      const tag = (document.activeElement && document.activeElement.tagName) || "";
+      if (
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        (document.activeElement && document.activeElement.isContentEditable)
+      ) {
+        return;
       }
-    });
 
-    stickerEl.addEventListener("keydown", (e) => {
-      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
+      const store = window.TAIOSceneStore;
+      if (!store) return;
+
+      // Esc -> Bỏ chọn
+      if (e.key === "Escape") {
+        store.clearSelection();
+        return;
+      }
+
+      // Ctrl/Cmd + Z / Ctrl/Cmd + Shift + Z -> Hoàn tác / Làm lại
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
         e.preventDefault();
-        const step = e.shiftKey ? 10 : 1;
-        const canvasW = canvasRect.canvasW || 1080;
-        const canvasH = canvasRect.canvasH || 1920;
-        const state = window.TAIOSceneStore.stickerState;
+        if (e.shiftKey) {
+          store.redo();
+        } else {
+          store.undo();
+        }
+        return;
+      }
 
-        if (e.key === "ArrowLeft") state.x -= step / canvasW;
-        if (e.key === "ArrowRight") state.x += step / canvasW;
-        if (e.key === "ArrowUp") state.y -= step / canvasH;
-        if (e.key === "ArrowDown") state.y += step / canvasH;
+      // Ctrl/Cmd + D -> Nhân bản
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "d") {
+        e.preventDefault();
+        if (store.selectedId) {
+          store.duplicateSelected();
+        }
+        return;
+      }
 
-        state.x = Math.max(0, Math.min(1, state.x));
-        state.y = Math.max(0, Math.min(1, state.y));
-        if (window.TAIOEditorViews) window.TAIOEditorViews.renderDOM();
-        window.TAIOSceneStore.notifyChange();
+      // Delete / Backspace -> Xoá
+      if (e.key === "Delete" || e.key === "Backspace") {
+        if (store.selectedId) {
+          e.preventDefault();
+          store.deleteSelected();
+        }
+        return;
+      }
+
+      // Phím mũi tên -> Dịch 1px (Shift: 10px) theo khung xuất
+      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
+        if (store.selectedId) {
+          e.preventDefault();
+          const step = e.shiftKey ? 10 : 1;
+          const canvasW = canvasRect.canvasW || 1080;
+          const canvasH = canvasRect.canvasH || 1920;
+
+          if (store.selectedId === "logo") {
+            const state = store.stickerState;
+            if (e.key === "ArrowLeft") state.x -= step / canvasW;
+            if (e.key === "ArrowRight") state.x += step / canvasW;
+            if (e.key === "ArrowUp") state.y -= step / canvasH;
+            if (e.key === "ArrowDown") state.y += step / canvasH;
+            state.x = Math.max(0, Math.min(1, state.x));
+            state.y = Math.max(0, Math.min(1, state.y));
+          } else {
+            const obj = (store.objects || []).find((o) => o.id === store.selectedId);
+            if (obj) {
+              if (e.key === "ArrowLeft") obj.x = (obj.x || 0.5) - step / canvasW;
+              if (e.key === "ArrowRight") obj.x = (obj.x || 0.5) + step / canvasW;
+              if (e.key === "ArrowUp") obj.y = (obj.y || 0.5) - step / canvasH;
+              if (e.key === "ArrowDown") obj.y = (obj.y || 0.5) + step / canvasH;
+              obj.x = Math.max(0, Math.min(1, obj.x));
+              obj.y = Math.max(0, Math.min(1, obj.y));
+            }
+          }
+
+          if (window.TAIOEditorViews) window.TAIOEditorViews.renderDOM();
+          store.notifyChange();
+        }
       }
     });
 
