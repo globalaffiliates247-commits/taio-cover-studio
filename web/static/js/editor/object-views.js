@@ -89,6 +89,12 @@
     stickerEl.style.transform = `translate(-50%, -50%) rotate(${state.rotation}deg)`;
     stickerEl.style.opacity = `${state.opacity}`;
 
+    if (store.selectedId === "logo") {
+      stickerEl.classList.add("selected");
+    } else {
+      stickerEl.classList.remove("selected");
+    }
+
     syncInputs();
   }
 

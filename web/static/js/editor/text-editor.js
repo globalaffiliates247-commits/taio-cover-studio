@@ -66,6 +66,7 @@
       store.currentTemplate = template;
       store.brandColors = brandData ? brandData.colors : null;
       store.templateDefaults = store.resolveTemplateDefault(template);
+      store.clearSelection();
 
       const hasSaved = store.loadFromLocalStorage();
       if (!hasSaved) {

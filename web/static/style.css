@@ -856,17 +856,33 @@ html, body {
   touch-action: none;
   user-select: none;
   pointer-events: auto;
-  cursor: grab;
+  cursor: pointer;
   outline: none;
   z-index: 18;
+  transition: box-shadow 0.15s ease;
+}
+
+/* Rê chuột lên đối tượng: hiện viền mảnh (chưa có tay cầm) */
+@media (hover: hover) {
+  .sticker-box:hover:not(.selected) {
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.7);
+    border-radius: 4px;
+  }
 }
 
 .sticker-box:active {
   cursor: grabbing;
 }
 
-.sticker-box.active {
-  box-shadow: 0 0 0 1.5px #3B82F6, 0 4px 12px rgba(0, 0, 0, 0.5);
+/* Khi được chọn: hiện khung viền xanh rõ */
+.sticker-box.selected {
+  box-shadow: 0 0 0 1.5px #3B82F6, 0 4px 12px rgba(0, 0, 0, 0.45);
+  border-radius: 4px;
+  cursor: grab;
+}
+
+.sticker-box.group-selected-child {
+  box-shadow: 0 0 0 1.5px dashed #3B82F6, 0 4px 12px rgba(0, 0, 0, 0.35);
   border-radius: 4px;
 }
 
@@ -878,6 +894,20 @@ html, body {
   pointer-events: none;
   user-select: none;
   -webkit-user-drag: none;
+}
+
+/* Ẩn toàn bộ tay cầm khi đối tượng CHƯA được chọn */
+.sticker-box .sticker-handle,
+.sticker-box .sticker-rotator-line,
+.sticker-box .sticker-rotator {
+  display: none;
+}
+
+/* Chỉ đối tượng ĐANG CHỌN mới hiện khung và tay cầm (FEATURE v1.4 P2) */
+.sticker-box.selected .sticker-handle,
+.sticker-box.selected .sticker-rotator-line,
+.sticker-box.selected .sticker-rotator {
+  display: block;
 }
 
 /* Tay cầm đổi cỡ ở 4 góc (Fitts's Law: vùng chạm >= 44x44px) */

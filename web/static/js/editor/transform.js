@@ -128,6 +128,37 @@
     window.addEventListener("pointerup", onPointerUp);
     window.addEventListener("pointercancel", onPointerUp);
 
+    // Chạm vào vùng trống trên khung xem trước -> Bỏ chọn (ẩn toàn bộ tay cầm)
+    if (stageEl) {
+      stageEl.addEventListener("pointerdown", (e) => {
+        if (
+          !e.target.closest(".sticker-box") &&
+          !e.target.closest(".band-handle") &&
+          !e.target.closest(".editor-floating-toolbar")
+        ) {
+          window.TAIOSceneStore.clearSelection();
+        }
+      });
+    }
+    if (wrapperEl) {
+      wrapperEl.addEventListener("pointerdown", (e) => {
+        if (
+          !e.target.closest(".sticker-box") &&
+          !e.target.closest(".band-handle") &&
+          !e.target.closest(".editor-floating-toolbar")
+        ) {
+          window.TAIOSceneStore.clearSelection();
+        }
+      });
+    }
+
+    // Nhấn Esc -> Bỏ chọn
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        window.TAIOSceneStore.clearSelection();
+      }
+    });
+
     stickerEl.addEventListener("keydown", (e) => {
       if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
         e.preventDefault();
@@ -157,6 +188,9 @@
   function onPointerDown(e) {
     e.preventDefault();
     stickerEl.focus();
+
+    // Chọn đối tượng khi chạm vào (FEATURE v1.4 P2)
+    window.TAIOSceneStore.selectObject("logo");
 
     const now = Date.now();
     if (now - lastTapTime < 300) {
