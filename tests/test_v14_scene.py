@@ -297,6 +297,29 @@ class TestV14Scene(unittest.TestCase):
             )
             self.assertEqual(overlay.size, (1080, 1920))
 
+    def test_frontend_js_syntax_and_default_logo_endpoint(self):
+        """Kiểm tra toàn bộ file JS frontend không có lỗi cú pháp và /api/layer-image trả về logo mặc định."""
+        import shutil
+        import subprocess
+        from core.paths import BASE_DIR
+
+        node_bin = shutil.which("node")
+        if node_bin:
+            js_dir = BASE_DIR / "web" / "static"
+            js_files = list(js_dir.glob("*.js")) + list((js_dir / "js").glob("*.js")) + list((js_dir / "js" / "editor").glob("*.js"))
+            self.assertGreaterEqual(len(js_files), 10)
+            for js_file in js_files:
+                res = subprocess.run([node_bin, "--check", str(js_file)], capture_output=True, text=True)
+                self.assertEqual(res.returncode, 0, f"Lỗi cú pháp JS trong {js_file}: {res.stderr}")
+
+        # Kiểm tra /api/layer-image luôn trả về ảnh PNG của logo mặc định
+        from web.server import app
+        client = app.test_client()
+        res_logo = client.get("/api/layer-image?template=lower_third_fade&layer=logo&pill=1")
+        self.assertEqual(res_logo.status_code, 200)
+        self.assertEqual(res_logo.mimetype, "image/png")
+        self.assertGreater(len(res_logo.data), 200)
+
 
 if __name__ == "__main__":
     unittest.main()

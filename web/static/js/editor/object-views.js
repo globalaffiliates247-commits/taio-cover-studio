@@ -48,6 +48,42 @@
   async function loadStickerImage() {
     const store = window.TAIOSceneStore;
     if (!store || !store.currentTemplate) return;
+
+    const logoGroup = (store.objects || []).find((o) => o.id === "logo" && o.type === "group");
+    if (logoGroup && logoGroup.customized) {
+      try {
+        const resp = await fetch("/api/object-image", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            object: {
+              ...logoGroup,
+              pill: { enabled: store.stickerState.pill },
+            },
+            logo_id: store.currentLogoId || null,
+          }),
+        });
+        if (resp.ok) {
+          const blob = await resp.blob();
+          const objUrl = URL.createObjectURL(blob);
+          const img = new Image();
+          img.onload = () => {
+            if (img.naturalWidth && img.naturalHeight) {
+              store.stickerState.aspectRatio = img.naturalHeight / img.naturalWidth;
+            }
+            if (stickerImgEl) {
+              stickerImgEl.src = objUrl;
+            }
+            renderDOM();
+          };
+          img.src = objUrl;
+          return;
+        }
+      } catch (e) {
+        console.warn("Không thể tải custom logo group image:", e);
+      }
+    }
+
     const tplId = store.currentTemplate.id;
     const logoId = store.currentLogoId || "";
     const pill = store.stickerState.pill ? "1" : "0";
@@ -115,40 +151,39 @@
 
     if (!stickerEl || !stageEl) return;
 
-    if (!state.visible) {
-      stickerEl.style.display = "none";
-      syncInputs();
-      return;
-    }
-
-    stickerEl.style.display = "block";
-
     const stageW = canvasRect.width;
     const stageH = canvasRect.height;
+    const hasLogoGroup = (store.objects || []).some((o) => o.id === "logo" && o.type === "group");
 
-    const pxW = Math.max(16, state.w * stageW);
-    const pxH = Math.max(16, pxW * state.aspectRatio);
+    if (!state.visible || !hasLogoGroup) {
+      stickerEl.style.display = "none";
+    } else {
+      stickerEl.style.display = "block";
 
-    const pxCenterX = state.x * stageW;
-    const pxCenterY = state.y * stageH;
+      const pxW = Math.max(16, state.w * stageW);
+      const pxH = Math.max(16, pxW * state.aspectRatio);
 
-    stickerEl.style.width = `${pxW}px`;
-    stickerEl.style.height = `${pxH}px`;
-    stickerEl.style.left = `${pxCenterX}px`;
-    stickerEl.style.top = `${pxCenterY}px`;
-    stickerEl.style.transform = `translate(-50%, -50%) rotate(${state.rotation}deg)`;
-    stickerEl.style.opacity = `${state.opacity}`;
+      const pxCenterX = state.x * stageW;
+      const pxCenterY = state.y * stageH;
 
-    if (store.selectedId === "logo") {
-      stickerEl.classList.add("selected");
-      if (store.selectedChildId) {
-        stickerEl.classList.add("group-selected-child");
+      stickerEl.style.width = `${pxW}px`;
+      stickerEl.style.height = `${pxH}px`;
+      stickerEl.style.left = `${pxCenterX}px`;
+      stickerEl.style.top = `${pxCenterY}px`;
+      stickerEl.style.transform = `translate(-50%, -50%) rotate(${state.rotation}deg)`;
+      stickerEl.style.opacity = `${state.opacity}`;
+
+      if (store.selectedId === "logo") {
+        stickerEl.classList.add("selected");
+        if (store.selectedChildId) {
+          stickerEl.classList.add("group-selected-child");
+        } else {
+          stickerEl.classList.remove("group-selected-child");
+        }
       } else {
+        stickerEl.classList.remove("selected");
         stickerEl.classList.remove("group-selected-child");
       }
-    } else {
-      stickerEl.classList.remove("selected");
-      stickerEl.classList.remove("group-selected-child");
     }
 
     if (window.TAIOEditorToolbar) {
@@ -194,7 +229,7 @@
         box.dataset.id = obj.id;
         box.tabIndex = 0;
         box.innerHTML = `
-          <img class="sticker-img scene-obj-img" draggable="false" alt="${obj.id}">
+          <img class="sticker-img scene-obj-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" draggable="false" alt="">
           <div class="sticker-handle handle-tl" data-handle="tl"></div>
           <div class="sticker-handle handle-tr" data-handle="tr"></div>
           <div class="sticker-handle handle-bl" data-handle="bl"></div>

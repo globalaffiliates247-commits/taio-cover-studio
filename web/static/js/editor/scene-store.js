@@ -91,6 +91,7 @@
     currentTemplate = template;
     brandColors = brandData ? brandData.colors : null;
     templateDefaults = resolveTemplateDefault(template);
+    objects = [];
 
     const hasSaved = loadFromLocalStorage();
     if (!hasSaved) {
@@ -113,8 +114,11 @@
         defGroup.pill = { enabled: stickerState.pill };
         objects = [defGroup];
       }
+      stickerState.visible = true;
     }
   }
+
+  function resolveTemplateDefault(template) {
     if (!template || !template.layers) {
       return { x: 0.82, y: 0.06, w: 0.22, rotation: 0, opacity: 1.0, visible: true, pill: true };
     }
@@ -239,6 +243,9 @@
     if (prev) {
       objects = prev.objects || [];
       if (prev.sticker) Object.assign(stickerState, prev.sticker);
+      if (window.TAIOEditorViews) {
+        window.TAIOEditorViews.loadStickerImage();
+      }
       notifyChange(0, false);
       return true;
     }
@@ -257,6 +264,9 @@
     if (next) {
       objects = next.objects || [];
       if (next.sticker) Object.assign(stickerState, next.sticker);
+      if (window.TAIOEditorViews) {
+        window.TAIOEditorViews.loadStickerImage();
+      }
       notifyChange(0, false);
       return true;
     }
@@ -284,6 +294,7 @@
   }
 
   function getOverrides() {
+    const hasLogoGroup = objects.some((o) => o.id === "logo" && o.type === "group");
     const overrides = {
       layers: {
         logo: {
@@ -292,13 +303,29 @@
           w: Math.round(stickerState.w * 10000) / 10000,
           rotation: Math.round(stickerState.rotation * 10) / 10,
           opacity: Math.round(stickerState.opacity * 100) / 100,
-          visible: stickerState.visible,
+          visible: hasLogoGroup ? stickerState.visible : false,
           pill: stickerState.pill,
         },
       },
     };
-    if (objects && objects.length > 0) {
-      overrides.objects = objects;
+    const exportObjects = (objects || [])
+      .map((o) => {
+        if (o.id === "logo" && o.type === "group") {
+          if (!o.customized) return null;
+          return {
+            ...o,
+            x: Math.round(stickerState.x * 10000) / 10000,
+            y: Math.round(stickerState.y * 10000) / 10000,
+            rotation: Math.round(stickerState.rotation * 10) / 10,
+            pill: { enabled: stickerState.pill },
+          };
+        }
+        return o;
+      })
+      .filter(Boolean);
+
+    if (exportObjects.length > 0) {
+      overrides.objects = exportObjects;
     }
     return overrides;
   }
@@ -331,6 +358,10 @@
     const group = objects[idx];
     recordSnapshot();
 
+    const gx = stickerState.x !== undefined ? stickerState.x : group.x;
+    const gy = stickerState.y !== undefined ? stickerState.y : group.y;
+    const grot = stickerState.rotation !== undefined ? stickerState.rotation : group.rotation || 0;
+
     const newObjs = [];
     const children = group.children || [];
     const imgChild = children.find((c) => c.type === "image" || c.id === "logo_img");
@@ -341,10 +372,10 @@
         id: "logo_img",
         type: "image",
         src: imgChild.src || "brand",
-        x: Math.max(0, Math.min(1, group.x + (imgChild.dx || 0))),
-        y: Math.max(0, Math.min(1, group.y + (imgChild.dy || 0))),
+        x: Math.max(0.05, Math.min(0.95, gx + (imgChild.dx || -0.05))),
+        y: Math.max(0.05, Math.min(0.95, gy + (imgChild.dy || 0))),
         w: imgChild.w || 0.08,
-        rotation: group.rotation || 0,
+        rotation: grot,
         z: group.z || 10,
         visible: imgChild.visible !== false,
       });
@@ -355,21 +386,22 @@
         id: "logo_text",
         type: "text",
         text: txtChild.text || "TAIO.CLUB",
-        x: Math.max(0, Math.min(1, group.x + (txtChild.dx || 0))),
-        y: Math.max(0, Math.min(1, group.y + (txtChild.dy || 0))),
+        x: Math.max(0.05, Math.min(0.95, gx + (txtChild.dx || 0.04))),
+        y: Math.max(0.05, Math.min(0.95, gy + (txtChild.dy || 0))),
         style: txtChild.style || {
           font: "BeVietnamPro",
           weight: "Black",
           size: 0.035,
           color: "#FFFFFF",
         },
-        rotation: group.rotation || 0,
+        rotation: grot,
         z: (group.z || 10) + 1,
         visible: txtChild.visible !== false,
       });
     }
 
     objects.splice(idx, 1, ...newObjs);
+    stickerState.visible = false;
     selectedId = newObjs.length > 0 ? newObjs[0].id : null;
     selectedChildId = null;
     notifyChange();
@@ -380,21 +412,29 @@
     if (selectedChildId && selectedId === "logo") {
       const group = objects.find((o) => o.id === "logo");
       if (group && group.children) {
+        group.customized = true;
         group.children = group.children.filter((c) => c.id !== selectedChildId);
         if (group.children.length === 1) {
           group.children[0].dx = 0;
           group.children[0].dy = 0;
         } else if (group.children.length === 0) {
           objects = objects.filter((o) => o.id !== "logo");
+          stickerState.visible = false;
           selectedId = null;
         }
         selectedChildId = null;
+        if (window.TAIOEditorViews) {
+          window.TAIOEditorViews.loadStickerImage();
+        }
         notifyChange();
         return;
       }
     }
 
     if (selectedId) {
+      if (selectedId === "logo") {
+        stickerState.visible = false;
+      }
       objects = objects.filter((o) => o.id !== selectedId);
       selectedId = null;
       selectedChildId = null;

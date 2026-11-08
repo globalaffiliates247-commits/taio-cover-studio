@@ -158,7 +158,11 @@
     const res = window.prompt("Nhập nội dung chữ logo:", curText);
     if (res !== null) {
       store.recordSnapshot();
+      if (group) group.customized = true;
       if (child) child.text = res.trim() || "TAIO.CLUB";
+      if (window.TAIOEditorViews) {
+        window.TAIOEditorViews.loadStickerImage();
+      }
       store.notifyChange();
     }
   }

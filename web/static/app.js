@@ -600,6 +600,9 @@
           caption: captionOverrides,
         },
       };
+      if (stickerOverrides.objects && stickerOverrides.objects.length > 0) {
+        combinedOverrides.objects = stickerOverrides.objects;
+      }
 
       const payload = {
         video_id: state.video.id,
@@ -609,6 +612,7 @@
         logo_id: state.logoId,
         overrides: combinedOverrides,
         exclude_layers: ["logo"],
+        exclude_objects: true,
       };
 
       const res = await fetchWithVideoRecovery("/api/preview", {
@@ -712,6 +716,9 @@
           caption: captionOverrides,
         },
       };
+      if (stickerOverrides.objects && stickerOverrides.objects.length > 0) {
+        combinedOverrides.objects = stickerOverrides.objects;
+      }
 
       const payload = {
         video_id: state.video.id,

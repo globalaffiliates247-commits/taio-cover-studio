@@ -11,7 +11,7 @@ WORKDIR /app
 
 # Cài đặt dependencies trước để tận dụng Docker layer cache
 COPY requirements.txt requirements-server.txt ./
-RUN pip install --no-cache-dir -r requirements-server.txt
+RUN pip install --no-cache-dir --root-user-action=ignore -r requirements-server.txt
 
 # Sao chép toàn bộ mã nguồn
 COPY . .
