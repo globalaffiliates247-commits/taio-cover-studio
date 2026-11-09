@@ -49,6 +49,10 @@
     const store = window.TAIOSceneStore;
     if (!store || !store.currentTemplate) return;
 
+    const pMode = store.stickerState.pillMode || (store.stickerState.pill ? "translucent" : "none");
+    const pColor = store.stickerState.pillColor || "#1A56DB";
+    const pOpacity = store.stickerState.pillOpacity !== undefined ? store.stickerState.pillOpacity : (pMode === "solid" ? 1.0 : 0.5);
+
     const logoGroup = (store.objects || []).find((o) => o.id === "logo" && o.type === "group");
     if (logoGroup && logoGroup.customized) {
       try {
@@ -58,7 +62,13 @@
           body: JSON.stringify({
             object: {
               ...logoGroup,
-              pill: { enabled: store.stickerState.pill },
+              pill: {
+                ...(logoGroup.pill || {}),
+                enabled: store.stickerState.pill && pMode !== "none",
+                mode: pMode,
+                color: pColor,
+                opacity: pOpacity,
+              },
             },
             logo_id: store.currentLogoId || null,
           }),
@@ -86,8 +96,8 @@
 
     const tplId = store.currentTemplate.id;
     const logoId = store.currentLogoId || "";
-    const pill = store.stickerState.pill ? "1" : "0";
-    const url = `/api/layer-image?template=${encodeURIComponent(tplId)}&layer=logo&logo_id=${encodeURIComponent(logoId)}&pill=${pill}&t=${Date.now()}`;
+    const pill = (store.stickerState.pill && pMode !== "none") ? "1" : "0";
+    const url = `/api/layer-image?template=${encodeURIComponent(tplId)}&layer=logo&logo_id=${encodeURIComponent(logoId)}&pill=${pill}&pill_mode=${pMode}&pill_color=${encodeURIComponent(pColor)}&pill_opacity=${pOpacity}&t=${Date.now()}`;
 
     try {
       const img = new Image();
@@ -399,6 +409,82 @@
           renderDOM();
           store.notifyChange();
         }
+      });
+    }
+
+    const pillSegments = document.getElementById("logoPillModeSegments");
+    const pillColorPanel = document.getElementById("logoPillColorPanel");
+    const pillPalette = document.getElementById("logoPillPalette");
+    const pillColorCustom = document.getElementById("logoPillColorCustom");
+    const rngPillOpacity = document.getElementById("rngLogoPillOpacity");
+    const lblPillOpacity = document.getElementById("lblLogoPillOpacity");
+
+    function syncLogoGroupPill() {
+      const lg = (store.objects || []).find((o) => o.id === "logo" && o.type === "group");
+      if (lg) {
+        if (!lg.pill) lg.pill = {};
+        lg.pill.enabled = store.stickerState.pill && store.stickerState.pillMode !== "none";
+        lg.pill.mode = store.stickerState.pillMode;
+        lg.pill.color = store.stickerState.pillColor;
+        lg.pill.opacity = store.stickerState.pillOpacity;
+        lg.customized = true;
+      }
+    }
+
+    if (pillSegments) {
+      pillSegments.querySelectorAll(".btn-segment").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          pillSegments.querySelectorAll(".btn-segment").forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          const mode = btn.dataset.mode || "translucent";
+          store.stickerState.pillMode = mode;
+          store.stickerState.pill = mode !== "none";
+          if (pillColorPanel) {
+            pillColorPanel.hidden = (mode !== "solid");
+          }
+          if (mode === "solid" && (store.stickerState.pillOpacity === undefined || store.stickerState.pillOpacity < 0.8)) {
+            store.stickerState.pillOpacity = 1.0;
+            if (rngPillOpacity) rngPillOpacity.value = "100";
+            if (lblPillOpacity) lblPillOpacity.textContent = "100%";
+          }
+          syncLogoGroupPill();
+          loadStickerImage();
+          store.notifyChange();
+        });
+      });
+    }
+
+    if (pillPalette) {
+      pillPalette.querySelectorAll(".color-swatch-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          pillPalette.querySelectorAll(".color-swatch-btn").forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          const color = btn.dataset.color || "#1A56DB";
+          store.stickerState.pillColor = color;
+          syncLogoGroupPill();
+          loadStickerImage();
+          store.notifyChange();
+        });
+      });
+    }
+
+    if (pillColorCustom) {
+      pillColorCustom.addEventListener("input", (e) => {
+        store.stickerState.pillColor = e.target.value;
+        syncLogoGroupPill();
+        loadStickerImage();
+        store.notifyChange();
+      });
+    }
+
+    if (rngPillOpacity) {
+      rngPillOpacity.addEventListener("input", () => {
+        const val = parseInt(rngPillOpacity.value, 10) || 100;
+        store.stickerState.pillOpacity = val / 100;
+        if (lblPillOpacity) lblPillOpacity.textContent = `${val}%`;
+        syncLogoGroupPill();
+        loadStickerImage();
+        store.notifyChange();
       });
     }
 

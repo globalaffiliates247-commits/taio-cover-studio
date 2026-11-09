@@ -72,16 +72,43 @@ def render_logo_block(
     if norm_label:
         content_w += label_w
 
-    # 3. Cấu hình Pill
+    # 3. Cấu hình Pill (FEATURE v1.5 P5)
+    bkit = load_brand_kit()
+    brand_colors = bkit.get("colors", {})
+
     has_pill = False
-    if pill_override is True:
-        has_pill = True
-    elif pill_override is False:
-        has_pill = False
-    else:
-        has_pill = bool(layer.get("pill") or layer.get("pill_enabled", False))
+    pill_mode = "none"
+    pill_color = None
+    pill_opacity = 1.0
 
     pill_cfg = layer.get("pill") or {}
+    if isinstance(pill_override, dict):
+        pill_cfg = pill_override
+    elif isinstance(pill_override, bool):
+        has_pill = pill_override
+        pill_mode = "translucent" if has_pill else "none"
+
+    if isinstance(pill_cfg, dict) and not isinstance(pill_override, bool):
+        mode = pill_cfg.get("mode")
+        if mode in ("none", "translucent", "solid"):
+            pill_mode = mode
+            has_pill = mode != "none"
+        else:
+            has_pill = bool(pill_cfg.get("enabled", False) if pill_override is None else pill_override)
+            pill_mode = "translucent" if has_pill else "none"
+        pill_color = pill_cfg.get("color")
+        raw_op = pill_cfg.get("opacity")
+        if raw_op is not None:
+            pill_opacity = float(raw_op) / 100.0 if float(raw_op) > 1.0 else float(raw_op)
+        else:
+            pill_opacity = 1.0 if pill_mode == "solid" else 0.50
+
+    if not pill_color:
+        if pill_mode == "solid":
+            pill_color = brand_colors.get("primary", "#1A56DB")
+        else:
+            pill_color = brand_colors.get("pill", "#1E293B")
+
     pad = int(round(lh * 0.22)) if has_pill else 0
 
     total_w = int(round(content_w + pad * 2))
@@ -92,17 +119,28 @@ def render_logo_block(
 
     # 4. Vẽ Pill nếu được kích hoạt
     if has_pill:
-        pill_fill_hex = pill_cfg.get("fill") if isinstance(pill_cfg, dict) else None
-        pill_stroke_hex = pill_cfg.get("stroke") if isinstance(pill_cfg, dict) else None
-        pill_stroke_w = int(round(lh * 0.04)) if isinstance(pill_cfg, dict) else 2
+        alpha_val = int(round(max(0.0, min(1.0, pill_opacity)) * 255))
+        c_fill_raw = parse_hex_color(pill_color)
+        c_pill_fill = (c_fill_raw[0], c_fill_raw[1], c_fill_raw[2], alpha_val)
 
-        c_pill_fill = parse_hex_color(pill_fill_hex or "#00000080")
-        c_pill_stroke = parse_hex_color(pill_stroke_hex or "#FFFFFF40")
+        stroke_cfg = pill_cfg.get("stroke") if isinstance(pill_cfg, dict) else None
+        has_stroke = True
+        stroke_col_hex = brand_colors.get("pill_stroke", "#334155")
+        if isinstance(stroke_cfg, dict):
+            has_stroke = bool(stroke_cfg.get("enabled", True))
+            stroke_col_hex = stroke_cfg.get("color", stroke_col_hex)
+        elif isinstance(stroke_cfg, bool):
+            has_stroke = stroke_cfg
+
+        c_stroke_raw = parse_hex_color(stroke_col_hex)
+        stroke_alpha = int(round(min(alpha_val, 180))) if pill_mode == "translucent" else alpha_val
+        c_pill_stroke = (c_stroke_raw[0], c_stroke_raw[1], c_stroke_raw[2], stroke_alpha)
+        pill_stroke_w = int(round(lh * 0.04)) if has_stroke else 0
 
         p_radius = total_h // 2
         pill_bbox = [0, 0, total_w, total_h]
         draw.rounded_rectangle(pill_bbox, radius=p_radius, fill=c_pill_fill)
-        if pill_stroke_w > 0 and c_pill_stroke:
+        if pill_stroke_w > 0 and c_pill_stroke and has_stroke:
             draw.rounded_rectangle(pill_bbox, radius=p_radius, outline=c_pill_stroke, width=pill_stroke_w)
 
     # 5. Dán Logo
@@ -112,9 +150,19 @@ def render_logo_block(
         block_img.paste(logo_img, (int(round(curr_x)), int(round(curr_y))), logo_img)
         curr_x += logo_img.width + gap
 
-    # 6. Vẽ chữ nhãn
+    # 6. Vẽ chữ nhãn (tự động tương phản màu nếu nền sáng)
     if norm_label:
         color_hex = layer.get("color", "#FFFFFF")
+        if isinstance(color_hex, str) and color_hex.startswith("$"):
+            color_hex = brand_colors.get(color_hex[1:], "#FFFFFF")
+
+        if has_pill and (pill_mode == "solid" or pill_opacity >= 0.7):
+            from core.colors import contrast_ratio
+            if contrast_ratio(color_hex, pill_color) < 3.0:
+                ratio_dark = contrast_ratio("#111111", pill_color)
+                ratio_light = contrast_ratio("#FFFFFF", pill_color)
+                color_hex = "#111111" if ratio_dark >= ratio_light else "#FFFFFF"
+
         font_color = parse_hex_color(color_hex)
         # Canh dọc giữa nhãn với lh
         text_y = curr_y + (lh - label_h) / 2.0

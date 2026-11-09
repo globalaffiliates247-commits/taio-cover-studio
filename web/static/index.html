@@ -229,12 +229,43 @@
             </div>
           </div>
 
+          <!-- Nền Logo: Không · Trong mờ · Màu đặc (FEATURE v1.5 P5) -->
+          <div class="logo-pill-ctrl-row">
+            <span class="panel-field-label">Nền logo:</span>
+            <div class="segmented-control pill-mode-segments" id="logoPillModeSegments">
+              <button type="button" class="btn-segment" data-mode="none">Không</button>
+              <button type="button" class="btn-segment active" data-mode="translucent">Trong mờ</button>
+              <button type="button" class="btn-segment" data-mode="solid">Màu đặc</button>
+            </div>
+          </div>
+
+          <!-- Bảng màu và độ đậm khi chọn nền logo -->
+          <div class="logo-pill-color-panel" id="logoPillColorPanel" hidden>
+            <div class="logo-pill-palette" id="logoPillPalette">
+              <button type="button" class="color-swatch-btn active" data-color="#1A56DB" title="Mặc định thương hiệu" style="background:#1A56DB;"></button>
+              <button type="button" class="color-swatch-btn" data-color="#E53935" title="Đỏ" style="background:#E53935;"></button>
+              <button type="button" class="color-swatch-btn" data-color="#FB8C00" title="Cam" style="background:#FB8C00;"></button>
+              <button type="button" class="color-swatch-btn" data-color="#FFD34D" title="Vàng" style="background:#FFD34D;"></button>
+              <button type="button" class="color-swatch-btn" data-color="#43A047" title="Xanh lá" style="background:#43A047;"></button>
+              <button type="button" class="color-swatch-btn" data-color="#1E88E5" title="Xanh dương" style="background:#1E88E5;"></button>
+              <button type="button" class="color-swatch-btn" data-color="#8E24AA" title="Tím" style="background:#8E24AA;"></button>
+              <button type="button" class="color-swatch-btn" data-color="#FFFFFF" title="Trắng" style="background:#FFFFFF; border:1px solid #666;"></button>
+              <button type="button" class="color-swatch-btn" data-color="#111111" title="Đen" style="background:#111111;"></button>
+              <label class="color-swatch-custom" title="Chọn màu khác">
+                <span>＋</span>
+                <input type="color" id="logoPillColorCustom" value="#1A56DB" style="opacity:0; position:absolute; width:100%; height:100%; cursor:pointer;">
+              </label>
+            </div>
+            <div class="logo-pill-opacity-row">
+              <span class="num-label">Độ đậm:</span>
+              <input type="range" id="rngLogoPillOpacity" min="10" max="100" value="100" class="compact-slider" style="flex:1;">
+              <span id="lblLogoPillOpacity" class="val-badge">100%</span>
+            </div>
+          </div>
+
           <!-- Hàng công tắc và khôi phục -->
           <div class="toggles-ctrl-row">
-            <label class="toggle-switch-label">
-              <input type="checkbox" id="chkStickerPill" checked>
-              <span>Viên thuốc</span>
-            </label>
+            <input type="checkbox" id="chkStickerPill" checked hidden>
             <label class="toggle-switch-label">
               <input type="checkbox" id="chkStickerHide">
               <span>Ẩn logo</span>

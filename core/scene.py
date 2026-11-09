@@ -280,6 +280,41 @@ def render_group_object(
     children = obj.get("children", [])
     rendered_children = []
 
+    # Cấu hình Pill (FEATURE v1.5 P5: none | translucent | solid)
+    pill_cfg = obj.get("pill", {})
+    has_pill = False
+    pill_mode = "none"
+    pill_color = None
+    pill_opacity = 1.0
+
+    bkit = load_brand_kit()
+    brand_colors = bkit.get("colors", {})
+
+    if isinstance(pill_cfg, dict):
+        mode = pill_cfg.get("mode")
+        if mode in ("none", "translucent", "solid"):
+            pill_mode = mode
+            has_pill = mode != "none"
+        else:
+            has_pill = bool(pill_cfg.get("enabled", False))
+            pill_mode = "translucent" if has_pill else "none"
+        pill_color = pill_cfg.get("color")
+        raw_op = pill_cfg.get("opacity")
+        if raw_op is not None:
+            pill_opacity = float(raw_op) / 100.0 if float(raw_op) > 1.0 else float(raw_op)
+        else:
+            pill_opacity = 1.0 if pill_mode == "solid" else 0.50
+    elif isinstance(pill_cfg, bool):
+        has_pill = pill_cfg
+        pill_mode = "translucent" if has_pill else "none"
+        pill_opacity = 0.50
+
+    if not pill_color:
+        if pill_mode == "solid":
+            pill_color = brand_colors.get("primary", "#1A56DB")
+        else:
+            pill_color = brand_colors.get("pill", "#1E293B")
+
     for child in children:
         if not child.get("visible", True):
             continue
@@ -297,9 +332,20 @@ def render_group_object(
                 resized = img.resize((cw, ch), Image.Resampling.LANCZOS)
                 rendered_children.append((resized, dx, dy, cw, ch))
         elif c_type == "text":
-            c_style = child.get("style", {})
+            c_style = dict(child.get("style", {}))
             c_text = child.get("text", "")
             if c_text:
+                # Tự động tương phản chữ logo khi nền màu sáng (WCAG >= 3:1)
+                if has_pill and (pill_mode == "solid" or pill_opacity >= 0.7):
+                    from core.colors import contrast_ratio
+                    current_txt_col = c_style.get("color", "#FFFFFF")
+                    if isinstance(current_txt_col, str) and current_txt_col.startswith("$"):
+                        current_txt_col = brand_colors.get(current_txt_col[1:], "#FFFFFF")
+                    eff_bg = pill_color
+                    if contrast_ratio(current_txt_col, eff_bg) < 3.0:
+                        ratio_dark = contrast_ratio("#111111", eff_bg)
+                        ratio_light = contrast_ratio("#FFFFFF", eff_bg)
+                        c_style["color"] = "#111111" if ratio_dark >= ratio_light else "#FFFFFF"
                 txt_img = render_text_to_image(c_text, c_style, max_w=out_w)
                 rendered_children.append((txt_img, dx, dy, txt_img.width, txt_img.height))
 
@@ -314,12 +360,6 @@ def render_group_object(
 
     pad_x = 24
     pad_y = 16
-    pill_cfg = obj.get("pill", {})
-    has_pill = False
-    if isinstance(pill_cfg, dict):
-        has_pill = bool(pill_cfg.get("enabled", False))
-    elif isinstance(pill_cfg, bool):
-        has_pill = pill_cfg
 
     box_w = int(round(max_x - min_x + pad_x * 2))
     box_h = int(round(max_y - min_y + pad_y * 2))
@@ -330,19 +370,36 @@ def render_group_object(
     draw = ImageDraw.Draw(group_canvas)
 
     if has_pill:
-        bkit = load_brand_kit()
-        colors = bkit.get("colors", {})
-        pill_fill_hex = colors.get("pill", "#1E293BEE")
-        pill_stroke_hex = colors.get("pill_stroke", "#334155")
-        c_fill = parse_hex_color(pill_fill_hex)
-        c_stroke = parse_hex_color(pill_stroke_hex)
-        stroke_w = max(int(round(0.003 * out_w)), 1)
-        radius = box_h // 2
+        alpha_val = int(round(max(0.0, min(1.0, pill_opacity)) * 255))
+        c_fill_raw = parse_hex_color(pill_color)
+        c_fill = (c_fill_raw[0], c_fill_raw[1], c_fill_raw[2], alpha_val)
+
+        stroke_cfg = pill_cfg.get("stroke") if isinstance(pill_cfg, dict) else None
+        has_stroke = True
+        stroke_col_hex = brand_colors.get("pill_stroke", "#334155")
+        if isinstance(stroke_cfg, dict):
+            has_stroke = bool(stroke_cfg.get("enabled", True))
+            stroke_col_hex = stroke_cfg.get("color", stroke_col_hex)
+        elif isinstance(stroke_cfg, bool):
+            has_stroke = stroke_cfg
+
+        c_stroke_raw = parse_hex_color(stroke_col_hex)
+        stroke_alpha = int(round(min(alpha_val, 180))) if pill_mode == "translucent" else alpha_val
+        c_stroke = (c_stroke_raw[0], c_stroke_raw[1], c_stroke_raw[2], stroke_alpha)
+
+        stroke_w = max(int(round(0.003 * out_w)), 1) if has_stroke else 0
+
+        radius_cfg = pill_cfg.get("radius", "full") if isinstance(pill_cfg, dict) else "full"
+        if radius_cfg == "full" or not isinstance(radius_cfg, (int, float)):
+            radius = box_h // 2
+        else:
+            radius = int(round(float(radius_cfg)))
+
         draw.rounded_rectangle(
             [stroke_w, stroke_w, box_w - stroke_w - 1, box_h - stroke_w - 1],
             radius=radius,
             fill=c_fill,
-            outline=c_stroke,
+            outline=c_stroke if has_stroke else None,
             width=stroke_w,
         )
 

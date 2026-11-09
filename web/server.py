@@ -485,11 +485,22 @@ def api_layer_image():
         if custom_logo and custom_logo.exists():
             logo_path = str(custom_logo)
 
+    pill_mode = request.args.get("pill_mode")
+    pill_color = request.args.get("pill_color")
+    pill_opacity = request.args.get("pill_opacity")
+
     pill_override = None
-    if pill_param == "1":
-        pill_override = True
+    if pill_mode or pill_color or pill_opacity:
+        pill_override = {
+            "mode": pill_mode or ("translucent" if pill_param != "0" else "none"),
+            "color": pill_color,
+            "opacity": float(pill_opacity) if pill_opacity else None,
+            "enabled": pill_mode != "none" if pill_mode else (pill_param != "0"),
+        }
+    elif pill_param == "1":
+        pill_override = {"mode": "translucent", "enabled": True}
     elif pill_param == "0":
-        pill_override = False
+        pill_override = {"mode": "none", "enabled": False}
 
     from core.layer_blocks import render_logo_block
     img = render_logo_block(target_layer, logo_path=logo_path, scale_px=512, pill_override=pill_override)

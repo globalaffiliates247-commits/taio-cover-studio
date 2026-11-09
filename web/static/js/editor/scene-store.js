@@ -23,7 +23,7 @@
   const undoStack = [];
   const redoStack = [];
 
-  // Trạng thái tương thích ngược cho logo sticker (v1.2 & v1.3)
+  // Trạng thái tương thích ngược cho logo sticker (v1.2 & v1.3 & v1.5)
   const stickerState = {
     x: 0.82,
     y: 0.06,
@@ -32,6 +32,9 @@
     opacity: 1.0,
     visible: true,
     pill: true,
+    pillMode: "translucent", // "none" | "translucent" | "solid"
+    pillColor: "#1A56DB",
+    pillOpacity: 1.0,
     aspectRatio: 0.25,
   };
 
@@ -51,6 +54,10 @@
     const pillEnabled = logoLayer.pill !== undefined ? Boolean(logoLayer.pill) : true;
     const def = resolveTemplateDefault(template);
 
+    const pMode = pillEnabled ? (stickerState.pillMode || "translucent") : "none";
+    const pColor = stickerState.pillColor || (brandData && brandData.colors && brandData.colors.primary) || "#1A56DB";
+    const pOpacity = stickerState.pillOpacity !== undefined ? stickerState.pillOpacity : (pMode === "solid" ? 1.0 : 0.5);
+
     return {
       id: "logo",
       type: "group",
@@ -58,7 +65,14 @@
       y: def.y,
       rotation: def.rotation || 0,
       z: 10,
-      pill: { enabled: pillEnabled },
+      pill: {
+        enabled: pillEnabled && pMode !== "none",
+        mode: pMode,
+        color: pColor,
+        opacity: pOpacity,
+        stroke: { enabled: true },
+        radius: "full",
+      },
       children: [
         {
           id: "logo_img",
@@ -181,6 +195,9 @@
           opacity: stickerState.opacity,
           visible: stickerState.visible,
           pill: stickerState.pill,
+          pillMode: stickerState.pillMode,
+          pillColor: stickerState.pillColor,
+          pillOpacity: stickerState.pillOpacity,
         })
       );
       if (objects.length > 0) {
@@ -205,6 +222,9 @@
           stickerState.opacity = Math.max(0, Math.min(1.0, data.opacity !== undefined ? data.opacity : 1.0));
           stickerState.visible = data.visible !== undefined ? Boolean(data.visible) : true;
           stickerState.pill = data.pill !== undefined ? Boolean(data.pill) : true;
+          if (data.pillMode) stickerState.pillMode = data.pillMode;
+          if (data.pillColor) stickerState.pillColor = data.pillColor;
+          if (data.pillOpacity !== undefined) stickerState.pillOpacity = data.pillOpacity;
           loaded = true;
         }
       }
