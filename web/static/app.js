@@ -171,6 +171,18 @@
       });
     }
 
+    // Khởi tạo module thao tác kết quả (FEATURE v1.5 P3)
+    if (window.TAIOResultActions) {
+      window.TAIOResultActions.init({
+        btnSaveShare: btnSaveToPhotos,
+        btnDownloadMp4: btnDownloadVideo,
+        statusText: renderStatusText,
+        progressBar: renderProgressBar,
+        pctText: renderPctText,
+        playerVideo: playerResultVideo,
+      });
+    }
+
     if (previewImage) {
       previewImage.addEventListener("load", () => {
         if (window.TAIOSticker) {
@@ -833,26 +845,32 @@
           renderProgressBar.style.width = `${pct}%`;
         } else if (job.status === "done") {
           clearInterval(state.pollTimer);
-          renderStatusText.textContent = " Xuất video thành công!";
+          renderStatusText.textContent = " Đang tải video về điện thoại…";
           renderPctText.textContent = "100%";
           renderProgressBar.style.width = "100%";
 
-          const downloadUrl = `/api/download/${state.currentJobId}`;
-          btnDownloadVideo.href = downloadUrl;
-          btnDownloadVideo.download = state.video.name || "TAIO.CoverClip.mp4";
-
-          // Chuẩn bị tải sẵn file để lưu Cuộn Camera tức thì (FIX v1.3.1)
-          if (window.TAIOSavePhotos) {
-            window.TAIOSavePhotos.prepareResultFile(state.currentJobId, state.video.name || "TAIO.CoverClip.mp4");
-          }
-
-          // Hiển thị trực tiếp video phát thử trên khung preview
-          playerResultVideo.src = downloadUrl;
-          playerResultVideo.hidden = false;
-          previewImage.hidden = true;
-
+          const filename = state.video.name || "TAIO.CoverClip.mp4";
           renderDoneActions.hidden = false;
           btnRenderVideo.disabled = false;
+
+          // Sử dụng TAIOResultActions để tải một lần duy nhất với stream progress (FEATURE v1.5 P3)
+          if (window.TAIOResultActions) {
+            window.TAIOResultActions.downloadResultOnce(state.currentJobId, filename, (file, blobUrl) => {
+              // Video player đã được gán trực tiếp bằng blobUrl, không gọi tải server lần 2
+            });
+          } else {
+            const downloadUrl = `/api/download/${state.currentJobId}`;
+            btnDownloadVideo.href = downloadUrl;
+            btnDownloadVideo.download = filename;
+
+            if (window.TAIOSavePhotos) {
+              window.TAIOSavePhotos.prepareResultFile(state.currentJobId, filename);
+            }
+
+            playerResultVideo.src = downloadUrl;
+            playerResultVideo.hidden = false;
+            previewImage.hidden = true;
+          }
         } else if (job.status === "error") {
           clearInterval(state.pollTimer);
           renderErrorMsg.textContent = job.error || "Lỗi khi xuất video";

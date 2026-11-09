@@ -268,9 +268,21 @@
       .replace(/'/g, "&#039;");
   }
 
+  function setPreparedFile(file, blobUrl, filename) {
+    state.resultFile = file;
+    state.blobUrl = blobUrl;
+    state.filename = filename || "TAIO.CoverClip.mp4";
+    state.isPreparing = false;
+    if (btnSaveEl) {
+      btnSaveEl.disabled = false;
+      btnSaveEl.textContent = "📤 Lưu / Chia sẻ";
+    }
+  }
+
   window.TAIOSavePhotos = {
     init: init,
     prepareResultFile: prepareResultFile,
+    setPreparedFile: setPreparedFile,
     cleanup: cleanup,
     reset: cleanup,
     getResultFile: () => state.resultFile,
