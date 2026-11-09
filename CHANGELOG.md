@@ -4,6 +4,42 @@ Tất cả các thay đổi đáng chú ý của dự án **TAIO Cover Studio** 
 
 ---
 
+## [1.5.0] - 2026-11-09 - Chọn Mức Nén Khi Xuất · Bố Cục Tab Kiểu CapCut · Preview Mượt · Nền Logo Solid · Lưu / Chia Sẻ iPhone · Gửi Telegram 1 Chạm (FEATURE v1.5)
+- **3 Mức nén khi xuất & Popup chọn mức (Hick's Law):**
+  - Bổ sung 3 profile nén thông minh: **Nhẹ** (CRF 26, tối đa $1.0\times$ bitrate gốc), **Cân bằng** (CRF 23, tối đa $1.5\times$ bitrate gốc - mặc định), **Chất lượng cao** (CRF 20, tối đa $3.0\times$ bitrate gốc).
+  - Khắc phục triệt để vấn đề dung lượng video tăng vọt gấp 3.9 lần ở nguồn video báo điện tử, giảm dung lượng chỉ còn $\le 1.4\times$ gốc mà không suy giảm chất lượng nhìn thấy.
+  - Thiết lập sàn bitrate chống vỡ hình: 600 kbps cho $\le 720$p và 1200 kbps cho $1080$p.
+  - Giữ nguyên thời gian render nhẹ nhàng cho máy chủ Render Free với cờ `-preset veryfast`.
+  - Popup Bottom Sheet chọn mức nén với tính toán dung lượng ước tính trực tiếp phía client (0 gọi server) kèm tuỳ chọn ghi nhớ lựa chọn.
+- **Bố cục Tab ngang kiểu CapCut & Cột icon nổi kiểu TikTok (100dvh):**
+  - Toàn bộ ứng dụng nằm gọn trong 1 màn hình (`100dvh`), hoàn toàn không cuộn trang.
+  - Nút "Xuất video" dính đáy cố định trong vùng ngón cái dễ chạm (Thumb Zone).
+  - Hàng Tab cuộn ngang với icon 2D nét 22px chuẩn CapCut: **Mẫu · Nền · Cap · Logo · + Chữ · AI · Lớp**.
+  - Cột icon nổi bên phải khung preview kiểu TikTok: Hoàn tác, Làm lại, Thêm chữ, Lớp, Tải xuống (tự ẩn chú thích sau 4 giây lần đầu mở).
+  - Tự động mở tab ngữ cảnh tương ứng khi chọn đối tượng trên canvas (chọn Logo mở tab Logo, chọn Chữ mở tab + Chữ).
+- **Preview siêu mượt & Không chặn chạm (Direct Manipulation):**
+  - Spinner chuyển thành badge tròn nhỏ ở góc phải (`pointer-events: none`), không phủ đen màn hình, thao tác chạm đúp sửa chữ ăn ngay 10/10 lần.
+  - 0 request `/api/preview` khi kéo thả, xoay hoặc đổi cỡ đối tượng (chạy 100% bằng CSS Transform).
+  - Bộ nhớ đệm LRU Map tối đa 40 ảnh blob URL phía client: tua qua lại các mốc đã xem hiện tức thì không phát sinh request mới.
+  - Tua video mượt mà tại chỗ trực tiếp qua khung hình local (`/api/video/<id>` hỗ trợ HTTP Range 206 Partial Content).
+- **Nền Logo chế độ Màu đặc (Solid) & Tự động tương phản chữ:**
+  - 3 chế độ nền: **Không · Trong mờ · Màu đặc (Solid)**.
+  - Bảng màu chọn nhanh (thương hiệu, 6 màu cơ bản, trắng, đen, mã màu tự chọn) kèm thanh trượt độ đậm 0–100%.
+  - Tự động tương phản màu chữ logo sang tối (`#111111`) khi chọn nền màu sáng (như màu vàng), đạt chuẩn WCAG AAA $\ge 3:1$.
+- **Lưu và chia sẻ trên iPhone (Native iOS Share Sheet):**
+  - Tải một luồng duy nhất (Single-stream) có thanh tiến độ đọc từ `Content-Length` ("Đang tải về điện thoại… 42%").
+  - Gán trực tiếp blob URL cho player xem thử, tiết kiệm 50% băng thông và thời gian tải lặp.
+  - Nút hợp nhất "📤 Lưu / Chia sẻ" kích hoạt native iOS Share Sheet (Lưu video vào Photos, Lưu vào Tệp, AirDrop, Zalo, Telegram).
+- **Gửi Telegram 1 chạm về Bot Admin:**
+  - Cấu hình server an toàn qua `TELEGRAM_BOT_TOKEN` và `TELEGRAM_CHAT_ID`.
+  - 1 chạm gửi video kèm caption chi tiết: tên file, caption, mẫu bìa, mức nén, dung lượng, giờ Việt Nam UTC+7 và phiên bản app.
+  - Chống spam 20 lần/giờ/IP, chống gửi lặp cho cùng một job và kiểm soát giới hạn 50MB của bot Telegram.
+- **Tách file và mô-đun hoá mã nguồn:**
+  - Tách `style.css` thành 5 file chuyên biệt: `base.css`, `layout.css`, `editor.css`, `panels.css`, `sheets.css`.
+  - Bổ sung các mô-đun JS: `icons.js`, `tabs.js`, `quick-rail.js`, `export-sheet.js`, `result-actions.js`, `preview-engine.js`.
+
+---
+
 ## [1.4.0] - 2026-11-09 - Trình Chỉnh Đối Tượng & Kéo Giãn Dải Chân Trang (FEATURE v1.4)
 - **Chọn đối tượng tinh gọn (Aesthetic & Minimalist Design - Nielsen):**
   - Mặc định khi mở ứng dụng hoặc đổi mẫu: không chọn đối tượng nào, giao diện sạch sẽ không che khuất video.

@@ -1,7 +1,7 @@
 # TAIO Cover Studio
 
 > **"Thả video vào → chọn mẫu lớp phủ, caption, logo → nhận video đã gắn bìa thương hiệu; caption có thể để AI gợi ý."**  
-> *Thuộc hệ sinh thái **TAIO (TAIO.CLUB)*** · Phiên bản: **v1.4.0** · Ngôn ngữ giao diện: **Tiếng Việt**
+> *Thuộc hệ sinh thái **TAIO (TAIO.CLUB)*** · Phiên bản: **v1.5.0** · Ngôn ngữ giao diện: **Tiếng Việt**
 
 ---
 
@@ -11,6 +11,12 @@ Biên tập viên video ngắn (TikTok, Reels, Shorts) thường mất 5–10 ph
 
 **TAIO Cover Studio** tự động hóa toàn bộ quy trình:
 - Đảm bảo nhận diện thương hiệu nhất quán 100% nhờ hệ thống template chuẩn hóa (Mẫu A Mờ dần mặc định).
+- **3 Mức nén video thông minh (v1.5.0):** Nhẹ, Cân bằng, Chất lượng cao. File video sau xuất giảm 2–3 lần dung lượng so với v1.4.0 mà giữ trọn độ nét.
+- **Bố cục Tab ngang kiểu CapCut & Cột icon nổi TikTok (v1.5.0):** 100dvh trọn vẹn trong 1 màn hình, không cuộn trang.
+- **Preview siêu mượt & Không chặn chạm (v1.5.0):** Kéo thả CSS transform 60fps, 0 gọi server; cache LRU 40 ảnh blob; tua mượt tại chỗ.
+- **Nền Logo solid & Tự động tương phản (v1.5.0):** Không · Trong mờ · Màu đặc, chữ logo tự đảo màu đạt chuẩn WCAG AAA.
+- **Lưu và chia sẻ trên iPhone (v1.5.0):** Tải 1 luồng duy nhất, mở trực tiếp Native iOS Share Sheet.
+- **Gửi Telegram 1 chạm (v1.5.0):** Gửi video về bot admin kèm đầy đủ thông tin xuất bản.
 - **Logo Sticker kéo thả tự do:** Di chuyển, đổi cỡ, xoay sticker trực quan như CapCut/TikTok với Smart Guides và Vùng an toàn (Safe Zones).
 - **Tuỳ chỉnh chữ nâng cao (Aa):** Cú pháp nhấn kép `**vàng**` & `==xanh==`, nền chữ TikTok ôm dòng, viền, bóng, bộ kiểu chữ lưu sẵn và kiểm tra tương phản WCAG 2.1.
 - Nhấn mạnh từ khóa theo tâm lý học hành vi (*Hiệu ứng Von Restorff*).
