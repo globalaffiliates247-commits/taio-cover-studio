@@ -457,6 +457,25 @@ def _find_upload_file(file_id: str) -> Optional[Path]:
     return None
 
 
+@app.route("/api/video/<video_id>")
+def api_stream_video(video_id: str):
+    """Phục vụ phát video gốc trực tiếp với hỗ trợ HTTP Range để trình duyệt tua mượt (FEATURE v1.5 P7)."""
+    video_path = _find_upload_file(video_id)
+    if not video_path or not video_path.exists():
+        return jsonify({"error": "Không tìm thấy video."}), 404
+
+    mimetype = "video/mp4"
+    ext = video_path.suffix.lower()
+    if ext == ".mov":
+        mimetype = "video/quicktime"
+    elif ext == ".webm":
+        mimetype = "video/webm"
+    elif ext == ".mkv":
+        mimetype = "video/x-matroska"
+
+    return send_file(video_path, mimetype=mimetype, conditional=True)
+
+
 # ==================== KHỐI ĐỒ HOẠ (LAYER IMAGE CHO STICKER) ====================
 @app.route("/api/layer-image")
 def api_layer_image():

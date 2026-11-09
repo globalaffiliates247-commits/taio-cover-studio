@@ -187,6 +187,10 @@
       });
     }
 
+    if (window.TAIOPreviewEngine) {
+      window.TAIOPreviewEngine.init({ previewImg: previewImage });
+    }
+
     if (previewImage) {
       previewImage.addEventListener("load", () => {
         if (window.TAIOSticker) {
@@ -289,11 +293,18 @@
       debouncedPreview();
     });
 
-    // 4. Timeline
+    // 4. Timeline (tua mượt với TAIOPreviewEngine - FEATURE v1.5 P7)
     timelineSlider.addEventListener("input", (e) => {
-      state.timeSec = parseFloat(e.target.value);
+      const t = parseFloat(e.target.value) || 0;
+      state.timeSec = t;
       formatTimelineLabels();
-      debouncedPreview();
+      if (window.TAIOPreviewEngine) {
+        window.TAIOPreviewEngine.onScrubInput(t, () => {
+          debouncedPreview();
+        });
+      } else {
+        debouncedPreview();
+      }
     });
 
     // 5. Logo
@@ -477,6 +488,11 @@
       previewBottomBar.hidden = false;
       btnRenderVideo.disabled = false;
 
+      if (window.TAIOPreviewEngine) {
+        window.TAIOPreviewEngine.clearCache();
+        window.TAIOPreviewEngine.setupLocalVideoSource(file, data.id);
+      }
+
       formatTimelineLabels();
       triggerPreview();
     } catch (err) {
@@ -540,6 +556,11 @@
       previewTopPills.hidden = false;
       previewBottomBar.hidden = false;
       btnRenderVideo.disabled = false;
+
+      if (window.TAIOPreviewEngine) {
+        window.TAIOPreviewEngine.clearCache();
+        window.TAIOPreviewEngine.setupLocalVideoSource(file, data.id);
+      }
       renderDoneActions.hidden = true;
 
       formatTimelineLabels();
@@ -629,6 +650,31 @@
         combinedOverrides.objects = stickerOverrides.objects;
       }
 
+      // 1. Kiểm tra LRU cache phía trình duyệt trước (FEATURE v1.5 P7)
+      let cacheKey = null;
+      let cachedUrl = null;
+      if (window.TAIOPreviewEngine) {
+        cacheKey = window.TAIOPreviewEngine.computeCacheKey(
+          state.templateId,
+          combinedOverrides,
+          state.caption,
+          state.timeSec
+        );
+        cachedUrl = window.TAIOPreviewEngine.getCachedPreview(cacheKey);
+      }
+
+      if (cachedUrl) {
+        previewImage.src = cachedUrl;
+        previewImage.classList.remove("stale");
+        previewImage.style.opacity = "1";
+        previewImage.hidden = false;
+        playerResultVideo.hidden = true;
+        previewLoadingOverlay.hidden = true;
+        const stickerStage = document.getElementById("stickerStage");
+        if (stickerStage) stickerStage.hidden = false;
+        return;
+      }
+
       const payload = {
         video_id: state.video.id,
         template: state.templateId,
@@ -679,7 +725,13 @@
       const blob = await res.blob();
       if (reqId < state.previewRequestId) return;
 
-      previewImage.src = URL.createObjectURL(blob);
+      let finalBlobUrl = null;
+      if (window.TAIOPreviewEngine && cacheKey) {
+        finalBlobUrl = window.TAIOPreviewEngine.setCachedPreview(cacheKey, blob);
+      } else {
+        finalBlobUrl = URL.createObjectURL(blob);
+      }
+      previewImage.src = finalBlobUrl;
       previewImage.classList.remove("stale");
       previewImage.style.opacity = "1";
       previewImage.hidden = false;
@@ -758,6 +810,31 @@
       };
       if (stickerOverrides.objects && stickerOverrides.objects.length > 0) {
         combinedOverrides.objects = stickerOverrides.objects;
+      }
+
+      // 1. Kiểm tra LRU cache phía trình duyệt trước (FEATURE v1.5 P7)
+      let cacheKey = null;
+      let cachedUrl = null;
+      if (window.TAIOPreviewEngine) {
+        cacheKey = window.TAIOPreviewEngine.computeCacheKey(
+          state.templateId,
+          combinedOverrides,
+          state.caption,
+          state.timeSec
+        );
+        cachedUrl = window.TAIOPreviewEngine.getCachedPreview(cacheKey);
+      }
+
+      if (cachedUrl) {
+        previewImage.src = cachedUrl;
+        previewImage.classList.remove("stale");
+        previewImage.style.opacity = "1";
+        previewImage.hidden = false;
+        playerResultVideo.hidden = true;
+        previewLoadingOverlay.hidden = true;
+        const stickerStage = document.getElementById("stickerStage");
+        if (stickerStage) stickerStage.hidden = false;
+        return;
       }
 
       const payload = {
