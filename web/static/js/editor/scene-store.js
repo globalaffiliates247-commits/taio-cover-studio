@@ -273,7 +273,7 @@
     return false;
   }
 
-  function notifyChange(debounceMs = 300, recordHistory = true) {
+  function notifyChange(debounceMs = 300, recordHistory = true, meta = {}) {
     saveToLocalStorage();
     if (recordHistory) {
       // Có thể ghi snapshot khi kết thúc thao tác
@@ -288,7 +288,7 @@
     const delay = typeof debounceMs === "number" ? debounceMs : 300;
     changeDebounceTimer = setTimeout(() => {
       if (typeof onOverridesChangedCallback === "function") {
-        onOverridesChangedCallback(getOverrides());
+        onOverridesChangedCallback(getOverrides(), meta);
       }
     }, delay);
   }

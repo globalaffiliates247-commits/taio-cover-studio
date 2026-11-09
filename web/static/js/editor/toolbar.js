@@ -251,5 +251,7 @@
     updateToolbar,
     toggleLayersDrawer,
     renderLayersList,
+    editLogoText: onEditLogoText,
+    editFreeText: onEditFreeText,
   };
 })();

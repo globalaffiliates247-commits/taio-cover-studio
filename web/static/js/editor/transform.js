@@ -26,6 +26,18 @@
   let initialPinchW = 0.22;
   let initialPinchRot = 0;
   let lastTapTime = 0;
+  let lastTapObjId = null;
+  let maxPointerDistance = 0;
+  let sceneSnapshotAtPointerDown = "";
+
+  function getSceneSnapshot() {
+    const store = window.TAIOSceneStore;
+    if (!store) return "";
+    return JSON.stringify({
+      st: store.stickerState,
+      objs: store.objects,
+    });
+  }
 
   function initTransform(options) {
     wrapperEl = options.previewWrapper || document.getElementById("previewWrapper");
@@ -137,6 +149,9 @@
           e.preventDefault();
           transformMode = "band-height";
           activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+          dragStartPointer = { x: e.clientX, y: e.clientY };
+          maxPointerDistance = 0;
+          sceneSnapshotAtPointerDown = getSceneSnapshot();
           if (bandHandle.setPointerCapture) {
             try {
               bandHandle.setPointerCapture(e.pointerId);
@@ -154,7 +169,23 @@
           store.selectObject(objId);
 
           activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+          dragStartPointer = { x: e.clientX, y: e.clientY };
+          maxPointerDistance = 0;
+          sceneSnapshotAtPointerDown = getSceneSnapshot();
           updateCanvasBounds();
+
+          const now = Date.now();
+          if (now - lastTapTime < 350 && lastTapObjId === objId) {
+            const obj = (store.objects || []).find((o) => o.id === objId);
+            if (obj && obj.type === "text" && window.TAIOEditorToolbar && window.TAIOEditorToolbar.editFreeText) {
+              window.TAIOEditorToolbar.editFreeText(obj);
+            }
+            lastTapTime = 0;
+            lastTapObjId = null;
+            return;
+          }
+          lastTapTime = now;
+          lastTapObjId = objId;
 
           const targetHandle = e.target.dataset.handle;
           const obj = (store.objects || []).find((o) => o.id === objId);
@@ -167,7 +198,6 @@
             activeHandle = targetHandle;
           } else {
             transformMode = "move";
-            dragStartPointer = { x: e.clientX, y: e.clientY };
             dragStartState = {
               x: obj ? (obj.x || 0.5) : 0.5,
               y: obj ? (obj.y || 0.5) : 0.5,
@@ -319,20 +349,29 @@
     e.preventDefault();
     stickerEl.focus();
 
+    dragStartPointer = { x: e.clientX, y: e.clientY };
+    maxPointerDistance = 0;
+    sceneSnapshotAtPointerDown = getSceneSnapshot();
+
     const now = Date.now();
-    if (now - lastTapTime < 300) {
-      // Chạm lần 2 / chạm đúp: chọn đối tượng con dưới ngón tay (FEATURE v1.4 P5)
+    if (now - lastTapTime < 350 && lastTapObjId === "logo") {
+      // Chạm lần 2 / chạm đúp: chọn đối tượng con dưới ngón tay và mở sửa chữ nếu là logo_text
       const rect = stickerEl.getBoundingClientRect();
       const relX = (e.clientX - rect.left) / rect.width;
       if (relX < 0.45) {
         window.TAIOSceneStore.selectObject("logo", "logo_img");
       } else {
         window.TAIOSceneStore.selectObject("logo", "logo_text");
+        if (window.TAIOEditorToolbar && window.TAIOEditorToolbar.editLogoText) {
+          window.TAIOEditorToolbar.editLogoText();
+        }
       }
       lastTapTime = 0;
+      lastTapObjId = null;
       return;
     }
     lastTapTime = now;
+    lastTapObjId = "logo";
 
     // Chọn cả nhóm khi chạm lần đầu
     if (window.TAIOSceneStore.selectedId !== "logo" || window.TAIOSceneStore.selectedChildId) {
@@ -357,7 +396,6 @@
       initPinchState();
     } else {
       transformMode = "move";
-      dragStartPointer = { x: e.clientX, y: e.clientY };
       dragStartState = { ...state };
     }
 
@@ -385,6 +423,11 @@
     if (!activePointers.has(e.pointerId)) return;
     activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     e.preventDefault();
+
+    const dist = Math.hypot(e.clientX - dragStartPointer.x, e.clientY - dragStartPointer.y);
+    if (dist > maxPointerDistance) {
+      maxPointerDistance = dist;
+    }
 
     if (transformMode === "band-height") {
       const stageH = canvasRect.height;
@@ -543,14 +586,26 @@
     }
 
     if (activePointers.size === 0) {
+      const mode = transformMode;
       transformMode = "idle";
       activeObjId = null;
       if (window.TAIOEditorGuides) {
         window.TAIOEditorGuides.hideGuides();
       }
       if (stickerEl) stickerEl.classList.remove("active");
-      window.TAIOSceneStore.recordSnapshot();
-      window.TAIOSceneStore.notifyChange();
+
+      // Chỉ ghi nhận khi có di chuyển thật sự (khoảng cách kéo >= 3px và scene thay đổi)
+      if (maxPointerDistance >= 3) {
+        const currentSnapshot = getSceneSnapshot();
+        if (currentSnapshot !== sceneSnapshotAtPointerDown) {
+          window.TAIOSceneStore.recordSnapshot();
+          window.TAIOSceneStore.notifyChange(300, false, { type: "object_transform" });
+          if (mode === "band-height" && window.TAIOLayerControls) {
+            window.TAIOLayerControls.notifyChange();
+          }
+        }
+      }
+      maxPointerDistance = 0;
     }
   }
 

@@ -295,27 +295,32 @@ html, body {
   display: block;
 }
 
-/* Spinner overlay */
+/* Spinner overlay (FEATURE v1.5 P1: nhỏ gọn ở góc, không chặn chạm, không phủ đen khung) */
 .preview-spinner-overlay {
   position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(2px);
+  top: 12px;
+  right: 12px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 4px 10px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  z-index: 10;
+  gap: 6px;
+  z-index: 25;
+  pointer-events: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .spinner {
-  width: 24px;
-  height: 24px;
-  border: 3px solid rgba(255, 255, 255, 0.2);
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
   border-top-color: var(--color-accent);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+  pointer-events: none;
 }
 
 @keyframes spin {
@@ -323,8 +328,10 @@ html, body {
 }
 
 .spinner-text {
-  font-size: 0.8rem;
-  color: #FFFFFF;
+  font-size: 11px;
+  color: #E2E8F0;
+  font-weight: 500;
+  pointer-events: none;
 }
 
 /* Top pills overlay */

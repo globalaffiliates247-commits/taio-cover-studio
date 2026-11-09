@@ -136,7 +136,10 @@
       window.TAIOSticker.init({
         previewWrapper: previewWrapper,
         previewImage: previewImage,
-        onOverridesChanged: () => {
+        onOverridesChanged: (overrides, meta) => {
+          if (meta && meta.type === "object_transform") {
+            return;
+          }
           debouncedPreview();
         },
       });
