@@ -297,7 +297,7 @@
     });
 
     // 6. Action Render
-    btnRenderVideo.addEventListener("click", startRender);
+    btnRenderVideo.addEventListener("click", triggerExportFlow);
 
     // 7. Save to Camera Roll (được quản lý bởi save-photos.js)
 
@@ -693,7 +693,18 @@
   }
 
   // ==================== XUẤT VIDEO ====================
-  async function startRender() {
+  function triggerExportFlow() {
+    if (!state.video) return;
+    if (window.TAIOExportSheet) {
+      window.TAIOExportSheet.open(state.video.info, (chosenQuality) => {
+        startRender(chosenQuality);
+      });
+    } else {
+      startRender("balanced");
+    }
+  }
+
+  async function startRender(quality = "balanced") {
     if (!state.video) return;
 
     if (window.TAIOSavePhotos) {
@@ -730,6 +741,7 @@
         caption: state.caption,
         logo_id: state.logoId,
         overrides: combinedOverrides,
+        quality: quality,
       };
 
       const res = await fetchWithVideoRecovery("/api/render", {

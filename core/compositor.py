@@ -16,6 +16,7 @@ from core.canvas import calculate_canvas_layout
 from core.frames import extract_frame_at
 from core.overrides import apply_overrides
 from core.auto_contrast import adjust_caption_contrast
+from core.encode_profiles import get_encode_args
 from core.overlay_renderer import render_overlay
 from core.paths import get_ffmpeg_path, OUTPUTS_DIR, get_ffmpeg_threads
 from core.video_probe import probe_video
@@ -117,6 +118,7 @@ def render_video(
     logo_path: Optional[str] = None,
     on_progress: Optional[Callable[[float], None]] = None,
     overrides: Optional[Dict[str, Any]] = None,
+    quality: str = "balanced",
 ) -> Dict[str, Any]:
     """
     Xuất video MP4 bằng ffmpeg với lớp phủ PNG RGBA, theo dõi tiến độ qua pipe:1.
@@ -175,6 +177,7 @@ def render_video(
             filter_complex = "[0:v][1:v]overlay=0:0[outv]"
 
     threads_str = str(get_ffmpeg_threads())
+    encode_args = get_encode_args(quality=quality, video_info=info, preset=preset)
 
     cmd = [
         ffmpeg_bin,
@@ -189,12 +192,7 @@ def render_video(
         "-threads", threads_str,
         "-map", "[outv]",
         "-map", "0:a?",
-        "-c:v", "libx264",
-        "-x264-params", "rc-lookahead=10",
-        "-crf", "20",
-        "-preset", preset,
-        "-pix_fmt", "yuv420p",
-        "-movflags", "+faststart",
+        *encode_args,
         "-c:a", "copy",
         "-progress", "pipe:1",
         str(output_path),

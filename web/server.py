@@ -111,6 +111,7 @@ def render_worker():
                 logo_path=logo_path,
                 on_progress=on_progress,
                 overrides=job.get("overrides"),
+                quality=job.get("quality", "balanced"),
             )
 
             with jobs_lock:
@@ -653,6 +654,9 @@ def api_render():
     caption = data.get("caption", "")
     logo_id = data.get("logo_id")
     overrides = data.get("overrides")
+    quality = data.get("quality", "balanced")
+    if quality not in ("light", "balanced", "high"):
+        quality = "balanced"
 
     video_file = _find_upload_file(video_id)
     if not video_file or not video_file.exists():
@@ -682,6 +686,7 @@ def api_render():
         "caption": caption,
         "logo_path": logo_path,
         "overrides": overrides,
+        "quality": quality,
         "out_path": out_path,
         "status": "queued",
         "progress": 0.0,

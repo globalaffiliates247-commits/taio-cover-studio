@@ -136,6 +136,7 @@ def preview_overlay(
             time_sec=time_sec,
             logo_path=logo_path,
             overrides=overrides,
+            quality=quality,
         )
 
         buf = io.BytesIO()
@@ -156,10 +157,11 @@ def render_overlay_video(
     output_path: Optional[str] = None,
     logo_path: Optional[str] = None,
     overrides: Optional[Dict[str, Any]] = None,
+    quality: str = "balanced",
 ) -> Dict[str, Any]:
     """
     Xuất video MP4 với lớp phủ thương hiệu và caption.
-    Hỗ trợ tham số overrides để tuỳ biến sticker logo và kiểu chữ.
+    Hỗ trợ tham số overrides để tuỳ biến sticker logo và kiểu chữ, và quality: light | balanced | high.
     """
     if not os.path.exists(video_path):
         return {"error": f"Không tìm thấy file video: {video_path}"}
@@ -180,6 +182,7 @@ def render_overlay_video(
             output_path=output_path,
             logo_path=logo_path,
             overrides=overrides,
+            quality=quality,
         )
         return {
             "output": res["output"],

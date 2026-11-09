@@ -19,6 +19,8 @@ class VideoInfo:
     has_audio: bool
     rotation: int
     codec: str
+    bit_rate: int = 0
+    audio_bit_rate: int = 0
 
     @property
     def formatted_duration(self) -> str:
@@ -153,6 +155,32 @@ def probe_video(video_path: str) -> VideoInfo:
     codec = video_stream.get("codec_name", "h264")
     has_audio = audio_stream is not None
 
+    # Bitrate (bps) của luồng video và âm thanh
+    bit_rate = 0
+    if "bit_rate" in video_stream:
+        try:
+            bit_rate = int(video_stream["bit_rate"])
+        except Exception:
+            pass
+
+    audio_bit_rate = 0
+    if audio_stream and "bit_rate" in audio_stream:
+        try:
+            audio_bit_rate = int(audio_stream["bit_rate"])
+        except Exception:
+            pass
+
+    # Nếu luồng video không ghi bit_rate, lấy từ format.bit_rate trừ audio
+    if bit_rate <= 0 and "bit_rate" in format_info:
+        try:
+            fmt_br = int(format_info["bit_rate"])
+            if audio_bit_rate > 0:
+                bit_rate = max(0, fmt_br - audio_bit_rate)
+            else:
+                bit_rate = int(fmt_br * 0.88)
+        except Exception:
+            pass
+
     return VideoInfo(
         width=width,
         height=height,
@@ -160,5 +188,7 @@ def probe_video(video_path: str) -> VideoInfo:
         fps=fps,
         has_audio=has_audio,
         rotation=rotation,
-        codec=codec
+        codec=codec,
+        bit_rate=bit_rate,
+        audio_bit_rate=audio_bit_rate,
     )

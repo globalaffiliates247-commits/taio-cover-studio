@@ -110,6 +110,7 @@ def cmd_render(args):
             logo_path=args.logo,
             on_progress=on_prog,
             overrides=overrides,
+            quality=getattr(args, "quality", "balanced"),
         )
         print(f"\n Xuất video thành công: {res['output']}")
         if res.get("warnings"):
@@ -274,6 +275,7 @@ def main():
     p_render.add_argument("--auto-caption", action="store_true", help="Tự động gợi ý caption bằng AI")
     p_render.add_argument("--context", default="", help="Ngữ cảnh / kịch bản video để AI viết caption")
     p_render.add_argument("--style", default="tin_tuc", choices=["tin_tuc", "giao_duc", "ban_hang", "giai_tri"], help="Phong cách caption")
+    p_render.add_argument("--quality", default="balanced", choices=["light", "balanced", "high"], help="Mức nén video: light | balanced | high (mặc định: balanced)")
     p_render.add_argument("-o", "--output", default=None, help="Đường dẫn file xuất ra")
 
     # 3. preview
