@@ -1,0 +1,202 @@
+/* ==========================================================================
+   TAIO Cover Studio — Sheets & Modals CSS (FEATURE v1.5 P6)
+   Export Quality Bottom Sheet, Aa Text Styling Modal, AI Modal & Toasts.
+   ========================================================================== */
+
+/* 1. BOTTOM SHEET CHỌN MỨC NÉN (FEATURE v1.5 P2) */
+.export-quality-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: sheetFadeIn 0.2s ease-out;
+}
+
+@media (min-width: 640px) {
+  .export-quality-sheet-overlay {
+    align-items: center;
+  }
+}
+
+.export-sheet-container {
+  width: 100%;
+  max-width: 500px;
+  background: #1E293B;
+  border-radius: 20px 20px 0 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+  animation: sheetSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 640px) {
+  .export-sheet-container {
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  }
+}
+
+.export-sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.export-sheet-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #F8FAFC;
+}
+
+.btn-sheet-close {
+  background: none;
+  border: none;
+  color: #94A3B8;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+.btn-sheet-close:hover {
+  color: #FFFFFF;
+}
+
+.export-sheet-subtitle {
+  font-size: 0.8rem;
+  color: #94A3B8;
+  margin-bottom: 14px;
+}
+
+.quality-cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.quality-card {
+  position: relative;
+  background: #0F172A;
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  user-select: none;
+}
+
+.quality-card:hover {
+  border-color: rgba(255, 211, 77, 0.4);
+  background: #131F37;
+}
+
+.quality-card.selected {
+  border-color: #FFD34D;
+  background: rgba(255, 211, 77, 0.06);
+}
+
+.quality-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.quality-name-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.quality-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #FFFFFF;
+}
+
+.quality-badge-rec {
+  background: #FFD34D;
+  color: #0F172A;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.quality-size-est {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #38BDF8;
+}
+
+.quality-card-desc {
+  font-size: 0.78rem;
+  color: #94A3B8;
+  line-height: 1.35;
+}
+
+.export-sheet-options {
+  margin-bottom: 14px;
+}
+
+.remember-choice-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #CBD5E1;
+  cursor: pointer;
+}
+
+.btn-confirm-export {
+  width: 100%;
+  padding: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 10px;
+}
+
+/* 2. MODAL KIỂU CHỮ (Aa) & AI */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal-dialog {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 460px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  padding: 18px;
+}
+
+@keyframes sheetFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes sheetSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}

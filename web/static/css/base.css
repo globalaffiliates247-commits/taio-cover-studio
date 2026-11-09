@@ -1,0 +1,114 @@
+/* ==========================================================================
+   TAIO Cover Studio — Base CSS (FEATURE v1.5 P6)
+   Reset, Variables, Typography, Utilities & Scrollbar.
+   ========================================================================== */
+
+[hidden] {
+  display: none !important;
+}
+
+:root {
+  --bg-deep: #090D16;
+  --bg-surface: #111827;
+  --bg-elevated: #1F293D;
+  --border-subtle: #2D3748;
+  --border-active: #FFD34D;
+
+  --color-primary: #1A56DB;
+  --color-primary-hover: #1E40AF;
+  --color-accent: #FFD34D;
+  --color-accent-hover: #FBBF24;
+  --color-success: #10B981;
+  --color-danger: #EF4444;
+
+  --text-main: #FFFFFF;
+  --text-dim: #94A3B8;
+
+  --font-base: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  background-color: var(--bg-deep);
+  color: var(--text-main);
+  font-family: var(--font-base);
+  height: 100%;
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar tối giản */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Nút bấm nhỏ tiện ích */
+.btn-micro {
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 6px;
+  background-color: var(--bg-elevated);
+  color: var(--text-main);
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-micro:hover {
+  background-color: #2D3748;
+  border-color: #4A5568;
+}
+.btn-micro-danger {
+  color: #F87171;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+.btn-micro-danger:hover {
+  background-color: rgba(239, 68, 68, 0.15);
+}
+
+.val-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  min-width: 38px;
+  text-align: right;
+}
+
+.compact-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: #334155;
+  outline: none;
+}
+.compact-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+}

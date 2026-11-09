@@ -172,6 +172,21 @@
       });
     }
 
+    // Khởi tạo hàng tab CapCut & cột icon TikTok (FEATURE v1.5 P6)
+    if (window.TAIOTabs) {
+      window.TAIOTabs.init();
+    }
+    if (window.TAIOQuickRail) {
+      window.TAIOQuickRail.init();
+    }
+
+    const btnChangeQuality = document.getElementById("btnChangeQualitySheet");
+    if (btnChangeQuality && window.TAIOExportSheet) {
+      btnChangeQuality.addEventListener("click", () => {
+        window.TAIOExportSheet.openSheet();
+      });
+    }
+
     if (previewImage) {
       previewImage.addEventListener("load", () => {
         if (window.TAIOSticker) {
@@ -339,6 +354,10 @@
     if (stickerStage) stickerStage.hidden = true;
     const logoSticker = document.getElementById("logoSticker");
     if (logoSticker) logoSticker.hidden = true;
+
+    if (window.TAIOQuickRail) {
+      window.TAIOQuickRail.setMode("editing");
+    }
 
     if (msg) {
       alert(msg);
@@ -847,6 +866,10 @@
           const filename = state.video.name || "TAIO.CoverClip.mp4";
           renderDoneActions.hidden = false;
           btnRenderVideo.disabled = false;
+
+          if (window.TAIOQuickRail) {
+            window.TAIOQuickRail.setMode("result");
+          }
 
           // Sử dụng TAIOResultActions để tải một lần duy nhất với stream progress (FEATURE v1.5 P3)
           if (window.TAIOResultActions) {

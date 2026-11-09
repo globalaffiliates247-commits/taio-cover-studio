@@ -4,7 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>TAIO Cover Studio — WYSIWYG Video Wrapper</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/css/base.css?v=1.5.0">
+  <link rel="stylesheet" href="/static/css/layout.css?v=1.5.0">
+  <link rel="stylesheet" href="/static/css/editor.css?v=1.5.0">
+  <link rel="stylesheet" href="/static/css/panels.css?v=1.5.0">
+  <link rel="stylesheet" href="/static/css/sheets.css?v=1.5.0">
+  <link rel="stylesheet" href="/static/style.css?v=1.5.0">
 </head>
 <body>
   <!-- Header tối giản dạng thanh công cụ -->
@@ -124,6 +129,9 @@
           <div class="layers-list" id="editorLayersList"></div>
         </div>
 
+        <!-- Cột icon nổi bên phải kiểu TikTok (FEATURE v1.5 P6) -->
+        <div class="quick-rail-container" id="quickRail"></div>
+
         <!-- Timeline scrub bar nằm sát đáy khung xem trước -->
         <div class="preview-bottom-bar" id="previewBottomBar" hidden>
           <span class="time-readout" id="timelineTimeLabel">0:01</span>
@@ -134,176 +142,196 @@
       </div>
     </section>
 
-    <!-- 2. BỘ ĐIỀU KHIỂN RÚT GỌN (CONTROL STRIP NẰM NGAY BÊN DƯỚI) -->
-    <section class="controls-stage">
+    <!-- 2. BẢNG NỘI DUNG TAB ĐANG MỞ (~166px) -->
+    <section class="capcut-panel-content" id="capcutPanelContent">
       
-      <!-- Hàng chọn Mẫu lớp phủ A · B · C · D tạo động từ config -->
-      <div class="template-selector-row">
-        <span class="control-label">Mẫu:</span>
+      <!-- Tab 1: Mẫu -->
+      <div class="capcut-tab-panel" id="tabPanelTemplate" data-tab="template">
+        <span class="panel-field-label">Chọn kiểu mẫu bìa:</span>
         <div class="template-pills-bar" id="templatePillsBar"></div>
       </div>
 
-      <!-- Thanh tuỳ chỉnh lớp phủ động (Độ mờ & Màu - v1.3.0) -->
-      <div class="layer-controls-strip" id="layerControlsStrip" style="display: none;"></div>
+      <!-- Tab 2: Nền -->
+      <div class="capcut-tab-panel" id="tabPanelBackground" data-tab="background" hidden>
+        <div class="layer-controls-strip" id="layerControlsStrip" style="display: none;"></div>
+      </div>
 
-      <!-- Ô nhập Caption & Highlight thời gian thực -->
-      <div class="caption-box-compact">
-        <div class="caption-input-wrapper">
-          <input type="text" id="captionInput" class="caption-quick-input" placeholder="Nhập tiêu đề (dùng **từ khóa** hoặc ==nhấn 2==)...">
-          <button type="button" class="btn-icon-add-text" id="btnAddFreeText" title="Thêm chữ tự do (+ Chữ)">
-            + Chữ
-          </button>
-          <button type="button" class="btn-icon-aa" id="btnOpenTextStyleModal" title="Tuỳ chỉnh kiểu chữ (Aa)">
-            Aa
-          </button>
-          <button type="button" class="btn-icon-ai" id="btnOpenAIModal" title="Gợi ý caption bằng AI">
-            ✨ AI
-          </button>
-        </div>
-        <!-- Thanh trực quan hiển thị chữ tô màu vàng ngay lập tức -->
-        <div class="caption-live-preview" id="captionLivePreview">
-          <span class="live-label">Màu chữ:</span>
-          <span class="live-content" id="liveHighlightText">Chưa có caption</span>
+      <!-- Tab 3: Cap -->
+      <div class="capcut-tab-panel" id="tabPanelCaption" data-tab="caption" hidden>
+        <div class="caption-box-compact">
+          <div class="caption-input-wrapper">
+            <input type="text" id="captionInput" class="caption-quick-input" placeholder="Nhập tiêu đề (dùng **từ khóa** hoặc ==nhấn 2==)...">
+            <button type="button" class="btn-icon-add-text" id="btnAddFreeText" title="Thêm chữ tự do (+ Chữ)">+ Chữ</button>
+            <button type="button" class="btn-icon-aa" id="btnOpenTextStyleModal" title="Tuỳ chỉnh kiểu chữ (Aa)">Aa</button>
+            <button type="button" class="btn-icon-ai" id="btnOpenAIModal" title="Gợi ý caption bằng AI">✨ AI</button>
+          </div>
+          <div class="caption-live-preview" id="captionLivePreview">
+            <span class="live-label">Màu chữ:</span>
+            <span class="live-content" id="liveHighlightText">Chưa có caption</span>
+          </div>
         </div>
       </div>
 
-      <!-- Tùy chọn Logo rút gọn -->
-      <div class="logo-strip-compact">
-        <div class="logo-mini-pill">
-          <img src="/static/brand-logo" alt="logo" class="logo-tiny" id="logoThumbnailImg" onerror="this.style.display='none'">
-          <span class="logo-name-tag" id="logoStatusLabel">Logo TAIO</span>
+      <!-- Tab 4: Logo -->
+      <div class="capcut-tab-panel" id="tabPanelLogo" data-tab="logo" hidden>
+        <div class="logo-strip-compact">
+          <div class="logo-mini-pill">
+            <img src="/static/brand-logo" alt="logo" class="logo-tiny" id="logoThumbnailImg" onerror="this.style.display='none'">
+            <span class="logo-name-tag" id="logoStatusLabel">Logo TAIO</span>
+          </div>
+          <input type="file" id="logoFileInput" accept="image/png,image/jpeg,image/webp" hidden>
+          <button type="button" class="btn-micro" id="btnUploadCustomLogo">Đổi logo</button>
+          <button type="button" class="btn-micro btn-micro-danger" id="btnResetDefaultLogo" hidden>Dùng lại logo gốc</button>
         </div>
-        <input type="file" id="logoFileInput" accept="image/png,image/jpeg,image/webp" hidden>
-        <button type="button" class="btn-micro" id="btnUploadCustomLogo">Đổi logo</button>
-        <button type="button" class="btn-micro btn-micro-danger" id="btnResetDefaultLogo" hidden>Dùng lại logo gốc</button>
-      </div>
 
-      <!-- Bảng điều khiển Sticker Logo & Vùng an toàn chính xác (thu gọn mặc định) -->
-      <details class="sticker-panel-card" id="stickerPanelCard">
-        <summary class="sticker-panel-summary">
-          <div class="summary-left">
-            <span class="panel-icon">🎯</span>
-            <span class="panel-title">Vị trí & Kích thước Logo</span>
+        <!-- Nền Logo: Không · Trong mờ · Màu đặc (FEATURE v1.5 P5) -->
+        <div class="logo-pill-ctrl-row">
+          <span class="panel-field-label">Nền logo:</span>
+          <div class="segmented-control pill-mode-segments" id="logoPillModeSegments">
+            <button type="button" class="btn-segment" data-mode="none">Không</button>
+            <button type="button" class="btn-segment active" data-mode="translucent">Trong mờ</button>
+            <button type="button" class="btn-segment" data-mode="solid">Màu đặc</button>
           </div>
-          <span class="panel-sub">Kéo thả sticker hoặc chỉnh số</span>
-        </summary>
-        <div class="sticker-panel-body">
-          
-          <!-- Lưới 9 vị trí nhanh cách lề 5% -->
-          <div class="panel-section-wrap">
-            <span class="panel-field-label">Vị trí nhanh (lề 5%):</span>
-            <div class="grid-9-positions">
-              <button type="button" class="btn-grid-pos" data-pos="tl" title="Trên - Trái">↖</button>
-              <button type="button" class="btn-grid-pos" data-pos="tc" title="Trên - Giữa">⬆</button>
-              <button type="button" class="btn-grid-pos" data-pos="tr" title="Trên - Phải">↗</button>
-              <button type="button" class="btn-grid-pos" data-pos="ml" title="Giữa - Trái">⬅</button>
-              <button type="button" class="btn-grid-pos" data-pos="mc" title="Chính giữa">⏺</button>
-              <button type="button" class="btn-grid-pos" data-pos="mr" title="Giữa - Phải">➡</button>
-              <button type="button" class="btn-grid-pos" data-pos="bl" title="Dưới - Trái">↙</button>
-              <button type="button" class="btn-grid-pos" data-pos="bc" title="Dưới - Giữa">⬇</button>
-              <button type="button" class="btn-grid-pos" data-pos="br" title="Dưới - Phải">↘</button>
-            </div>
-          </div>
+        </div>
 
-          <!-- Nhập số chính xác: X %, Y %, Cỡ %, Xoay °, Độ mờ % -->
-          <div class="numeric-inputs-row">
-            <div class="num-field">
-              <span class="num-label">X (%)</span>
-              <input type="number" id="numStickerX" class="compact-num-input" min="0" max="100" step="1">
-            </div>
-            <div class="num-field">
-              <span class="num-label">Y (%)</span>
-              <input type="number" id="numStickerY" class="compact-num-input" min="0" max="100" step="1">
-            </div>
-            <div class="num-field">
-              <span class="num-label">Cỡ (%)</span>
-              <input type="number" id="numStickerW" class="compact-num-input" min="5" max="100" step="1">
-            </div>
-            <div class="num-field">
-              <span class="num-label">Xoay (°)</span>
-              <input type="number" id="numStickerRot" class="compact-num-input" min="-180" max="180" step="1">
-            </div>
-            <div class="num-field">
-              <span class="num-label">Mờ (%)</span>
-              <input type="number" id="numStickerOpacity" class="compact-num-input" min="0" max="100" step="1">
-            </div>
+        <!-- Bảng màu và độ đậm khi chọn nền logo -->
+        <div class="logo-pill-color-panel" id="logoPillColorPanel" hidden>
+          <div class="logo-pill-palette" id="logoPillPalette">
+            <button type="button" class="color-swatch-btn active" data-color="#1A56DB" title="Mặc định thương hiệu" style="background:#1A56DB;"></button>
+            <button type="button" class="color-swatch-btn" data-color="#E53935" title="Đỏ" style="background:#E53935;"></button>
+            <button type="button" class="color-swatch-btn" data-color="#FB8C00" title="Cam" style="background:#FB8C00;"></button>
+            <button type="button" class="color-swatch-btn" data-color="#FFD34D" title="Vàng" style="background:#FFD34D;"></button>
+            <button type="button" class="color-swatch-btn" data-color="#43A047" title="Xanh lá" style="background:#43A047;"></button>
+            <button type="button" class="color-swatch-btn" data-color="#1E88E5" title="Xanh dương" style="background:#1E88E5;"></button>
+            <button type="button" class="color-swatch-btn" data-color="#8E24AA" title="Tím" style="background:#8E24AA;"></button>
+            <button type="button" class="color-swatch-btn" data-color="#FFFFFF" title="Trắng" style="background:#FFFFFF; border:1px solid #666;"></button>
+            <button type="button" class="color-swatch-btn" data-color="#111111" title="Đen" style="background:#111111;"></button>
+            <label class="color-swatch-custom" title="Chọn màu khác">
+              <span>＋</span>
+              <input type="color" id="logoPillColorCustom" value="#1A56DB" style="opacity:0; position:absolute; width:100%; height:100%; cursor:pointer;">
+            </label>
           </div>
-
-          <!-- Nền Logo: Không · Trong mờ · Màu đặc (FEATURE v1.5 P5) -->
-          <div class="logo-pill-ctrl-row">
-            <span class="panel-field-label">Nền logo:</span>
-            <div class="segmented-control pill-mode-segments" id="logoPillModeSegments">
-              <button type="button" class="btn-segment" data-mode="none">Không</button>
-              <button type="button" class="btn-segment active" data-mode="translucent">Trong mờ</button>
-              <button type="button" class="btn-segment" data-mode="solid">Màu đặc</button>
-            </div>
+          <div class="logo-pill-opacity-row">
+            <span class="num-label">Độ đậm:</span>
+            <input type="range" id="rngLogoPillOpacity" min="10" max="100" value="100" class="compact-slider" style="flex:1;">
+            <span id="lblLogoPillOpacity" class="val-badge">100%</span>
           </div>
+        </div>
 
-          <!-- Bảng màu và độ đậm khi chọn nền logo -->
-          <div class="logo-pill-color-panel" id="logoPillColorPanel" hidden>
-            <div class="logo-pill-palette" id="logoPillPalette">
-              <button type="button" class="color-swatch-btn active" data-color="#1A56DB" title="Mặc định thương hiệu" style="background:#1A56DB;"></button>
-              <button type="button" class="color-swatch-btn" data-color="#E53935" title="Đỏ" style="background:#E53935;"></button>
-              <button type="button" class="color-swatch-btn" data-color="#FB8C00" title="Cam" style="background:#FB8C00;"></button>
-              <button type="button" class="color-swatch-btn" data-color="#FFD34D" title="Vàng" style="background:#FFD34D;"></button>
-              <button type="button" class="color-swatch-btn" data-color="#43A047" title="Xanh lá" style="background:#43A047;"></button>
-              <button type="button" class="color-swatch-btn" data-color="#1E88E5" title="Xanh dương" style="background:#1E88E5;"></button>
-              <button type="button" class="color-swatch-btn" data-color="#8E24AA" title="Tím" style="background:#8E24AA;"></button>
-              <button type="button" class="color-swatch-btn" data-color="#FFFFFF" title="Trắng" style="background:#FFFFFF; border:1px solid #666;"></button>
-              <button type="button" class="color-swatch-btn" data-color="#111111" title="Đen" style="background:#111111;"></button>
-              <label class="color-swatch-custom" title="Chọn màu khác">
-                <span>＋</span>
-                <input type="color" id="logoPillColorCustom" value="#1A56DB" style="opacity:0; position:absolute; width:100%; height:100%; cursor:pointer;">
+        <!-- Bảng điều khiển Sticker Logo & Vùng an toàn chính xác -->
+        <details class="sticker-panel-card" id="stickerPanelCard">
+          <summary class="sticker-panel-summary">
+            <div class="summary-left">
+              <span class="panel-icon">🎯</span>
+              <span class="panel-title">Vị trí & Kích thước</span>
+            </div>
+          </summary>
+          <div class="sticker-panel-body">
+            <!-- Lưới 9 vị trí nhanh cách lề 5% -->
+            <div class="panel-section-wrap">
+              <span class="panel-field-label">Vị trí nhanh (lề 5%):</span>
+              <div class="grid-9-positions">
+                <button type="button" class="btn-grid-pos" data-pos="tl" title="Trên - Trái">↖</button>
+                <button type="button" class="btn-grid-pos" data-pos="tc" title="Trên - Giữa">⬆</button>
+                <button type="button" class="btn-grid-pos" data-pos="tr" title="Trên - Phải">↗</button>
+                <button type="button" class="btn-grid-pos" data-pos="ml" title="Giữa - Trái">⬅</button>
+                <button type="button" class="btn-grid-pos" data-pos="mc" title="Chính giữa">⏺</button>
+                <button type="button" class="btn-grid-pos" data-pos="mr" title="Giữa - Phải">➡</button>
+                <button type="button" class="btn-grid-pos" data-pos="bl" title="Dưới - Trái">↙</button>
+                <button type="button" class="btn-grid-pos" data-pos="bc" title="Dưới - Giữa">⬇</button>
+                <button type="button" class="btn-grid-pos" data-pos="br" title="Dưới - Phải">↘</button>
+              </div>
+            </div>
+
+            <!-- Nhập số chính xác: X %, Y %, Cỡ %, Xoay °, Độ mờ % -->
+            <div class="numeric-inputs-row">
+              <div class="num-field">
+                <span class="num-label">X (%)</span>
+                <input type="number" id="numStickerX" class="compact-num-input" min="0" max="100" step="1">
+              </div>
+              <div class="num-field">
+                <span class="num-label">Y (%)</span>
+                <input type="number" id="numStickerY" class="compact-num-input" min="0" max="100" step="1">
+              </div>
+              <div class="num-field">
+                <span class="num-label">Cỡ (%)</span>
+                <input type="number" id="numStickerW" class="compact-num-input" min="5" max="100" step="1">
+              </div>
+              <div class="num-field">
+                <span class="num-label">Xoay (°)</span>
+                <input type="number" id="numStickerRot" class="compact-num-input" min="-180" max="180" step="1">
+              </div>
+              <div class="num-field">
+                <span class="num-label">Mờ (%)</span>
+                <input type="number" id="numStickerOpacity" class="compact-num-input" min="0" max="100" step="1">
+              </div>
+            </div>
+
+            <div class="toggles-ctrl-row">
+              <input type="checkbox" id="chkStickerPill" checked hidden>
+              <label class="toggle-switch-label">
+                <input type="checkbox" id="chkStickerHide">
+                <span>Ẩn logo</span>
               </label>
+              <button type="button" class="btn-micro" id="btnResetStickerPos">Mặc định mẫu</button>
             </div>
-            <div class="logo-pill-opacity-row">
-              <span class="num-label">Độ đậm:</span>
-              <input type="range" id="rngLogoPillOpacity" min="10" max="100" value="100" class="compact-slider" style="flex:1;">
-              <span id="lblLogoPillOpacity" class="val-badge">100%</span>
+
+            <div class="safe-zone-ctrl-row">
+              <label class="toggle-switch-label">
+                <input type="checkbox" id="chkShowSafeZone">
+                <span>Vùng an toàn:</span>
+              </label>
+              <select id="selSafePlatformSelect" class="compact-select-mini">
+                <option value="tiktok">TikTok (9:16)</option>
+                <option value="reels">Instagram Reels (9:16)</option>
+                <option value="shorts">YouTube Shorts (9:16)</option>
+              </select>
             </div>
           </div>
+        </details>
+      </div>
 
-          <!-- Hàng công tắc và khôi phục -->
-          <div class="toggles-ctrl-row">
-            <input type="checkbox" id="chkStickerPill" checked hidden>
-            <label class="toggle-switch-label">
-              <input type="checkbox" id="chkStickerHide">
-              <span>Ẩn logo</span>
-            </label>
-            <button type="button" class="btn-micro" id="btnResetStickerPos">Mặc định mẫu</button>
-          </div>
+      <!-- Tab 5: + Chữ -->
+      <div class="capcut-tab-panel" id="tabPanelAddText" data-tab="add_text" hidden>
+        <button type="button" class="btn-micro" id="btnAddFreeTextDirect" onclick="document.getElementById('btnAddFreeText').click()">+ Thêm chữ tự do</button>
+        <div id="freeTextItemList" class="free-text-list" style="margin-top:6px;"></div>
+      </div>
 
-          <!-- Vùng an toàn nền tảng -->
-          <div class="safe-zone-ctrl-row">
-            <label class="toggle-switch-label">
-              <input type="checkbox" id="chkShowSafeZone">
-              <span>Hiện vùng an toàn:</span>
-            </label>
-            <select id="selSafePlatformSelect" class="compact-select-mini">
-              <option value="tiktok">TikTok (9:16)</option>
-              <option value="reels">Instagram Reels (9:16)</option>
-              <option value="shorts">YouTube Shorts (9:16)</option>
-            </select>
-          </div>
+      <!-- Tab 6: AI -->
+      <div class="capcut-tab-panel" id="tabPanelAI" data-tab="ai" hidden>
+        <button type="button" class="btn-micro" onclick="document.getElementById('btnOpenAIModal').click()">✨ Mở hộp gợi ý caption AI</button>
+      </div>
 
+      <!-- Tab 7: Lớp -->
+      <div class="capcut-tab-panel" id="tabPanelLayers" data-tab="layers" hidden>
+        <div class="layers-drawer-header" style="display:flex; justify-content:space-between; align-items:center;">
+          <span class="panel-field-label">Các lớp trên video:</span>
         </div>
-      </details>
+        <div class="layers-list" id="tabLayersList"></div>
+      </div>
 
+    </section>
+
+    <!-- 3. HÀNG TAB CÓ ICON CUỘN NGANG KIỂU CAPCUT (~60px) -->
+    <nav class="capcut-tabs-bar" id="capcutTabsBar"></nav>
+
+    <!-- 4. ACTION BAR DƯỚI ĐÁY (~80px) -->
+    <footer class="studio-bottom-actions" id="studioBottomActions">
+      
       <!-- Thông báo cảnh báo (nếu có) -->
       <div class="warning-strip" id="warningBanner" hidden>
         <span class="warn-dot">⚠️</span>
         <span class="warn-msg" id="warningText"></span>
       </div>
 
-    </section>
-
-    <!-- 3. ACTION BAR DƯỚI ĐÁY: XUẤT VIDEO & TẢI VỀ / GỬI TELEGRAM -->
-    <footer class="studio-action-bar">
-      
       <!-- Nút xuất video chính -->
-      <button type="button" class="btn-render-action" id="btnRenderVideo" disabled>
-        <span class="btn-render-text">🚀 Xuất Video</span>
+      <button type="button" class="btn-render-primary" id="btnRenderVideo" disabled>
+        🚀 Xuất video
       </button>
+
+      <div class="compression-status-sub" id="compressionStatusSub">
+        Mức nén: <span id="lblCurrentQuality">Cân bằng</span> · <button type="button" class="btn-change-quality" id="btnChangeQualitySheet">đổi</button>
+      </div>
 
       <!-- Thanh tiến độ khi đang xuất -->
       <div class="render-progress-wrap" id="renderProgressCard" hidden>
@@ -318,18 +346,18 @@
 
       <!-- Bảng hành động khi xuất xong -->
       <div class="download-action-group" id="renderDoneActions" hidden>
-        <!-- Nút lưu Cuộn Camera (iOS / Android Web Share) -->
+        <!-- Nút lưu / chia sẻ (FEATURE v1.5 P3) -->
         <button type="button" class="btn-action-done btn-save-photos" id="btnSaveToPhotos">
-          📱 Lưu vào Cuộn Camera
+          📤 Lưu / Chia sẻ
         </button>
 
         <!-- Nút tải file trực tiếp -->
         <a href="#" class="btn-action-done btn-download-file" id="btnDownloadVideo" download>
-          📥 Tải file MP4
+          📥 Tải MP4
         </a>
 
         <!-- Nút gửi Telegram về TAIO.CLUB (1 chạm - v1.5 P4) -->
-        <button type="button" class="btn-action-done btn-telegram" id="btnSendTelegram" title="Gửi video về kênh admin TAIO.CLUB" hidden>
+        <button type="button" class="btn-action-done btn-telegram" id="btnTriggerSendTelegram" title="Gửi video về kênh admin TAIO.CLUB">
           ✈️ Gửi về TAIO.CLUB
         </button>
       </div>
@@ -519,17 +547,20 @@
     </div>
   </div>
 
-  <script src="/static/js/editor/guides.js"></script>
-  <script src="/static/js/editor/scene-store.js"></script>
-  <script src="/static/js/editor/transform.js"></script>
-  <script src="/static/js/editor/object-views.js"></script>
-  <script src="/static/js/editor/toolbar.js"></script>
-  <script src="/static/js/editor/text-editor.js"></script>
-  <script src="/static/js/text-panel.js"></script>
-  <script src="/static/js/layer-controls.js"></script>
-  <script src="/static/js/save-photos.js"></script>
-  <script src="/static/js/export/export-sheet.js"></script>
-  <script src="/static/js/export/result-actions.js"></script>
-  <script src="/static/app.js"></script>
+  <script src="/static/js/layout/icons.js?v=1.5.0"></script>
+  <script src="/static/js/layout/tabs.js?v=1.5.0"></script>
+  <script src="/static/js/layout/quick-rail.js?v=1.5.0"></script>
+  <script src="/static/js/editor/guides.js?v=1.5.0"></script>
+  <script src="/static/js/editor/scene-store.js?v=1.5.0"></script>
+  <script src="/static/js/editor/transform.js?v=1.5.0"></script>
+  <script src="/static/js/editor/object-views.js?v=1.5.0"></script>
+  <script src="/static/js/editor/toolbar.js?v=1.5.0"></script>
+  <script src="/static/js/editor/text-editor.js?v=1.5.0"></script>
+  <script src="/static/js/text-panel.js?v=1.5.0"></script>
+  <script src="/static/js/layer-controls.js?v=1.5.0"></script>
+  <script src="/static/js/save-photos.js?v=1.5.0"></script>
+  <script src="/static/js/export/export-sheet.js?v=1.5.0"></script>
+  <script src="/static/js/export/result-actions.js?v=1.5.0"></script>
+  <script src="/static/app.js?v=1.5.0"></script>
 </body>
 </html>

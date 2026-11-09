@@ -1,0 +1,287 @@
+/* ==========================================================================
+   TAIO Cover Studio — Editor CSS (FEATURE v1.5 P6)
+   Preview Stage, Video Player, Discrete Badge Spinner, Stickers & Guides.
+   ========================================================================== */
+
+.preview-stage-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #000000;
+  overflow: hidden;
+}
+
+.preview-screen {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Spinner góc trên phải không chặn chạm (FEATURE v1.5 P1) */
+.preview-spinner-overlay {
+  position: absolute !important;
+  inset: auto 12px auto auto !important;
+  top: 12px !important;
+  right: 12px !important;
+  width: auto !important;
+  height: auto !important;
+  background: rgba(15, 23, 42, 0.75) !important;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 211, 77, 0.4);
+  border-radius: 20px !important;
+  padding: 4px 10px !important;
+  display: flex !important;
+  align-items: center;
+  gap: 6px;
+  z-index: 40 !important;
+  pointer-events: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.preview-spinner-overlay .spinner-ring {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 211, 77, 0.25);
+  border-top-color: #FFD34D;
+  border-radius: 50%;
+  animation: spinner-rotate 0.8s linear infinite;
+}
+
+.preview-spinner-overlay .spinner-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: #FFD34D;
+  white-space: nowrap;
+}
+
+@keyframes spinner-rotate {
+  to { transform: rotate(360deg); }
+}
+
+/* Drop Zone rỗng khi chưa chọn video */
+.drop-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  text-align: center;
+  cursor: pointer;
+  width: 90%;
+  max-width: 380px;
+  border: 2px dashed #334155;
+  border-radius: 16px;
+  background: rgba(17, 24, 39, 0.6);
+  transition: all 0.2s ease;
+}
+
+.drop-empty-state:hover {
+  border-color: var(--color-accent);
+  background: rgba(17, 24, 39, 0.8);
+}
+
+.drop-icon-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 211, 77, 0.1);
+  border: 1px solid rgba(255, 211, 77, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+
+.drop-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.drop-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-bottom: 14px;
+}
+
+.drop-url-box {
+  display: flex;
+  width: 100%;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.url-input-compact {
+  flex: 1;
+  background: #0F172A;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: #FFFFFF;
+  font-size: 0.8rem;
+  outline: none;
+}
+.url-input-compact:focus {
+  border-color: #3B82F6;
+}
+
+/* Sticker Stage & Manipulation */
+.sticker-stage {
+  position: absolute;
+  pointer-events: none;
+  z-index: 15;
+  overflow: visible;
+}
+
+.sticker-box {
+  position: absolute;
+  box-sizing: border-box;
+  touch-action: none;
+  user-select: none;
+  pointer-events: auto;
+  cursor: pointer;
+  outline: none;
+  z-index: 18;
+  transition: box-shadow 0.15s ease;
+}
+
+@media (hover: hover) {
+  .sticker-box:hover:not(.selected) {
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.7);
+    border-radius: 4px;
+  }
+}
+
+.sticker-box:active {
+  cursor: grabbing;
+}
+
+.sticker-box.selected {
+  box-shadow: 0 0 0 1.5px #3B82F6, 0 4px 12px rgba(0, 0, 0, 0.45);
+  border-radius: 4px;
+  cursor: grab;
+}
+
+.sticker-box.group-selected-child {
+  box-shadow: 0 0 0 1.5px dashed #3B82F6, 0 4px 12px rgba(0, 0, 0, 0.35);
+  border-radius: 4px;
+}
+
+.sticker-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.sticker-box .sticker-handle,
+.sticker-box .sticker-rotator-line,
+.sticker-box .sticker-rotator {
+  display: none;
+}
+
+.sticker-box.selected .sticker-handle,
+.sticker-box.selected .sticker-rotator-line,
+.sticker-box.selected .sticker-rotator {
+  display: block;
+}
+
+.sticker-handle {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  pointer-events: auto;
+  touch-action: none;
+  z-index: 25;
+}
+
+.sticker-handle::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  background-color: #FFFFFF;
+  border: 2px solid #3B82F6;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.handle-tl { top: -22px; left: -22px; cursor: nwse-resize; }
+.handle-tr { top: -22px; right: -22px; cursor: nesw-resize; }
+.handle-bl { bottom: -22px; left: -22px; cursor: nesw-resize; }
+.handle-br { bottom: -22px; right: -22px; cursor: nwse-resize; }
+
+.sticker-rotator-line {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1.5px;
+  height: 24px;
+  background-color: #3B82F6;
+}
+
+.sticker-rotator {
+  position: absolute;
+  top: -46px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 44px;
+  height: 44px;
+  cursor: grab;
+  touch-action: none;
+  pointer-events: auto;
+  z-index: 25;
+}
+
+.sticker-rotator::after {
+  content: "⟳";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  background-color: #3B82F6;
+  color: #FFFFFF;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Smart Guides */
+.guide-line {
+  position: absolute;
+  pointer-events: none;
+  z-index: 20;
+}
+.guide-line.guide-v {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: #EF4444;
+  box-shadow: 0 0 4px rgba(239, 68, 68, 0.8);
+}
+.guide-line.guide-h {
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #EF4444;
+  box-shadow: 0 0 4px rgba(239, 68, 68, 0.8);
+}

@@ -1,0 +1,302 @@
+/* ==========================================================================
+   TAIO Cover Studio — Panels CSS (FEATURE v1.5 P6)
+   Tab Panels: Mẫu, Nền, Caption, Logo, + Chữ, AI, Lớp.
+   ========================================================================== */
+
+.capcut-tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 1. TAB MẪU (Template Picker) */
+.template-grid-mini {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.tpl-card-mini {
+  background: var(--bg-deep);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 8px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tpl-card-mini:hover {
+  border-color: #64748B;
+}
+
+.tpl-card-mini.active {
+  border-color: var(--color-accent);
+  background: rgba(255, 211, 77, 0.08);
+}
+
+.tpl-card-mini .tpl-letter {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #FFFFFF;
+}
+
+.tpl-card-mini.active .tpl-letter {
+  color: var(--color-accent);
+}
+
+.tpl-card-mini .tpl-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+/* 2. TAB NỀN (Background Controls) */
+.layer-controls-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.panel-section-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.panel-field-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #CBD5E1;
+  white-space: nowrap;
+}
+
+/* 3. TAB CAPTION */
+.caption-box-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.caption-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: #0F172A;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 4px 8px;
+  gap: 6px;
+}
+
+.caption-quick-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #FFFFFF;
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+}
+
+.caption-live-preview {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.live-content {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+/* 4. TAB LOGO */
+.logo-strip-compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.logo-mini-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #0F172A;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #1E293B;
+}
+
+.logo-tiny {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.logo-name-tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #E2E8F0;
+}
+
+/* Segmented Control cho Nền Logo Solid / Translucent / None */
+.logo-pill-ctrl-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.pill-mode-segments {
+  display: flex;
+  background: #0F172A;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.pill-mode-segments .btn-segment {
+  background: transparent;
+  border: none;
+  color: #94A3B8;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pill-mode-segments .btn-segment.active {
+  background: #3B82F6;
+  color: #FFFFFF;
+}
+
+.logo-pill-color-panel {
+  padding: 6px 8px;
+  background: #0F172A;
+  border: 1px solid #1E293B;
+  border-radius: 8px;
+}
+
+.logo-pill-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.color-swatch-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.color-swatch-btn:hover {
+  transform: scale(1.15);
+}
+
+.color-swatch-btn.active {
+  border-color: #FFFFFF;
+  box-shadow: 0 0 0 2px #3B82F6;
+}
+
+.color-swatch-custom {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px dashed #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94A3B8;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.logo-pill-opacity-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: #94A3B8;
+}
+
+/* 5. TAB + CHỮ */
+.add-text-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-add-text-big {
+  width: 100%;
+  padding: 8px;
+  background: #1E293B;
+  border: 1px dashed #475569;
+  border-radius: 8px;
+  color: #FFD34D;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-add-text-big:hover {
+  background: #334155;
+  border-color: #FFD34D;
+}
+
+.free-text-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.free-text-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: #0F172A;
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+/* 6. TAB LỚP (Layers List) */
+.layers-list-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.layer-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: #0F172A;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.layer-item-row.selected {
+  border: 1px solid #3B82F6;
+  background: rgba(59, 130, 246, 0.1);
+}
