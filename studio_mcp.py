@@ -136,7 +136,6 @@ def preview_overlay(
             time_sec=time_sec,
             logo_path=logo_path,
             overrides=overrides,
-            quality=quality,
         )
 
         buf = io.BytesIO()

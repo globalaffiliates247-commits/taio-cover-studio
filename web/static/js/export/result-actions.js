@@ -118,6 +118,8 @@
         playerVideoEl.hidden = false;
         const previewImage = document.getElementById("previewImage");
         if (previewImage) previewImage.hidden = true;
+        const stickerStage = document.getElementById("stickerStage");
+        if (stickerStage) stickerStage.hidden = true;
       }
 
       // Cập nhật TAIOSavePhotos nếu có

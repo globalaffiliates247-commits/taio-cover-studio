@@ -2,7 +2,9 @@
 web/server.py - Flask API Server phục vụ toàn bộ giao diện và endpoint của TAIO Cover Studio.
 """
 
+import collections
 import io
+import json
 import os
 import queue
 import re
@@ -57,6 +59,11 @@ current_active_renders = 0
 
 # Giới hạn tối đa 2 preview chạy cùng lúc
 preview_semaphore = threading.BoundedSemaphore(2)
+
+# Rate limit và kiểm soát gửi Telegram 1 chạm (FEATURE v1.5 P4)
+_TELEGRAM_SENT_JOBS = set()
+_TELEGRAM_IP_TIMESTAMPS: Dict[str, list] = collections.defaultdict(list)
+_TELEGRAM_RATE_LOCK = threading.Lock()
 
 # In log cấu hình hệ thống khi khởi động
 version_info = get_version_info()
@@ -199,9 +206,9 @@ def api_config():
         "colors": brand_data.get("colors", {}),
     }
 
+    telegram_configured = bool(os.getenv("TELEGRAM_BOT_TOKEN", "").strip() and os.getenv("TELEGRAM_CHAT_ID", "").strip())
     telegram_cfg = {
-        "configured": bool(os.getenv("TELEGRAM_BOT_TOKEN", "").strip()),
-        "default_chat_id": os.getenv("TELEGRAM_CHAT_ID", "").strip(),
+        "configured": telegram_configured,
     }
 
     safe_zones = {}
@@ -756,17 +763,33 @@ def api_download(job_id: str):
 
 @app.route("/api/send-telegram", methods=["POST"])
 def api_send_telegram():
-    """Gửi video đã xuất qua Telegram Bot trung gian."""
+    """Gửi video đã xuất 1 chạm về bot admin của TAIO.CLUB (FEATURE v1.5 P4)."""
+    bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    admin_chat_id = os.getenv("TELEGRAM_CHAT_ID", "").strip()
+
+    if not bot_token or not admin_chat_id:
+        return jsonify({"error": "Máy chủ chưa cấu hình bot Telegram của admin."}), 503
+
     data = request.get_json(force=True, silent=True) or {}
     job_id = data.get("job_id", "")
-    bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
-    chat_id = (data.get("chat_id") or os.getenv("TELEGRAM_CHAT_ID", "")).strip()
+    user_note = data.get("note", "").strip()
 
-    if not bot_token:
-        return jsonify({"error": "Vui lòng nhập Bot Token và Chat ID của bot Telegram (hoặc cấu hình TELEGRAM_BOT_TOKEN)."}), 400
+    if not job_id:
+        return jsonify({"error": "Thiếu mã xuất video (job_id)."}), 400
 
-    if not chat_id:
-        return jsonify({"error": "Vui lòng nhập Chat ID của bot Telegram."}), 400
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr or "127.0.0.1").split(",")[0].strip()
+    now_ts = time.time()
+
+    with _TELEGRAM_RATE_LOCK:
+        # 1. Chống gửi lặp: mỗi job chỉ gửi 1 lần
+        if job_id in _TELEGRAM_SENT_JOBS:
+            return jsonify({"error": "Video này đã được gửi về TAIO.CLUB trước đó."}), 400
+
+        # 2. Giới hạn 20 lần/giờ cho mỗi IP
+        history = [t for t in _TELEGRAM_IP_TIMESTAMPS[ip] if now_ts - t < 3600]
+        if len(history) >= 20:
+            return jsonify({"error": "Bạn đã gửi quá 20 lần trong 1 giờ. Vui lòng thử lại sau."}), 429
+        _TELEGRAM_IP_TIMESTAMPS[ip] = history
 
     with jobs_lock:
         job = jobs_store.get(job_id)
@@ -779,25 +802,55 @@ def api_send_telegram():
         if not out_path.exists():
             return jsonify({"error": "Tệp video không tồn tại."}), 404
 
-    # Gửi qua Telegram Bot API sendVideo
-    import json
-    import urllib.request
+    # 3. Giới hạn dung lượng bot Telegram (~50 MB)
+    file_size_bytes = out_path.stat().st_size
+    if file_size_bytes > 50 * 1024 * 1024:
+        return jsonify({
+            "error": "Video quá lớn để gửi Telegram — hãy xuất lại ở mức Nhẹ",
+            "code": "FILE_TOO_LARGE",
+        }), 400
+
+    # 4. Nội dung tin nhắn kèm video theo đặc tả
+    from datetime import datetime, timezone, timedelta
+    vn_time = datetime.now(timezone(timedelta(hours=7))).strftime("%H:%M:%S %d/%m/%Y")
+    ver_info = get_version_info()
+    app_ver = ver_info.get("label", f"v{ver_info.get('version', '1.5.0')}")
+
+    size_mb = file_size_bytes / (1024 * 1024)
+    video_filename = job.get("video_name", "TAIO.CoverClip.mp4")
+    tpl_id = job.get("template_id", "Mặc định")
+    quality_label = job.get("quality", "balanced")
+    caption = job.get("caption", "").strip()
+
+    caption_lines = [
+        f"🎬 *{video_filename}*",
+        f"📝 *Caption:* {caption}" if caption else "",
+        f"🎨 *Mẫu:* `{tpl_id}` · *Mức nén:* `{quality_label}`",
+        f"📦 *Dung lượng:* {size_mb:.1f} MB",
+        f"🕒 *Thời gian:* {vn_time} (UTC+7)",
+        f"🏷 *Phiên bản:* `{app_ver}`",
+    ]
+    if user_note:
+        caption_lines.append(f"💬 *Ghi chú:* {user_note}")
+
+    caption_text = "\n".join([line for line in caption_lines if line])
+
     url = f"https://api.telegram.org/bot{bot_token}/sendVideo"
     boundary = f"----WebKitFormBoundary{uuid.uuid4().hex}"
 
     with open(out_path, "rb") as vf:
         video_bytes = vf.read()
 
-    video_filename = job.get("video_name", "TAIO.CoverClip.mp4")
-    caption_text = f"🎬 {video_filename}\n{job.get('caption', '')}".strip()
-
     body = (
         f"--{boundary}\r\n"
         f'Content-Disposition: form-data; name="chat_id"\r\n\r\n'
-        f"{chat_id}\r\n"
+        f"{admin_chat_id}\r\n"
         f"--{boundary}\r\n"
         f'Content-Disposition: form-data; name="caption"\r\n\r\n'
         f"{caption_text}\r\n"
+        f"--{boundary}\r\n"
+        f'Content-Disposition: form-data; name="parse_mode"\r\n\r\n'
+        f"Markdown\r\n"
         f"--{boundary}\r\n"
         f'Content-Disposition: form-data; name="video"; filename="{video_filename}"\r\n'
         f"Content-Type: video/mp4\r\n\r\n"
@@ -815,7 +868,12 @@ def api_send_telegram():
             resp_data = json.loads(resp.read().decode("utf-8"))
             if not resp_data.get("ok"):
                 return jsonify({"error": f"Telegram trả về lỗi: {resp_data.get('description')}"}), 400
-            return jsonify({"ok": True, "message": "Đã gửi video thành công vào Telegram của bạn!"})
+
+            with _TELEGRAM_RATE_LOCK:
+                _TELEGRAM_SENT_JOBS.add(job_id)
+                _TELEGRAM_IP_TIMESTAMPS[ip].append(now_ts)
+
+            return jsonify({"ok": True, "message": "Đã gửi video thành công về TAIO.CLUB!"})
     except Exception as e:
         return jsonify({"error": f"Lỗi gửi Telegram: {e}"}), 400
 

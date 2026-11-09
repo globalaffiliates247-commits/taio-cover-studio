@@ -118,10 +118,10 @@ class TestStage4Web(unittest.TestCase):
         self.assertGreater(len(res_dl.data), 1000)
 
     def test_send_telegram_missing_token_error(self):
-        """Kiểm tra gọi /api/send-telegram khi thiếu bot_token báo lỗi 400."""
+        """Kiểm tra gọi /api/send-telegram khi thiếu cấu hình server báo lỗi 503."""
         res = self.client.post("/api/send-telegram", json={"job_id": "job_123"})
-        self.assertEqual(res.status_code, 400)
-        self.assertIn("Vui lòng nhập Bot Token và Chat ID", res.get_json()["error"])
+        self.assertEqual(res.status_code, 503)
+        self.assertIn("Máy chủ chưa cấu hình bot Telegram", res.get_json()["error"])
 
     def test_upload_url_validation(self):
         """Kiểm tra kiểm tra hợp lệ URL trên /api/upload-url."""

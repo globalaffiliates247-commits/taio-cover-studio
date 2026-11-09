@@ -297,9 +297,9 @@
           📥 Tải file MP4
         </a>
 
-        <!-- Nút gửi Telegram -->
-        <button type="button" class="btn-action-done btn-telegram" id="btnSendTelegram">
-          ✈️ Gửi qua Telegram
+        <!-- Nút gửi Telegram về TAIO.CLUB (1 chạm - v1.5 P4) -->
+        <button type="button" class="btn-action-done btn-telegram" id="btnSendTelegram" title="Gửi video về kênh admin TAIO.CLUB" hidden>
+          ✈️ Gửi về TAIO.CLUB
         </button>
       </div>
 
@@ -338,27 +338,7 @@
     </div>
   </div>
 
-  <!-- MODAL CẤU HÌNH GỬI TELEGRAM -->
-  <div class="modal-backdrop" id="telegramModal" hidden>
-    <div class="modal-sheet">
-      <div class="modal-header">
-        <h3 class="modal-title">✈️ Gửi video qua Telegram Bot</h3>
-        <button type="button" class="btn-close-modal" id="btnCloseTeleModal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <p class="tele-hint">Video sẽ được gửi thẳng vào cuộc trò chuyện Telegram của bạn:</p>
-        <label class="tele-label">Bot Token:</label>
-        <input type="password" id="teleBotTokenInput" class="compact-input" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ">
-        <label class="tele-label">Chat ID của bạn:</label>
-        <input type="text" id="teleChatIdInput" class="compact-input" placeholder="Ví dụ: 12345678 hoặc @ten_channel">
-        
-        <button type="button" class="btn-modal-telegram" id="btnConfirmSendTelegram">
-          🚀 Gửi video vào Telegram ngay
-        </button>
-        <div class="tele-status-msg" id="teleStatusMsg" hidden></div>
-      </div>
-    </div>
-  </div>
+
 
   <!-- MODAL / BOTTOM SHEET "Aa TUỲ CHỈNH CHỮ" -->
   <div class="modal-backdrop" id="textStyleModal" hidden>

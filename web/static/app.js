@@ -76,13 +76,6 @@
   const btnGenerateAI = document.getElementById("btnGenerateAI");
   const aiCardsContainer = document.getElementById("aiCardsContainer");
 
-  const telegramModal = document.getElementById("telegramModal");
-  const btnCloseTeleModal = document.getElementById("btnCloseTeleModal");
-  const teleBotTokenInput = document.getElementById("teleBotTokenInput");
-  const teleChatIdInput = document.getElementById("teleChatIdInput");
-  const btnConfirmSendTelegram = document.getElementById("btnConfirmSendTelegram");
-  const teleStatusMsg = document.getElementById("teleStatusMsg");
-
   // ==================== KHỞI TẠO ====================
   async function init() {
     try {
@@ -112,20 +105,16 @@
       console.warn("Chưa tải được config:", e);
     }
 
-    // Xoá token khỏi localStorage để bảo vệ bảo mật
-    localStorage.removeItem("taio_tele_token");
+    // Dọn dẹp token cũ nếu có trong localStorage theo đặc tả v1.5 P4
+    try {
+      localStorage.removeItem("taio_tele_token");
+      localStorage.removeItem("taio_tele_chatid");
+    } catch (_) {}
 
-    const defaultChatId = (state.config && state.config.telegram) ? state.config.telegram.default_chat_id : "";
-    const savedChatId = localStorage.getItem("taio_tele_chatid") || defaultChatId || "";
-    if (savedChatId) teleChatIdInput.value = savedChatId;
-
-    // Ẩn trường nhập bot token trên giao diện vì token cấu hình tại server
-    if (teleBotTokenInput) {
-      teleBotTokenInput.style.display = "none";
-      const tokenLabel = teleBotTokenInput.previousElementSibling;
-      if (tokenLabel && tokenLabel.classList && tokenLabel.classList.contains("tele-label")) {
-        tokenLabel.style.display = "none";
-      }
+    // Cập nhật hiển thị nút Gửi về TAIO.CLUB nếu server đã cấu hình bot
+    if (btnSendTelegram) {
+      const isTeleConfigured = Boolean(state.config && state.config.telegram && state.config.telegram.configured);
+      btnSendTelegram.hidden = !isTeleConfigured;
     }
 
     bindEvents();
@@ -313,10 +302,10 @@
 
     // 7. Save to Camera Roll (được quản lý bởi save-photos.js)
 
-    // 8. Telegram Modal
-    btnSendTelegram.addEventListener("click", openTelegramModal);
-    btnCloseTeleModal.addEventListener("click", () => (telegramModal.hidden = true));
-    btnConfirmSendTelegram.addEventListener("click", sendVideoToTelegram);
+    // 8. Telegram 1 chạm về TAIO.CLUB (v1.5 P4)
+    if (btnSendTelegram) {
+      btnSendTelegram.addEventListener("click", sendVideoToTelegram);
+    }
 
     // 9. AI Modal
     btnOpenAIModal.addEventListener("click", () => (aiModal.hidden = false));
@@ -346,6 +335,8 @@
     btnRenderVideo.disabled = true;
     renderProgressCard.hidden = true;
 
+    const stickerStage = document.getElementById("stickerStage");
+    if (stickerStage) stickerStage.hidden = true;
     const logoSticker = document.getElementById("logoSticker");
     if (logoSticker) logoSticker.hidden = true;
 
@@ -675,6 +666,10 @@
       previewImage.hidden = false;
       playerResultVideo.hidden = true;
 
+      const stickerStage = document.getElementById("stickerStage");
+      if (stickerStage) {
+        stickerStage.hidden = false;
+      }
       const logoSticker = document.getElementById("logoSticker");
       if (logoSticker) {
         logoSticker.hidden = false;
@@ -870,6 +865,8 @@
             playerResultVideo.src = downloadUrl;
             playerResultVideo.hidden = false;
             previewImage.hidden = true;
+            const stickerStage = document.getElementById("stickerStage");
+            if (stickerStage) stickerStage.hidden = true;
           }
         } else if (job.status === "error") {
           clearInterval(state.pollTimer);
@@ -887,32 +884,27 @@
     }, 700);
   }
 
-  // ==================== GỬI QUA TELEGRAM BOT ====================
-  function openTelegramModal() {
-    teleStatusMsg.hidden = true;
-    telegramModal.hidden = false;
-  }
-
+  // ==================== GỬI QUA TELEGRAM BOT 1 CHẠM (v1.5 P4) ====================
   async function sendVideoToTelegram() {
-    const chatId = teleChatIdInput.value.trim();
+    if (!state.currentJobId) return;
 
-    if (!chatId) {
-      showTeleStatus("Vui lòng điền Chat ID Telegram của bạn.", false);
-      return;
+    let note = "";
+    const wantNote = window.confirm("Bấm OK để gửi video ngay về TAIO.CLUB.\n(Nếu cần thêm ghi chú hoặc số điện thoại cho admin, bấm Cancel để nhập)");
+    if (!wantNote) {
+      const inputNote = window.prompt("Nhập ghi chú cho admin (hoặc để trống):", "");
+      if (inputNote === null) return; // Người dùng huỷ
+      note = inputNote.trim();
     }
 
-    // Lưu chatId vào localStorage, xoá bỏ token cũ nếu có
-    localStorage.removeItem("taio_tele_token");
-    localStorage.setItem("taio_tele_chatid", chatId);
-
-    btnConfirmSendTelegram.disabled = true;
-    btnConfirmSendTelegram.textContent = "Đang tải video sang Telegram...";
-    teleStatusMsg.hidden = true;
+    if (btnSendTelegram) {
+      btnSendTelegram.disabled = true;
+      btnSendTelegram.textContent = "⏳ Đang gửi về TAIO.CLUB…";
+    }
 
     try {
       const payload = {
         job_id: state.currentJobId,
-        chat_id: chatId,
+        note: note,
       };
 
       const res = await fetch("/api/send-telegram", {
@@ -922,26 +914,32 @@
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Lỗi khi gửi video");
+      if (!res.ok) {
+        if (data.code === "FILE_TOO_LARGE") {
+          if (confirm(data.error + ". Bạn có muốn xuất lại ở mức Nhẹ không?")) {
+            startRender("light");
+          }
+          if (btnSendTelegram) {
+            btnSendTelegram.disabled = false;
+            btnSendTelegram.textContent = "✈️ Gửi về TAIO.CLUB";
+          }
+          return;
+        }
+        throw new Error(data.error || "Lỗi khi gửi video");
+      }
 
-      showTeleStatus(data.message || "Đã gửi video thành công vào Telegram!", true);
-      btnSendTelegram.textContent = "✓ Đã gửi Telegram!";
-      setTimeout(() => {
-        telegramModal.hidden = true;
-        btnSendTelegram.textContent = "✈️ Gửi qua Telegram";
-      }, 2000);
+      alert(data.message || "Đã gửi video thành công về TAIO.CLUB!");
+      if (btnSendTelegram) {
+        btnSendTelegram.textContent = "✓ Đã gửi về TAIO.CLUB";
+        btnSendTelegram.disabled = true;
+      }
     } catch (err) {
-      showTeleStatus(err.message, false);
-    } finally {
-      btnConfirmSendTelegram.disabled = false;
-      btnConfirmSendTelegram.textContent = "🚀 Gửi video vào Telegram ngay";
+      alert("Lỗi: " + err.message);
+      if (btnSendTelegram) {
+        btnSendTelegram.disabled = false;
+        btnSendTelegram.textContent = "✈️ Gửi về TAIO.CLUB";
+      }
     }
-  }
-
-  function showTeleStatus(msg, isSuccess) {
-    teleStatusMsg.textContent = msg;
-    teleStatusMsg.className = "tele-status-msg " + (isSuccess ? "success" : "error");
-    teleStatusMsg.hidden = false;
   }
 
   // ==================== GỢI Ý AI ====================
