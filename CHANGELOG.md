@@ -4,6 +4,31 @@ Tất cả các thay đổi đáng chú ý của dự án **TAIO Cover Studio** 
 
 ---
 
+## [1.6.0] - 2026-11-10 - Sửa Giao Diện Chỉnh Sửa Trên Điện Thoại (FIX v1.6.0)
+- **FIX-1: Bỏ hàng nút trùng ở mép trên khung preview:**
+  - Loại bỏ các nút trùng lặp (↶ ↷ ≡ Lớp) ở thanh trên preview (`.preview-top-pills`).
+  - Giữ lại nhãn tỷ lệ/độ phân giải bên trái và nút "📁 Đổi video" bên phải. Hoàn tác/làm lại/lớp tập trung tại cột icon quick-rail bên phải.
+- **FIX-2: Tay cầm gọn gàng 12px & Thanh công cụ nổi an toàn trong preview:**
+  - Tay cầm 4 góc chuyển sang chấm tròn 12px viền `#4F8BFF`, tay cầm xoay 14px `#FFD34D`.
+  - Vùng chạm cảm ứng duy trì chuẩn Fitts's Law 44×44px qua pseudo-element trong suốt (`::before`).
+  - Thanh công cụ nổi luôn nằm trong khung preview (cách mép 8px), tự động lật xuống dưới nếu phía trên không đủ chỗ, hỗ trợ cuộn ngang và không đè lên cột icon bên phải.
+- **FIX-3: Tab Cap gọn gàng với hàng nút riêng:**
+  - Bỏ nút "+ Chữ" đè bên trong ô nhập caption.
+  - Ô caption mở rộng 100% chiều ngang dạng nhiều dòng.
+  - Hàng 2 nút tiện ích **[Aa Kiểu chữ]** và **[✨ AI]** bố trí ngay dưới ô nhập, tiếp theo là dòng xem trước màu nhấn.
+- **FIX-4: Nền Logo tách biệt trạng thái Trong mờ và Màu đặc:**
+  - Segmented control dạng icon trực quan: `⊘` (Không), `◐` (Trong mờ), `⬤` (Màu đặc), kèm thông báo tên chế độ 1.5s khi bấm.
+  - Lưu trạng thái riêng cho từng chế độ: Trong mờ mặc định đen 50% (alpha 128 ± 3), viền trắng 25%, không dùng màu thương hiệu; Màu đặc lưu màu sắc và độ đậm riêng.
+  - Logo mới mặc định ở chế độ Trong mờ.
+- **FIX-5: Cỡ chữ chữ tự do thống nhất theo chuẩn 1080px:**
+  - Bảng "Aa Tuỳ chỉnh chữ" hỗ trợ tham số `target`: `"caption"` hoặc `objectId`, hiển thị tiêu đề ngữ cảnh rõ ràng.
+  - Thống nhất đơn vị `size_px` trên nền khung chuẩn 1080px trên toàn bộ hệ thống (kéo góc cũng cập nhật `size_px`).
+  - Chữ tự do mới có cỡ mặc định 48px ở chế độ Cố định.
+- **FIX-6: Hỗ trợ xuống dòng thủ công bằng Enter và công tắc Tự ngắt dòng:**
+  - Ô caption và ô sửa chữ tự do chuyển sang `<textarea>` tự giãn từ 2 đến 5 dòng, phím Enter tạo dòng mới `\n`.
+  - Giữ nguyên ký tự `\n` xuyên suốt backend và frontend, hỗ trợ cú pháp nhấn `**...**` và `==...==` qua nhiều dòng.
+  - Công tắc "Tự xuống dòng khi chạm khung" trong bảng Aa (mặc định bật khi chưa có Enter, tự tắt khi người dùng nhấn Enter lần đầu).
+
 ## [1.5.0] - 2026-11-09 - Chọn Mức Nén Khi Xuất · Bố Cục Tab Kiểu CapCut · Preview Mượt · Nền Logo Solid · Lưu / Chia Sẻ iPhone · Gửi Telegram 1 Chạm (FEATURE v1.5)
 - **3 Mức nén khi xuất & Popup chọn mức (Hick's Law):**
   - Bổ sung 3 profile nén thông minh: **Nhẹ** (CRF 26, tối đa $1.0\times$ bitrate gốc), **Cân bằng** (CRF 23, tối đa $1.5\times$ bitrate gốc - mặc định), **Chất lượng cao** (CRF 20, tối đa $3.0\times$ bitrate gốc).
