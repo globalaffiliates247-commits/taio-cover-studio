@@ -217,8 +217,14 @@
   }
 
   function onOpenTextOptions() {
-    const btnAa = document.getElementById("btnOpenTextStyleModal");
-    if (btnAa) btnAa.click();
+    const store = window.TAIOSceneStore;
+    const selId = store ? store.selectedId : null;
+    if (window.TAIOTextPanel && window.TAIOTextPanel.openModal) {
+      window.TAIOTextPanel.openModal(selId || "caption");
+    } else {
+      const btnAa = document.getElementById("btnOpenTextStyleModal");
+      if (btnAa) btnAa.click();
+    }
   }
 
   function onChangeLogoImage() {

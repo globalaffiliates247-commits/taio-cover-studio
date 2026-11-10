@@ -482,7 +482,13 @@
         const newScreenW = distFromCenter * 2 * Math.cos(Math.PI / 4);
         const candW = newScreenW / stageW;
         if (obj.type === "text" && obj.style) {
-          obj.style.size = Math.max(0.015, Math.min(0.12, candW / 3.5));
+          const newSizePx = Math.max(14, Math.min(160, Math.round((candW / 3.5) * 1080)));
+          obj.style.size_px = newSizePx;
+          obj.style.size = newSizePx;
+          obj.style.size_mode = "fixed";
+          if (window.TAIOTextPanel && window.TAIOTextPanel.updateSize) {
+            window.TAIOTextPanel.updateSize(newSizePx);
+          }
         } else {
           obj.w = Math.max(0.04, Math.min(0.9, candW));
         }
@@ -602,6 +608,16 @@
           window.TAIOSceneStore.notifyChange(300, false, { type: "object_transform" });
           if (mode === "band-height" && window.TAIOLayerControls) {
             window.TAIOLayerControls.notifyChange();
+          }
+          if (mode === "resize") {
+            const store = window.TAIOSceneStore;
+            const views = window.TAIOEditorViews;
+            if (store && views && store.selectedId && store.selectedId !== "logo") {
+              const obj = (store.objects || []).find((o) => o.id === store.selectedId);
+              if (obj && obj.type === "text" && views.loadObjectImage) {
+                views.loadObjectImage(obj);
+              }
+            }
           }
         }
       }

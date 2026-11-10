@@ -152,7 +152,16 @@ def render_text_to_image(
     """
     family = style.get("font") or "BeVietnamPro"
     weight = style.get("weight") or "Bold"
-    font_size = max(int(round(float(style.get("size", 0.04)) * max_w)), 12)
+    # Cỡ chữ chuẩn hoá theo khung rộng 1080px (FIX v1.6.0 FIX-5)
+    raw_size = style.get("size_px")
+    if raw_size is None:
+        raw_size = style.get("size")
+        if raw_size is not None and float(raw_size) < 1.0:
+            raw_size = float(raw_size) * 1080.0
+    if raw_size is None:
+        raw_size = 48.0
+
+    font_size = max(int(round(float(raw_size) * (max_w / 1080.0))), 12)
     color_hex = style.get("color") or "#FFFFFF"
     accent_hex = style.get("accent") or accent_color
     align = style.get("align", "center")  # 'left' | 'center' | 'right'

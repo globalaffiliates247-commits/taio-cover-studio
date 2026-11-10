@@ -139,12 +139,32 @@
     renderPresetsList();
   }
 
+  let currentTarget = "caption";
+
   function notifyChange() {
     checkContrast();
     if (changeDebounceTimer) clearTimeout(changeDebounceTimer);
     changeDebounceTimer = setTimeout(() => {
-      if (typeof onStyleChangedCallback === "function") {
-        onStyleChangedCallback({ ...currentStyle });
+      if (currentTarget === "caption") {
+        if (typeof onStyleChangedCallback === "function") {
+          onStyleChangedCallback({ ...currentStyle });
+        }
+      } else {
+        const store = window.TAIOSceneStore;
+        const views = window.TAIOEditorViews;
+        if (store) {
+          const obj = (store.objects || []).find((o) => o.id === currentTarget);
+          if (obj && obj.type === "text") {
+            if (!obj.style) obj.style = {};
+            Object.assign(obj.style, currentStyle);
+            obj.style.size_px = currentStyle.size || 48;
+            obj.style.size = currentStyle.size || 48;
+            if (views && views.loadObjectImage) {
+              views.loadObjectImage(obj);
+            }
+            store.notifyChange();
+          }
+        }
       }
     }, 300);
   }
@@ -257,6 +277,53 @@
     checkContrast();
   }
 
+  function openModal(target = "caption") {
+    currentTarget = target || "caption";
+    const titleEl = document.getElementById("textStyleModalTitle");
+    const store = window.TAIOSceneStore;
+
+    if (currentTarget === "caption") {
+      if (titleEl) titleEl.textContent = "Đang chỉnh: Caption";
+    } else {
+      const obj = store ? (store.objects || []).find((o) => o.id === currentTarget) : null;
+      if (obj && obj.type === "text") {
+        const previewText = obj.text ? (obj.text.length > 15 ? obj.text.slice(0, 15) + "…" : obj.text) : "Nhập chữ…";
+        if (titleEl) titleEl.textContent = `Đang chỉnh: Chữ tự do · '${previewText}'`;
+        if (obj.style) {
+          const st = { ...obj.style };
+          if (st.size_px) {
+            st.size = st.size_px;
+          } else if (st.size) {
+            st.size = st.size < 1 ? Math.round(st.size * 1080) : Math.round(st.size);
+            st.size_px = st.size;
+          } else {
+            st.size = 48;
+            st.size_px = 48;
+          }
+          st.size_mode = st.size_mode || "fixed";
+          applyStyleObject(st);
+        }
+      }
+    }
+    syncDOMValues();
+    if (modalEl) modalEl.hidden = false;
+  }
+
+  function updateSize(newSizePx) {
+    currentStyle.size = newSizePx;
+    currentStyle.size_px = newSizePx;
+    currentStyle.size_mode = "fixed";
+    const sliderSize = document.getElementById("sliderFontSize");
+    const valSize = document.getElementById("valFontSize");
+    const chkSizeAuto = document.getElementById("chkSizeAuto");
+    if (sliderSize) {
+      sliderSize.value = newSizePx;
+      sliderSize.disabled = false;
+    }
+    if (valSize) valSize.textContent = `${newSizePx}px`;
+    if (chkSizeAuto) chkSizeAuto.checked = false;
+  }
+
   /**
    * Khởi tạo các sự kiện trong Text Panel
    */
@@ -268,8 +335,7 @@
 
     if (btnOpenEl) {
       btnOpenEl.addEventListener("click", () => {
-        if (modalEl) modalEl.hidden = false;
-        syncDOMValues();
+        openModal("caption");
       });
     }
     if (btnCloseEl) {
@@ -495,6 +561,14 @@
 
     setStyle(style) {
       applyStyleObject(style);
+    },
+
+    openModal(target) {
+      openModal(target);
+    },
+
+    updateSize(newSizePx) {
+      updateSize(newSizePx);
     },
   };
 

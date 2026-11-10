@@ -28,9 +28,16 @@ def normalize_text_style(raw_style: Optional[Dict[str, Any]] = None) -> Dict[str
     # 2. Cỡ chữ & chế độ cỡ (auto / fixed)
     if "size_mode" in raw_style:
         clean["size_mode"] = "fixed" if str(raw_style["size_mode"]).lower() == "fixed" else "auto"
-    if "size" in raw_style:
+    raw_s = raw_style.get("size_px")
+    if raw_s is None:
+        raw_s = raw_style.get("size")
+    if raw_s is not None:
         try:
-            clean["size"] = max(10, min(160, int(raw_style["size"])))
+            val_s = float(raw_s)
+            if val_s < 1.0:
+                val_s = val_s * 1080.0
+            clean["size_px"] = max(10, min(160, int(round(val_s))))
+            clean["size"] = clean["size_px"]
         except (ValueError, TypeError):
             pass
 
@@ -154,11 +161,17 @@ def apply_text_style_to_layer(layer: Dict[str, Any]) -> Dict[str, Any]:
     if "font_family" in norm_style:
         layer["font_family"] = norm_style["font_family"]
 
-    # Cỡ chữ
+    # Cỡ chữ (FIX v1.6.0 FIX-5)
     if "size_mode" in norm_style:
         layer["size_mode"] = norm_style["size_mode"]
-    if "size" in norm_style:
-        layer["fixed_size"] = norm_style["size"]
+    if "size_px" in norm_style:
+        layer["fixed_size"] = norm_style["size_px"]
+        layer["size_px"] = norm_style["size_px"]
+    elif "size" in norm_style:
+        s = norm_style["size"]
+        sz = int(round(float(s) * 1080)) if float(s) < 1.0 else int(s)
+        layer["fixed_size"] = sz
+        layer["size_px"] = sz
 
     # In hoa / Kiểu chữ hoa
     if "case_mode" in norm_style:

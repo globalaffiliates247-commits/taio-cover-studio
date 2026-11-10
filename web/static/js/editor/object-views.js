@@ -275,7 +275,8 @@
           imgEl.src = cached.url;
         }
         const aspect = cached.aspect || 0.3;
-        const objW = (obj.w || (obj.style && obj.style.size ? obj.style.size * 3.5 : 0.28)) * stageW;
+        const sizeRatio = (obj.style && (obj.style.size_px ? (obj.style.size_px / 1080) : (obj.style.size < 1 ? obj.style.size : obj.style.size / 1080))) || 0.045;
+        const objW = (obj.w || sizeRatio * 3.5) * stageW;
         const objH = objW * aspect;
         box.style.width = `${Math.max(24, objW)}px`;
         box.style.height = `${Math.max(24, objH)}px`;
