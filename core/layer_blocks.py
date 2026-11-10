@@ -94,20 +94,48 @@ def render_logo_block(
             pill_mode = mode
             has_pill = mode != "none"
         else:
-            has_pill = bool(pill_cfg.get("enabled", False) if pill_override is None else pill_override)
+            has_pill = bool(pill_cfg.get("enabled", True) if pill_override is None else pill_override)
             pill_mode = "translucent" if has_pill else "none"
-        pill_color = pill_cfg.get("color")
-        raw_op = pill_cfg.get("opacity")
-        if raw_op is not None:
-            pill_opacity = float(raw_op) / 100.0 if float(raw_op) > 1.0 else float(raw_op)
-        else:
-            pill_opacity = 1.0 if pill_mode == "solid" else 0.50
 
-    if not pill_color:
-        if pill_mode == "solid":
-            pill_color = brand_colors.get("primary", "#1A56DB")
+        translucent_cfg = pill_cfg.get("translucent", {})
+        solid_cfg = pill_cfg.get("solid", {})
+
+        if pill_mode == "translucent":
+            raw_op = translucent_cfg.get("opacity") if isinstance(translucent_cfg, dict) else None
+            if raw_op is None and pill_cfg.get("mode") == "translucent":
+                raw_op = pill_cfg.get("opacity")
+            pill_opacity = (float(raw_op) / 100.0 if float(raw_op) > 1.0 else float(raw_op)) if raw_op is not None else 0.50
+            pill_color = "#000000"
+            default_stroke_col = "#FFFFFF"
+            default_stroke_alpha = int(round(0.25 * 255))
+        elif pill_mode == "solid":
+            raw_op = solid_cfg.get("opacity") if isinstance(solid_cfg, dict) else None
+            if raw_op is None and pill_cfg.get("mode") == "solid":
+                raw_op = pill_cfg.get("opacity")
+            pill_opacity = (float(raw_op) / 100.0 if float(raw_op) > 1.0 else float(raw_op)) if raw_op is not None else 1.0
+            pill_color = solid_cfg.get("color") if isinstance(solid_cfg, dict) else None
+            if not pill_color and pill_cfg.get("mode") == "solid":
+                pill_color = pill_cfg.get("color")
+            if not pill_color:
+                pill_color = brand_colors.get("primary", "#1A56DB")
+            default_stroke_col = brand_colors.get("pill_stroke", "#334155")
+            default_stroke_alpha = int(round(max(0.0, min(1.0, pill_opacity)) * 255))
         else:
-            pill_color = brand_colors.get("pill", "#1E293B")
+            has_pill = False
+    elif isinstance(pill_cfg, bool):
+        has_pill = pill_cfg
+        pill_mode = "translucent" if has_pill else "none"
+        pill_opacity = 0.50
+        pill_color = "#000000"
+        default_stroke_col = "#FFFFFF"
+        default_stroke_alpha = int(round(0.25 * 255))
+    else:
+        has_pill = True
+        pill_mode = "translucent"
+        pill_opacity = 0.50
+        pill_color = "#000000"
+        default_stroke_col = "#FFFFFF"
+        default_stroke_alpha = int(round(0.25 * 255))
 
     pad = int(round(lh * 0.22)) if has_pill else 0
 
@@ -125,9 +153,16 @@ def render_logo_block(
 
         stroke_cfg = pill_cfg.get("stroke") if isinstance(pill_cfg, dict) else None
         has_stroke = True
-        stroke_col_hex = brand_colors.get("pill_stroke", "#334155")
+        stroke_col_hex = default_stroke_col
+        stroke_alpha = default_stroke_alpha
         if isinstance(stroke_cfg, dict):
             has_stroke = bool(stroke_cfg.get("enabled", True))
+            if "color" in stroke_cfg:
+                stroke_col_hex = stroke_cfg["color"]
+            if "alpha" in stroke_cfg:
+                stroke_alpha = int(round(float(stroke_cfg["alpha"])))
+        elif isinstance(stroke_cfg, bool):
+            has_stroke = stroke_cfg
             stroke_col_hex = stroke_cfg.get("color", stroke_col_hex)
         elif isinstance(stroke_cfg, bool):
             has_stroke = stroke_cfg

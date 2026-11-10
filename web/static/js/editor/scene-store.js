@@ -23,7 +23,7 @@
   const undoStack = [];
   const redoStack = [];
 
-  // Trạng thái tương thích ngược cho logo sticker (v1.2 & v1.3 & v1.5)
+  // Trạng thái tương thích ngược cho logo sticker (v1.2 & v1.3 & v1.5 & v1.6 FIX-4)
   const stickerState = {
     x: 0.82,
     y: 0.06,
@@ -33,8 +33,8 @@
     visible: true,
     pill: true,
     pillMode: "translucent", // "none" | "translucent" | "solid"
-    pillColor: "#1A56DB",
-    pillOpacity: 1.0,
+    translucent: { opacity: 0.50 },
+    solid: { color: "#1A56DB", opacity: 1.0 },
     aspectRatio: 0.25,
   };
 
@@ -55,8 +55,19 @@
     const def = resolveTemplateDefault(template);
 
     const pMode = pillEnabled ? (stickerState.pillMode || "translucent") : "none";
-    const pColor = stickerState.pillColor || (brandData && brandData.colors && brandData.colors.primary) || "#1A56DB";
-    const pOpacity = stickerState.pillOpacity !== undefined ? stickerState.pillOpacity : (pMode === "solid" ? 1.0 : 0.5);
+    const solidColor = (stickerState.solid && stickerState.solid.color) || (brandData && brandData.colors && brandData.colors.primary) || "#1A56DB";
+    const solidOpacity = (stickerState.solid && stickerState.solid.opacity !== undefined) ? stickerState.solid.opacity : 1.0;
+    const transOpacity = (stickerState.translucent && stickerState.translucent.opacity !== undefined) ? stickerState.translucent.opacity : 0.50;
+
+    let pColor = "#000000";
+    let pOpacity = 0.50;
+    if (pMode === "solid") {
+      pColor = solidColor;
+      pOpacity = solidOpacity;
+    } else if (pMode === "translucent") {
+      pColor = "#000000";
+      pOpacity = transOpacity;
+    }
 
     return {
       id: "logo",
@@ -70,6 +81,8 @@
         mode: pMode,
         color: pColor,
         opacity: pOpacity,
+        translucent: { opacity: transOpacity },
+        solid: { color: solidColor, opacity: solidOpacity },
         stroke: { enabled: true },
         radius: "full",
       },

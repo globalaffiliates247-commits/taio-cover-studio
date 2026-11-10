@@ -280,15 +280,18 @@ def render_group_object(
     children = obj.get("children", [])
     rendered_children = []
 
-    # Cấu hình Pill (FEATURE v1.5 P5: none | translucent | solid)
+    # Cấu hình Pill (FIX v1.6.0 FIX-4: none | translucent | solid)
     pill_cfg = obj.get("pill", {})
     has_pill = False
-    pill_mode = "none"
+    pill_mode = "translucent"  # Logo mới mặc định ở chế độ Trong mờ
     pill_color = None
-    pill_opacity = 1.0
+    pill_opacity = 0.50
 
     bkit = load_brand_kit()
     brand_colors = bkit.get("colors", {})
+
+    default_stroke_col = "#FFFFFF"
+    default_stroke_alpha = int(round(0.25 * 255))
 
     if isinstance(pill_cfg, dict):
         mode = pill_cfg.get("mode")
@@ -296,24 +299,57 @@ def render_group_object(
             pill_mode = mode
             has_pill = mode != "none"
         else:
-            has_pill = bool(pill_cfg.get("enabled", False))
+            has_pill = bool(pill_cfg.get("enabled", True))
             pill_mode = "translucent" if has_pill else "none"
-        pill_color = pill_cfg.get("color")
-        raw_op = pill_cfg.get("opacity")
-        if raw_op is not None:
-            pill_opacity = float(raw_op) / 100.0 if float(raw_op) > 1.0 else float(raw_op)
+
+        translucent_cfg = pill_cfg.get("translucent", {})
+        solid_cfg = pill_cfg.get("solid", {})
+
+        if pill_mode == "translucent":
+            # Mặc định của Trong mờ giống bản <= v1.4: nền #000000 độ đậm 50%, viền #FFFFFF độ đậm 25%.
+            # Chế độ này KHÔNG dùng màu thương hiệu.
+            raw_op = translucent_cfg.get("opacity") if isinstance(translucent_cfg, dict) else None
+            if raw_op is None and pill_cfg.get("mode") == "translucent":
+                raw_op = pill_cfg.get("opacity")
+            if raw_op is not None:
+                pill_opacity = float(raw_op) / 100.0 if float(raw_op) > 1.0 else float(raw_op)
+            else:
+                pill_opacity = 0.50
+            pill_color = "#000000"
+            default_stroke_col = "#FFFFFF"
+            default_stroke_alpha = int(round(0.25 * 255))
+        elif pill_mode == "solid":
+            raw_op = solid_cfg.get("opacity") if isinstance(solid_cfg, dict) else None
+            if raw_op is None and pill_cfg.get("mode") == "solid":
+                raw_op = pill_cfg.get("opacity")
+            if raw_op is not None:
+                pill_opacity = float(raw_op) / 100.0 if float(raw_op) > 1.0 else float(raw_op)
+            else:
+                pill_opacity = 1.0
+
+            pill_color = solid_cfg.get("color") if isinstance(solid_cfg, dict) else None
+            if not pill_color and pill_cfg.get("mode") == "solid":
+                pill_color = pill_cfg.get("color")
+            if not pill_color:
+                pill_color = brand_colors.get("primary", "#1A56DB")
+            default_stroke_col = brand_colors.get("pill_stroke", "#334155")
+            default_stroke_alpha = int(round(max(0.0, min(1.0, pill_opacity)) * 255))
         else:
-            pill_opacity = 1.0 if pill_mode == "solid" else 0.50
+            has_pill = False
     elif isinstance(pill_cfg, bool):
         has_pill = pill_cfg
         pill_mode = "translucent" if has_pill else "none"
         pill_opacity = 0.50
-
-    if not pill_color:
-        if pill_mode == "solid":
-            pill_color = brand_colors.get("primary", "#1A56DB")
-        else:
-            pill_color = brand_colors.get("pill", "#1E293B")
+        pill_color = "#000000"
+        default_stroke_col = "#FFFFFF"
+        default_stroke_alpha = int(round(0.25 * 255))
+    else:
+        has_pill = True
+        pill_mode = "translucent"
+        pill_opacity = 0.50
+        pill_color = "#000000"
+        default_stroke_col = "#FFFFFF"
+        default_stroke_alpha = int(round(0.25 * 255))
 
     for child in children:
         if not child.get("visible", True):
@@ -376,15 +412,18 @@ def render_group_object(
 
         stroke_cfg = pill_cfg.get("stroke") if isinstance(pill_cfg, dict) else None
         has_stroke = True
-        stroke_col_hex = brand_colors.get("pill_stroke", "#334155")
+        stroke_col_hex = default_stroke_col
+        stroke_alpha = default_stroke_alpha
         if isinstance(stroke_cfg, dict):
             has_stroke = bool(stroke_cfg.get("enabled", True))
-            stroke_col_hex = stroke_cfg.get("color", stroke_col_hex)
+            if "color" in stroke_cfg:
+                stroke_col_hex = stroke_cfg["color"]
+            if "alpha" in stroke_cfg:
+                stroke_alpha = int(round(float(stroke_cfg["alpha"])))
         elif isinstance(stroke_cfg, bool):
             has_stroke = stroke_cfg
 
         c_stroke_raw = parse_hex_color(stroke_col_hex)
-        stroke_alpha = int(round(min(alpha_val, 180))) if pill_mode == "translucent" else alpha_val
         c_stroke = (c_stroke_raw[0], c_stroke_raw[1], c_stroke_raw[2], stroke_alpha)
 
         stroke_w = max(int(round(0.003 * out_w)), 1) if has_stroke else 0

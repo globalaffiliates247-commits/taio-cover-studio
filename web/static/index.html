@@ -186,19 +186,20 @@
           <button type="button" class="btn-micro btn-micro-danger" id="btnResetDefaultLogo" hidden>Dùng lại logo gốc</button>
         </div>
 
-        <!-- Nền Logo: Không · Trong mờ · Màu đặc (FEATURE v1.5 P5) -->
+        <!-- Nền Logo: Không · Trong mờ · Màu đặc (FIX v1.6.0 FIX-4) -->
         <div class="logo-pill-ctrl-row">
           <span class="panel-field-label">Nền logo:</span>
           <div class="segmented-control pill-mode-segments" id="logoPillModeSegments">
-            <button type="button" class="btn-segment" data-mode="none">Không</button>
-            <button type="button" class="btn-segment active" data-mode="translucent">Trong mờ</button>
-            <button type="button" class="btn-segment" data-mode="solid">Màu đặc</button>
+            <button type="button" class="btn-segment" data-mode="none" title="Không" aria-label="Không">⊘</button>
+            <button type="button" class="btn-segment active" data-mode="translucent" title="Trong mờ" aria-label="Trong mờ">◐</button>
+            <button type="button" class="btn-segment" data-mode="solid" title="Màu đặc" aria-label="Màu đặc">⬤</button>
           </div>
+          <span class="pill-mode-toast" id="pillModeToast" style="display:none; margin-left:6px; font-size:0.75rem; color:#94A3B8; transition:opacity 0.3s ease;">Trong mờ</span>
         </div>
 
         <!-- Bảng màu và độ đậm khi chọn nền logo -->
-        <div class="logo-pill-color-panel" id="logoPillColorPanel" hidden>
-          <div class="logo-pill-palette" id="logoPillPalette">
+        <div class="logo-pill-color-panel" id="logoPillColorPanel">
+          <div class="logo-pill-palette" id="logoPillPalette" style="display:none;">
             <button type="button" class="color-swatch-btn active" data-color="#1A56DB" title="Mặc định thương hiệu" style="background:#1A56DB;"></button>
             <button type="button" class="color-swatch-btn" data-color="#E53935" title="Đỏ" style="background:#E53935;"></button>
             <button type="button" class="color-swatch-btn" data-color="#FB8C00" title="Cam" style="background:#FB8C00;"></button>
@@ -213,10 +214,10 @@
               <input type="color" id="logoPillColorCustom" value="#1A56DB" style="opacity:0; position:absolute; width:100%; height:100%; cursor:pointer;">
             </label>
           </div>
-          <div class="logo-pill-opacity-row">
+          <div class="logo-pill-opacity-row" id="logoPillOpacityRow" style="display:flex;">
             <span class="num-label">Độ đậm:</span>
-            <input type="range" id="rngLogoPillOpacity" min="10" max="100" value="100" class="compact-slider" style="flex:1;">
-            <span id="lblLogoPillOpacity" class="val-badge">100%</span>
+            <input type="range" id="rngLogoPillOpacity" min="0" max="80" value="50" class="compact-slider" style="flex:1;">
+            <span id="lblLogoPillOpacity" class="val-badge">50%</span>
           </div>
         </div>
 

@@ -50,8 +50,18 @@
     if (!store || !store.currentTemplate) return;
 
     const pMode = store.stickerState.pillMode || (store.stickerState.pill ? "translucent" : "none");
-    const pColor = store.stickerState.pillColor || "#1A56DB";
-    const pOpacity = store.stickerState.pillOpacity !== undefined ? store.stickerState.pillOpacity : (pMode === "solid" ? 1.0 : 0.5);
+    if (!store.stickerState.translucent) store.stickerState.translucent = { opacity: 0.50 };
+    if (!store.stickerState.solid) store.stickerState.solid = { color: "#1A56DB", opacity: 1.0 };
+
+    let pColor = "#000000";
+    let pOpacity = 0.50;
+    if (pMode === "translucent") {
+      pColor = "#000000";
+      pOpacity = store.stickerState.translucent.opacity !== undefined ? store.stickerState.translucent.opacity : 0.50;
+    } else if (pMode === "solid") {
+      pColor = store.stickerState.solid.color || "#1A56DB";
+      pOpacity = store.stickerState.solid.opacity !== undefined ? store.stickerState.solid.opacity : 1.0;
+    }
 
     const logoGroup = (store.objects || []).find((o) => o.id === "logo" && o.type === "group");
     if (logoGroup && logoGroup.customized) {
@@ -68,6 +78,8 @@
                 mode: pMode,
                 color: pColor,
                 opacity: pOpacity,
+                translucent: { opacity: store.stickerState.translucent.opacity },
+                solid: { color: store.stickerState.solid.color, opacity: store.stickerState.solid.opacity },
               },
             },
             logo_id: store.currentLogoId || null,
@@ -418,35 +430,98 @@
     const pillColorCustom = document.getElementById("logoPillColorCustom");
     const rngPillOpacity = document.getElementById("rngLogoPillOpacity");
     const lblPillOpacity = document.getElementById("lblLogoPillOpacity");
+    const logoPillOpacityRow = document.getElementById("logoPillOpacityRow");
+
+    let pillToastTimer = null;
+    function showPillModeToast(mode) {
+      const toastEl = document.getElementById("pillModeToast");
+      if (!toastEl) return;
+      const labels = { none: "Không nền", translucent: "Trong mờ", solid: "Màu đặc" };
+      toastEl.textContent = labels[mode] || mode;
+      toastEl.style.display = "inline-block";
+      toastEl.style.opacity = "1";
+      if (pillToastTimer) clearTimeout(pillToastTimer);
+      pillToastTimer = setTimeout(() => {
+        toastEl.style.opacity = "0";
+        setTimeout(() => { toastEl.style.display = "none"; }, 300);
+      }, 1500);
+    }
 
     function syncLogoGroupPill() {
       const lg = (store.objects || []).find((o) => o.id === "logo" && o.type === "group");
+      if (!store.stickerState.translucent) store.stickerState.translucent = { opacity: 0.50 };
+      if (!store.stickerState.solid) store.stickerState.solid = { color: "#1A56DB", opacity: 1.0 };
+      const mode = store.stickerState.pillMode || "translucent";
+
       if (lg) {
         if (!lg.pill) lg.pill = {};
-        lg.pill.enabled = store.stickerState.pill && store.stickerState.pillMode !== "none";
-        lg.pill.mode = store.stickerState.pillMode;
-        lg.pill.color = store.stickerState.pillColor;
-        lg.pill.opacity = store.stickerState.pillOpacity;
+        lg.pill.enabled = store.stickerState.pill && mode !== "none";
+        lg.pill.mode = mode;
+        lg.pill.translucent = { opacity: store.stickerState.translucent.opacity };
+        lg.pill.solid = { color: store.stickerState.solid.color, opacity: store.stickerState.solid.opacity };
+        if (mode === "translucent") {
+          lg.pill.color = "#000000";
+          lg.pill.opacity = store.stickerState.translucent.opacity;
+        } else if (mode === "solid") {
+          lg.pill.color = store.stickerState.solid.color;
+          lg.pill.opacity = store.stickerState.solid.opacity;
+        } else {
+          lg.pill.opacity = 0;
+        }
         lg.customized = true;
+      }
+    }
+
+    function updatePillControlsUI(mode) {
+      if (!store.stickerState.translucent) store.stickerState.translucent = { opacity: 0.50 };
+      if (!store.stickerState.solid) store.stickerState.solid = { color: "#1A56DB", opacity: 1.0 };
+
+      if (pillSegments) {
+        pillSegments.querySelectorAll(".btn-segment").forEach((b) => {
+          b.classList.toggle("active", b.dataset.mode === mode);
+        });
+      }
+
+      if (mode === "none") {
+        if (pillPalette) pillPalette.style.display = "none";
+        if (logoPillOpacityRow) logoPillOpacityRow.style.display = "none";
+      } else if (mode === "translucent") {
+        if (pillPalette) pillPalette.style.display = "none";
+        if (logoPillOpacityRow) logoPillOpacityRow.style.display = "flex";
+        if (rngPillOpacity) {
+          rngPillOpacity.min = "0";
+          rngPillOpacity.max = "80";
+          const opVal = Math.round((store.stickerState.translucent.opacity !== undefined ? store.stickerState.translucent.opacity : 0.50) * 100);
+          rngPillOpacity.value = String(opVal);
+          if (lblPillOpacity) lblPillOpacity.textContent = `${opVal}%`;
+        }
+      } else if (mode === "solid") {
+        if (pillPalette) pillPalette.style.display = "flex";
+        if (logoPillOpacityRow) logoPillOpacityRow.style.display = "flex";
+        if (rngPillOpacity) {
+          rngPillOpacity.min = "0";
+          rngPillOpacity.max = "100";
+          const opVal = Math.round((store.stickerState.solid.opacity !== undefined ? store.stickerState.solid.opacity : 1.0) * 100);
+          rngPillOpacity.value = String(opVal);
+          if (lblPillOpacity) lblPillOpacity.textContent = `${opVal}%`;
+        }
+        if (pillPalette) {
+          const activeCol = (store.stickerState.solid.color || "#1A56DB").toUpperCase();
+          pillPalette.querySelectorAll(".color-swatch-btn").forEach((sw) => {
+            sw.classList.toggle("active", (sw.dataset.color || "").toUpperCase() === activeCol);
+          });
+        }
       }
     }
 
     if (pillSegments) {
       pillSegments.querySelectorAll(".btn-segment").forEach((btn) => {
         btn.addEventListener("click", () => {
-          pillSegments.querySelectorAll(".btn-segment").forEach((b) => b.classList.remove("active"));
-          btn.classList.add("active");
           const mode = btn.dataset.mode || "translucent";
           store.stickerState.pillMode = mode;
           store.stickerState.pill = mode !== "none";
-          if (pillColorPanel) {
-            pillColorPanel.hidden = (mode !== "solid");
-          }
-          if (mode === "solid" && (store.stickerState.pillOpacity === undefined || store.stickerState.pillOpacity < 0.8)) {
-            store.stickerState.pillOpacity = 1.0;
-            if (rngPillOpacity) rngPillOpacity.value = "100";
-            if (lblPillOpacity) lblPillOpacity.textContent = "100%";
-          }
+          showPillModeToast(mode);
+          updatePillControlsUI(mode);
           syncLogoGroupPill();
           loadStickerImage();
           store.notifyChange();
@@ -460,7 +535,8 @@
           pillPalette.querySelectorAll(".color-swatch-btn").forEach((b) => b.classList.remove("active"));
           btn.classList.add("active");
           const color = btn.dataset.color || "#1A56DB";
-          store.stickerState.pillColor = color;
+          if (!store.stickerState.solid) store.stickerState.solid = { color, opacity: 1.0 };
+          store.stickerState.solid.color = color;
           syncLogoGroupPill();
           loadStickerImage();
           store.notifyChange();
@@ -470,7 +546,8 @@
 
     if (pillColorCustom) {
       pillColorCustom.addEventListener("input", (e) => {
-        store.stickerState.pillColor = e.target.value;
+        if (!store.stickerState.solid) store.stickerState.solid = { color: e.target.value, opacity: 1.0 };
+        store.stickerState.solid.color = e.target.value;
         syncLogoGroupPill();
         loadStickerImage();
         store.notifyChange();
@@ -479,9 +556,16 @@
 
     if (rngPillOpacity) {
       rngPillOpacity.addEventListener("input", () => {
-        const val = parseInt(rngPillOpacity.value, 10) || 100;
-        store.stickerState.pillOpacity = val / 100;
+        const val = parseInt(rngPillOpacity.value, 10) || 0;
+        const op = val / 100.0;
         if (lblPillOpacity) lblPillOpacity.textContent = `${val}%`;
+        if (store.stickerState.pillMode === "translucent") {
+          if (!store.stickerState.translucent) store.stickerState.translucent = {};
+          store.stickerState.translucent.opacity = op;
+        } else if (store.stickerState.pillMode === "solid") {
+          if (!store.stickerState.solid) store.stickerState.solid = {};
+          store.stickerState.solid.opacity = op;
+        }
         syncLogoGroupPill();
         loadStickerImage();
         store.notifyChange();
