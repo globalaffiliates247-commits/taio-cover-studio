@@ -286,9 +286,24 @@
 
     // 2. Mẫu lớp phủ được tạo động qua renderTemplatePills()
 
-    // 3. Caption & Highlight thời gian thực
+    // 3. Caption & Highlight thời gian thực (FIX v1.6.0 FIX-6: hỗ trợ \n và auto-wrap toggle)
+    let hasTypedEnterCaption = false;
+    function autoExpandTextarea(el) {
+      if (!el) return;
+      el.style.height = "auto";
+      const newHeight = Math.min(el.scrollHeight, 120);
+      el.style.height = `${Math.max(38, newHeight)}px`;
+    }
+
     captionInput.addEventListener("input", (e) => {
+      autoExpandTextarea(captionInput);
       state.caption = e.target.value;
+      if (!hasTypedEnterCaption && state.caption.includes("\n")) {
+        hasTypedEnterCaption = true;
+        if (window.TAIOTextPanel && window.TAIOTextPanel.setWrap) {
+          window.TAIOTextPanel.setWrap(false);
+        }
+      }
       renderLiveHighlightPreview(state.caption);
       debouncedPreview();
     });
@@ -620,6 +635,7 @@
       /(?:\*\*|\*|&lt;b&gt;)(.*?)(?:\*\*|\*|&lt;\/b&gt;)/gi,
       '<span class="accent-word">$1</span>'
     );
+    highlighted = highlighted.replace(/\n/g, '<br>');
     liveHighlightText.innerHTML = highlighted;
   }
 

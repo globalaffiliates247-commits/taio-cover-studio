@@ -49,6 +49,7 @@
     y_offset_ratio: 0.0,
     letter_spacing: 0.0,
     line_spacing: 1.18,
+    wrap: true,
   };
 
   let changeDebounceTimer = null;
@@ -243,6 +244,10 @@
       chkSizeAuto.checked = currentStyle.size_mode === "auto";
       if (sliderSize) sliderSize.disabled = chkSizeAuto.checked;
     }
+    const chkTextWrap = document.getElementById("chkTextWrap");
+    if (chkTextWrap) {
+      chkTextWrap.checked = currentStyle.wrap !== false;
+    }
     if (sliderSize) sliderSize.value = currentStyle.size || 42;
     if (valSize) valSize.textContent = `${sliderSize.value}px`;
 
@@ -392,6 +397,13 @@
       chkSizeAuto.addEventListener("change", () => {
         currentStyle.size_mode = chkSizeAuto.checked ? "auto" : "fixed";
         if (sliderSize) sliderSize.disabled = chkSizeAuto.checked;
+        notifyChange();
+      });
+    }
+    const chkTextWrapEl = document.getElementById("chkTextWrap");
+    if (chkTextWrapEl) {
+      chkTextWrapEl.addEventListener("change", () => {
+        currentStyle.wrap = chkTextWrapEl.checked;
         notifyChange();
       });
     }
@@ -569,6 +581,13 @@
 
     updateSize(newSizePx) {
       updateSize(newSizePx);
+    },
+
+    setWrap(wrapVal) {
+      currentStyle.wrap = wrapVal;
+      const chk = document.getElementById("chkTextWrap");
+      if (chk) chk.checked = wrapVal;
+      notifyChange();
     },
   };
 

@@ -105,7 +105,9 @@ def normalize_text_style(raw_style: Optional[Dict[str, Any]] = None) -> Dict[str
         except (ValueError, TypeError):
             pass
 
-    # 8. Khoảng cách (letter spacing, line spacing)
+    # 8. Khoảng cách (letter spacing, line spacing) & ngắt dòng (wrap)
+    if "wrap" in raw_style:
+        clean["wrap"] = bool(raw_style["wrap"])
     if "letter_spacing" in raw_style:
         try:
             clean["letter_spacing"] = clamp_val(float(raw_style["letter_spacing"]), 0.0, 0.5)
@@ -164,6 +166,8 @@ def apply_text_style_to_layer(layer: Dict[str, Any]) -> Dict[str, Any]:
     # Cỡ chữ (FIX v1.6.0 FIX-5)
     if "size_mode" in norm_style:
         layer["size_mode"] = norm_style["size_mode"]
+    if "wrap" in norm_style:
+        layer["wrap"] = norm_style["wrap"]
     if "size_px" in norm_style:
         layer["fixed_size"] = norm_style["size_px"]
         layer["size_px"] = norm_style["size_px"]

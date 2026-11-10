@@ -207,9 +207,11 @@ def wrap_text_into_lines(
     font: ImageFont.FreeTypeFont,
     box_w: float,
     letter_spacing: float = 0.0,
+    wrap: bool = True,
 ) -> List[LayoutLine]:
     """
     Chia văn bản có cú pháp **nhấn** và xuống dòng thủ công thành các dòng vừa vặn box_w.
+    Nếu wrap=False, chỉ ngắt dòng tại ký tự \n thủ công.
     """
     paragraphs = text.split("\n")
     all_lines: List[LayoutLine] = []
@@ -223,6 +225,11 @@ def wrap_text_into_lines(
             continue
 
         spans = parse_accent_spans(para)
+
+        if not wrap:
+            line_w = sum(measure_span(s.text, font, letter_spacing=letter_spacing) for s in spans)
+            all_lines.append(LayoutLine(spans=spans, width=line_w, height=base_line_h))
+            continue
 
         words_with_attr: List[Tuple[str, bool, Optional[str]]] = []
         for s in spans:
@@ -272,6 +279,7 @@ def compute_text_layout(
     fixed_size: Optional[int] = None,
     family: Optional[str] = None,
     letter_spacing: float = 0.0,
+    wrap: bool = True,
 ) -> LayoutResult:
     """
     Tính toán cỡ chữ tự co hoặc cố định sao cho vừa vặn box_w, box_h và max_lines.
@@ -285,11 +293,17 @@ def compute_text_layout(
     if fixed_size is not None and fixed_size > 0:
         best_size = int(fixed_size)
         font = get_font(weight=weight, size=best_size, family=family)
-        best_lines = wrap_text_into_lines(text, font, box_w, letter_spacing=letter_spacing)
+        best_lines = wrap_text_into_lines(text, font, box_w, letter_spacing=letter_spacing, wrap=wrap)
         line_h = float(best_size) * line_spacing
         total_h = len(best_lines) * line_h
 
-        if len(best_lines) > max_lines or total_h > box_h:
+        if not wrap:
+            for idx, l in enumerate(best_lines):
+                if l.width > box_w:
+                    warning = f"Dòng {idx + 1} vượt khung — rút ngắn hoặc bật Tự xuống dòng."
+                    break
+
+        if not warning and (len(best_lines) > max_lines or total_h > box_h):
             warning = "Caption dài quá khung — nên rút gọn hoặc giảm cỡ chữ."
     else:
         # Chế độ tự co cỡ chữ (Auto shrink)
@@ -307,14 +321,15 @@ def compute_text_layout(
         while low <= high:
             mid = (low + high) // 2
             font = get_font(weight=weight, size=mid, family=family)
-            lines = wrap_text_into_lines(text, font, box_w, letter_spacing=letter_spacing)
+            lines = wrap_text_into_lines(text, font, box_w, letter_spacing=letter_spacing, wrap=wrap)
             line_h = float(mid) * line_spacing
             total_h = len(lines) * line_h
 
             fits_lines = len(lines) <= max_lines
             fits_height = total_h <= box_h
+            fits_width = all(l.width <= box_w for l in lines) if not wrap else True
 
-            if fits_lines and fits_height:
+            if fits_lines and fits_height and fits_width:
                 best_size = mid
                 best_lines = lines
                 best_fits = True
@@ -325,7 +340,7 @@ def compute_text_layout(
         if not best_fits:
             best_size = min_px
             font = get_font(weight=weight, size=best_size, family=family)
-            best_lines = wrap_text_into_lines(text, font, box_w, letter_spacing=letter_spacing)
+            best_lines = wrap_text_into_lines(text, font, box_w, letter_spacing=letter_spacing, wrap=wrap)
             warning = "Caption dài quá khung — nên rút gọn."
 
     font = get_font(weight=weight, size=best_size, family=family)

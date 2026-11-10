@@ -230,7 +230,7 @@ def _draw_caption(
     bg_pad = int(round(layer.get("bg_padding", 6)))
     bg_radius = int(round(layer.get("bg_radius", 6)))
 
-    # Tính toán layout
+    # Tính toán layout (FIX v1.6.0 FIX-6: truyền tham số wrap)
     result = compute_text_layout(
         raw_text=caption_text,
         box_w=bw,
@@ -246,6 +246,7 @@ def _draw_caption(
         fixed_size=fixed_size,
         family=family,
         letter_spacing=letter_spacing,
+        wrap=bool(layer.get("wrap", True)),
     )
 
     if result.warning:

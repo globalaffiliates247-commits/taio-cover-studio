@@ -157,6 +157,7 @@
 .live-content {
   color: var(--color-accent);
   font-weight: 600;
+  white-space: pre-wrap;
 }
 
 /* 4. TAB LOGO */

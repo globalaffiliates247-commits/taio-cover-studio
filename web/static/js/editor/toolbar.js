@@ -48,6 +48,34 @@
         if (window.TAIOSceneStore) window.TAIOSceneStore.redo();
       });
     }
+
+    const modalEdit = document.getElementById("editTextModal");
+    const inputEdit = document.getElementById("editTextInput");
+    const btnSaveEdit = document.getElementById("btnSaveEditText");
+    const btnCancelEdit = document.getElementById("btnCancelEditText");
+    const btnCloseEdit = document.getElementById("btnCloseEditTextModal");
+
+    if (btnSaveEdit) {
+      btnSaveEdit.addEventListener("click", () => {
+        if (editingTargetObj && inputEdit) {
+          const store = window.TAIOSceneStore;
+          if (store) store.recordSnapshot();
+          editingTargetObj.text = inputEdit.value;
+          if (window.TAIOEditorViews && window.TAIOEditorViews.loadObjectImage) {
+            window.TAIOEditorViews.loadObjectImage(editingTargetObj);
+          }
+          if (store) store.notifyChange();
+        }
+        if (modalEdit) modalEdit.hidden = true;
+      });
+    }
+
+    if (btnCancelEdit && modalEdit) {
+      btnCancelEdit.addEventListener("click", () => { modalEdit.hidden = true; });
+    }
+    if (btnCloseEdit && modalEdit) {
+      btnCloseEdit.addEventListener("click", () => { modalEdit.hidden = true; });
+    }
   }
 
   function toggleLayersDrawer(show) {
@@ -205,14 +233,25 @@
     }
   }
 
+  let editingTargetObj = null;
+
   function onEditFreeText(obj) {
-    const store = window.TAIOSceneStore;
-    const curText = obj.text || "";
-    const res = window.prompt("Nhập nội dung chữ:", curText);
-    if (res !== null) {
-      store.recordSnapshot();
-      obj.text = res.trim() || "Chữ";
-      store.notifyChange();
+    editingTargetObj = obj;
+    const modal = document.getElementById("editTextModal");
+    const input = document.getElementById("editTextInput");
+    if (modal && input) {
+      input.value = obj.text || "";
+      modal.hidden = false;
+      input.focus();
+    } else {
+      const curText = obj.text || "";
+      const res = window.prompt("Nhập nội dung chữ:", curText);
+      if (res !== null) {
+        window.TAIOSceneStore.recordSnapshot();
+        obj.text = res.trim() || "Chữ";
+        if (window.TAIOEditorViews) window.TAIOEditorViews.loadObjectImage(obj);
+        window.TAIOSceneStore.notifyChange();
+      }
     }
   }
 

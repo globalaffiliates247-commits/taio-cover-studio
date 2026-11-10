@@ -402,6 +402,23 @@
 
 
 
+  <!-- MODAL SỬA CHỮ TỰ DO (FIX v1.6.0 FIX-6) -->
+  <div class="modal-backdrop" id="editTextModal" hidden>
+    <div class="modal-sheet" style="max-width: 440px; margin: auto;">
+      <div class="modal-header">
+        <h3 class="modal-title">✏️ Chỉnh sửa nội dung chữ</h3>
+        <button type="button" class="btn-close-modal" id="btnCloseEditTextModal">&times;</button>
+      </div>
+      <div style="padding: 16px;">
+        <textarea id="editTextInput" class="caption-quick-textarea" rows="3" style="width: 100%; min-height: 80px; padding: 10px; background: #0F172A; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #FFF; font-size: 0.95rem; resize: vertical;" placeholder="Nhập nội dung chữ (bấm Enter để xuống dòng)..."></textarea>
+        <div style="display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end;">
+          <button type="button" class="btn-cap-action" id="btnCancelEditText" style="flex: none; padding: 6px 14px;">Huỷ</button>
+          <button type="button" class="btn-cap-action" id="btnSaveEditText" style="flex: none; padding: 6px 18px; background: #2563EB; border-color: #3B82F6;">Lưu</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL / BOTTOM SHEET "Aa TUỲ CHỈNH CHỮ" -->
   <div class="modal-backdrop" id="textStyleModal" hidden>
     <div class="modal-sheet text-style-sheet">
@@ -468,6 +485,13 @@
             <span class="sub-label">Cỡ cố định:</span>
             <input type="range" id="sliderFontSize" min="16" max="96" value="42" disabled>
             <span class="value-readout" id="valFontSize">42px</span>
+          </div>
+          <div class="setting-field-row" style="margin-top: 8px;">
+            <label class="setting-label">Ngắt dòng:</label>
+            <label class="toggle-switch-label">
+              <input type="checkbox" id="chkTextWrap" checked>
+              <span>Tự xuống dòng khi chạm khung</span>
+            </label>
           </div>
         </div>
 
