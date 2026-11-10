@@ -81,34 +81,77 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  width: 100%;
 }
 
 .caption-input-wrapper {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   background: #0F172A;
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  padding: 4px 8px;
-  gap: 6px;
+  padding: 6px 10px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.caption-quick-input {
+.caption-quick-input,
+.caption-quick-textarea {
   flex: 1;
+  width: 100%;
   background: transparent;
   border: none;
   color: #FFFFFF;
   font-size: 0.85rem;
   font-family: inherit;
   outline: none;
+  resize: none;
+  line-height: 1.4;
+  min-height: 38px;
+  max-height: 120px;
+  box-sizing: border-box;
+}
+
+.caption-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.btn-cap-action {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: #FFFFFF;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-cap-action:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.btn-cap-icon {
+  font-weight: 700;
 }
 
 .caption-live-preview {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
   font-size: 0.75rem;
   color: var(--text-dim);
+  line-height: 1.35;
 }
 
 .live-content {

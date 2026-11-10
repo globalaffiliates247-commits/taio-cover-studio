@@ -153,14 +153,19 @@
         <div class="layer-controls-strip" id="layerControlsStrip" style="display: none;"></div>
       </div>
 
-      <!-- Tab 3: Cap -->
+      <!-- Tab 3: Cap (FIX v1.6.0 FIX-3) -->
       <div class="capcut-tab-panel" id="tabPanelCaption" data-tab="caption" hidden>
         <div class="caption-box-compact">
           <div class="caption-input-wrapper">
-            <input type="text" id="captionInput" class="caption-quick-input" placeholder="Nhập tiêu đề (dùng **từ khóa** hoặc ==nhấn 2==)...">
-            <button type="button" class="btn-icon-add-text" id="btnAddFreeText" title="Thêm chữ tự do (+ Chữ)">+ Chữ</button>
-            <button type="button" class="btn-icon-aa" id="btnOpenTextStyleModal" title="Tuỳ chỉnh kiểu chữ (Aa)">Aa</button>
-            <button type="button" class="btn-icon-ai" id="btnOpenAIModal" title="Gợi ý caption bằng AI">✨ AI</button>
+            <textarea id="captionInput" class="caption-quick-textarea" rows="2" placeholder="Nhập tiêu đề (dùng **từ khóa** hoặc ==nhấn 2==)..."></textarea>
+          </div>
+          <div class="caption-actions-row">
+            <button type="button" class="btn-cap-action" id="btnOpenTextStyleModal" title="Tuỳ chỉnh kiểu chữ (Aa)">
+              <span class="btn-cap-icon">Aa</span> Kiểu chữ
+            </button>
+            <button type="button" class="btn-cap-action btn-cap-action-ai" id="btnOpenAIModal" title="Gợi ý caption bằng AI">
+              <span class="btn-cap-icon">✨</span> AI
+            </button>
           </div>
           <div class="caption-live-preview" id="captionLivePreview">
             <span class="live-label">Màu chữ:</span>
@@ -290,7 +295,7 @@
 
       <!-- Tab 5: + Chữ -->
       <div class="capcut-tab-panel" id="tabPanelAddText" data-tab="add_text" hidden>
-        <button type="button" class="btn-micro" id="btnAddFreeTextDirect" onclick="document.getElementById('btnAddFreeText').click()">+ Thêm chữ tự do</button>
+        <button type="button" class="btn-micro" id="btnAddFreeText">+ Thêm chữ tự do</button>
         <div id="freeTextItemList" class="free-text-list" style="margin-top:6px;"></div>
       </div>
 
