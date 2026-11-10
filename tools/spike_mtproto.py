@@ -28,15 +28,30 @@ if ENV_PATH.exists():
                 os.environ.setdefault(k.strip(), v.strip())
 
 
+def _get_ssl_context():
+    import ssl
+    try:
+        return ssl.create_default_context()
+    except Exception:
+        return ssl._create_unverified_context()
+
 def get_webhook_info(bot_token: str) -> Dict[str, Any]:
     """Kiểm tra webhook hiện tại của bot qua Telegram Bot API."""
+    import ssl
     url = f"https://api.telegram.org/bot{bot_token}/getWebhookInfo"
     req = urllib.request.Request(url, headers={"User-Agent": "TAIO-Spike/1.7"})
+    ctx = _get_ssl_context()
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(req, timeout=15, context=ctx) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             if not data.get("ok"):
                 raise RuntimeError(f"Telegram API trả về lỗi: {data.get('description')}")
+            return data.get("result", {})
+    except urllib.error.URLError:
+        # Thử lại với unverified context nếu gặp lỗi verify cert trên local macOS
+        ctx_unverified = ssl._create_unverified_context()
+        with urllib.request.urlopen(req, timeout=15, context=ctx_unverified) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
             return data.get("result", {})
     except urllib.error.HTTPError as e:
         err_msg = e.read().decode("utf-8", errors="ignore")
@@ -47,13 +62,20 @@ def get_webhook_info(bot_token: str) -> Dict[str, Any]:
 
 def get_bot_me(bot_token: str) -> Dict[str, Any]:
     """Lấy thông tin cơ bản về bot (username, id)."""
+    import ssl
     url = f"https://api.telegram.org/bot{bot_token}/getMe"
     req = urllib.request.Request(url, headers={"User-Agent": "TAIO-Spike/1.7"})
+    ctx = _get_ssl_context()
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(req, timeout=15, context=ctx) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             if not data.get("ok"):
                 raise RuntimeError(f"Telegram API trả về lỗi: {data.get('description')}")
+            return data.get("result", {})
+    except urllib.error.URLError:
+        ctx_unverified = ssl._create_unverified_context()
+        with urllib.request.urlopen(req, timeout=15, context=ctx_unverified) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
             return data.get("result", {})
     except Exception as e:
         raise RuntimeError(f"Không thể gọi getMe: {e}")

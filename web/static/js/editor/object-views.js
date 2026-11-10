@@ -113,15 +113,22 @@
 
     try {
       const img = new Image();
-      img.crossOrigin = "anonymous";
       img.onload = () => {
         if (img.naturalWidth && img.naturalHeight) {
           store.stickerState.aspectRatio = img.naturalHeight / img.naturalWidth;
         }
         if (stickerImgEl) {
           stickerImgEl.src = img.src;
+          stickerImgEl.alt = "";
         }
         renderDOM();
+      };
+      img.onerror = () => {
+        console.warn("Không thể tải sticker logo layer từ:", url);
+        if (stickerImgEl && (!stickerImgEl.src || stickerImgEl.src.startsWith("data:"))) {
+          stickerImgEl.src = "/static/brand-logo";
+          stickerImgEl.alt = "";
+        }
       };
       img.src = url;
     } catch (e) {

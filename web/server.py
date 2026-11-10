@@ -264,6 +264,15 @@ def api_config():
     })
 
 
+# ==================== CẤU HÌNH HEADERS & CORS ====================
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS, PUT, DELETE"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-Telegram-Bot-Api-Secret-Token, Authorization"
+    return response
+
+
 # ==================== TẢI LÊN FILE & URL ====================
 @app.route("/api/upload-url", methods=["POST"])
 def api_upload_url():
@@ -276,6 +285,17 @@ def api_upload_url():
 
     if not (url.startswith("http://") or url.startswith("https://")):
         return jsonify({"error": "Đường dẫn URL phải bắt đầu bằng http:// hoặc https://"}), 400
+
+    # Nhận diện sớm liên kết web mạng xã hội không phải link file video trực tiếp
+    parsed_netloc = urllib.parse.urlparse(url).netloc.lower()
+    social_domains = [
+        "tiktok.com", "douyin.com", "youtube.com", "youtu.be",
+        "facebook.com", "fb.watch", "instagram.com", "x.com", "twitter.com"
+    ]
+    if any(d in parsed_netloc for d in social_domains):
+        return jsonify({
+            "error": "Liên kết này là trang web mạng xã hội (TikTok, YouTube, Facebook...), chưa phải link tải file video trực tiếp (.mp4). Vui lòng tải video về máy rồi thả vào đây, hoặc dùng link file video trực tiếp!"
+        }), 400
 
     cleanup_old_files()
 
@@ -328,6 +348,9 @@ def api_upload_url():
     except urllib.error.URLError as e:
         if temp_path.exists():
             temp_path.unlink()
+        reason_str = str(e.reason)
+        if "nodename nor servname" in reason_str or "getaddrinfo" in reason_str:
+            return jsonify({"error": "Không thể phân giải tên miền (Lỗi mạng hoặc máy chủ không có internet)."}), 400
         return jsonify({"error": f"Lỗi kết nối tới URL: {e.reason}"}), 400
     except Exception as e:
         if temp_path.exists():
