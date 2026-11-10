@@ -96,13 +96,6 @@
     const targetRect = targetEl.getBoundingClientRect();
     const stageRect = stageEl.getBoundingClientRect();
 
-    const topPx = targetRect.top - stageRect.top;
-    const leftPx = targetRect.left - stageRect.left + targetRect.width / 2;
-
-    toolbarEl.style.top = `${topPx}px`;
-    toolbarEl.style.left = `${leftPx}px`;
-    toolbarEl.hidden = false;
-
     // Dựng các nút hành động cho toolbar
     innerEl.innerHTML = "";
 
@@ -136,6 +129,51 @@
         addActionButton("🗑 Xoá", () => store.deleteSelected(), true);
       }
     }
+
+    toolbarEl.hidden = false;
+
+    // Tính toán toạ độ đặt toolbar an toàn trong preview (FIX v1.6.0 FIX-2)
+    const margin = 8;
+    const stageW = stageRect.width;
+    const stageH = stageRect.height;
+    const tbWidth = Math.min(toolbarEl.offsetWidth || 180, stageW - margin * 2);
+    const tbHeight = toolbarEl.offsetHeight || 38;
+
+    const targetTop = targetRect.top - stageRect.top;
+    const targetBottom = targetRect.bottom - stageRect.top;
+    const targetLeft = targetRect.left - stageRect.left;
+    const targetWidth = targetRect.width;
+
+    // Chiều dọc: Ưu tiên phía trên đối tượng (cách 10px).
+    // Nếu phía trên không đủ chỗ (< margin + 36px tránh đè top pills), lật xuống dưới
+    let topPx = targetTop - tbHeight - 10;
+    if (topPx < margin + 36) {
+      topPx = targetBottom + 10;
+    }
+    // Giới hạn trong khung preview
+    topPx = Math.max(margin, Math.min(stageH - tbHeight - margin, topPx));
+
+    // Chiều ngang: Canh giữa theo đối tượng, giới hạn trong lề 8px
+    let leftPx = targetLeft + targetWidth / 2 - tbWidth / 2;
+
+    // Tránh va chạm với cột icon bên phải (quick rail) nếu ở tầm cao trùng nhau
+    const quickRailEl = document.querySelector(".quick-rail-container");
+    let rightBoundary = stageW - margin;
+    if (quickRailEl && !quickRailEl.hidden) {
+      const qrRect = quickRailEl.getBoundingClientRect();
+      const qrTop = qrRect.top - stageRect.top;
+      const qrBottom = qrRect.bottom - stageRect.top;
+      if (topPx + tbHeight >= qrTop && topPx <= qrBottom) {
+        rightBoundary = Math.min(rightBoundary, (qrRect.left - stageRect.left) - margin);
+      }
+    }
+
+    leftPx = Math.max(margin, Math.min(rightBoundary - tbWidth, leftPx));
+
+    toolbarEl.style.top = `${Math.round(topPx)}px`;
+    toolbarEl.style.left = `${Math.round(leftPx)}px`;
+    toolbarEl.style.transform = "none";
+    toolbarEl.style.margin = "0";
   }
 
   function addActionButton(label, onClick, isDanger = false) {

@@ -883,15 +883,15 @@ html, body {
 
 /* Khi được chọn: hiện khung viền xanh rõ */
 .sticker-box.selected {
-  box-shadow: 0 0 0 1.5px #3B82F6, 0 4px 12px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 0 0 1.5px #4F8BFF, 0 4px 12px rgba(0, 0, 0, 0.45);
   border-radius: 4px;
   cursor: grab;
 }
 
 .sticker-box.group-selected-child {
-  box-shadow: 0 0 0 1.5px dashed #3B82F6, 0 4px 12px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 0 1.5px dashed #4F8BFF, 0 4px 12px rgba(0, 0, 0, 0.35);
   border-radius: 4px;
-}
+ }
 
 .sticker-img {
   width: 100%;
@@ -920,24 +920,27 @@ html, body {
 /* Tay cầm đổi cỡ ở 4 góc (Fitts's Law: vùng chạm >= 44x44px) */
 .sticker-handle {
   position: absolute;
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   background-color: #FFFFFF;
-  border: 2.5px solid #3B82F6;
+  border: 2px solid #4F8BFF;
   border-radius: 50%;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
   pointer-events: auto;
+  touch-action: none;
   z-index: 25;
 }
 
-.sticker-handle::after {
+.sticker-handle::before {
   content: "";
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 44px;
-  height: 44px;
-  transform: translate(-50%, -50%);
+  inset: -16px;
+  border-radius: 50%;
+  pointer-events: auto;
+}
+
+.sticker-handle::after {
+  display: none;
 }
 
 .handle-tl { top: 0; left: 0; transform: translate(-50%, -50%); cursor: nwse-resize; }
@@ -948,39 +951,42 @@ html, body {
 /* Tay cầm xoay ở đỉnh */
 .sticker-rotator-line {
   position: absolute;
-  top: -24px;
+  top: -20px;
   left: 50%;
   width: 1.5px;
-  height: 24px;
-  background-color: #3B82F6;
+  height: 20px;
+  background-color: #4F8BFF;
   transform: translateX(-50%);
   pointer-events: none;
 }
 
 .sticker-rotator {
   position: absolute;
-  top: -24px;
+  top: -20px;
   left: 50%;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   background-color: #FFD34D;
-  border: 2px solid #000000;
+  border: 1.5px solid rgba(0, 0, 0, 0.25);
   border-radius: 50%;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
   transform: translate(-50%, -50%);
   cursor: grab;
+  touch-action: none;
   pointer-events: auto;
   z-index: 26;
 }
 
-.sticker-rotator::after {
+.sticker-rotator::before {
   content: "";
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 44px;
-  height: 44px;
-  transform: translate(-50%, -50%);
+  inset: -15px;
+  border-radius: 50%;
+  pointer-events: auto;
+}
+
+.sticker-rotator::after {
+  display: none;
 }
 
 /* Tay cầm kéo giãn dải chân trang (FEATURE v1.4 P4) */
@@ -1021,13 +1027,11 @@ html, body {
   height: 44px;
 }
 
-/* Thanh công cụ nổi kiểu Canva / Figma (FEATURE v1.4) */
+/* Thanh công cụ nổi kiểu Canva / Figma (FEATURE v1.4, tinh chỉnh FIX-2 v1.6.0) */
 .editor-floating-toolbar {
   position: absolute;
   z-index: 35;
   pointer-events: auto;
-  transform: translate(-50%, -100%);
-  margin-top: -12px;
   background: #1E293B;
   border: 1px solid #334155;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
@@ -1037,6 +1041,13 @@ html, body {
   align-items: center;
   gap: 4px;
   white-space: nowrap;
+  max-width: calc(100% - 16px);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.editor-floating-toolbar::-webkit-scrollbar {
+  display: none;
 }
 
 .floating-toolbar-inner {
