@@ -1,0 +1,4 @@
+# TAIO Cover Studio - Mac Worker Dependencies
+telethon>=1.36.0
+aiohttp>=3.9.0
+Pillow>=10.0.0
