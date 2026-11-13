@@ -33,11 +33,35 @@
   gap: 10px;
 }
 
+.topbar-brand-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 8px;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.topbar-brand-link:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  opacity: 0.95;
+}
+
 .topbar-brand-group {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 2px;
+}
+
+.topbar-title-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.1;
 }
 
 .topbar-title {
@@ -46,6 +70,13 @@
   color: var(--color-accent);
   letter-spacing: 0.3px;
   line-height: 1.1;
+}
+
+.topbar-sub-brand {
+  font-size: 10px;
+  color: #60A5FA;
+  font-weight: 500;
+  letter-spacing: 0.2px;
 }
 
 .app-version {
@@ -321,6 +352,60 @@
   text-decoration: underline;
   cursor: pointer;
   font-weight: 600;
+}
+
+/* Entity Ecosystem Badges & Footers */
+.drop-ecosystem-badge {
+  margin-top: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-dim, #94A3B8);
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+}
+
+.drop-ecosystem-badge .ecosystem-link {
+  color: #60A5FA;
+  text-decoration: none;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: color 0.15s ease;
+}
+
+.drop-ecosystem-badge .ecosystem-link:hover {
+  color: #93C5FD;
+  text-decoration: underline;
+}
+
+.drop-ecosystem-badge .brand-sparkle {
+  color: #FBBF24;
+  font-size: 0.85rem;
+}
+
+.render-done-entity-footer {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--text-dim, #94A3B8);
+}
+
+.render-done-entity-footer a {
+  color: #60A5FA;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.15s ease;
+}
+
+.render-done-entity-footer a:hover {
+  color: #93C5FD;
+  text-decoration: underline;
 }
 
 /* ==================== MÀN HÌNH MÁY TÍNH (>= 1024px) ==================== */

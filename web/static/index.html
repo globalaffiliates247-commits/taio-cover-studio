@@ -3,7 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>TAIO Cover Studio — WYSIWYG Video Wrapper</title>
+  <title>TAIO Cover Studio — WYSIWYG Video Wrapper | TAIO.CLUB</title>
+  <meta name="description" content="TAIO Cover Studio — Công cụ tạo cover video, khung dải tiêu đề chuẩn dọc 9:16 cho TikTok, Reels, Shorts thuộc hệ sinh thái TAIO.CLUB">
+  <meta name="author" content="TAIO.CLUB">
+  <link rel="canonical" href="https://taio.club/">
+  <!-- Open Graph / Entity SEO -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="TAIO.CLUB">
+  <meta property="og:title" content="TAIO Cover Studio — WYSIWYG Video Wrapper">
+  <meta property="og:description" content="Công cụ bọc cover video tự động chuyên nghiệp cho hệ sinh thái TAIO.CLUB">
+  <meta property="og:url" content="https://taio.club/">
+  <!-- JSON-LD Entity Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "TAIO Cover Studio",
+    "applicationCategory": "MultimediaApplication",
+    "operatingSystem": "All",
+    "url": "https://taio.club/",
+    "publisher": {
+      "@type": "Organization",
+      "name": "TAIO.CLUB",
+      "url": "https://taio.club/"
+    }
+  }
+  </script>
   <link rel="stylesheet" href="/static/css/base.css?v=1.6.0">
   <link rel="stylesheet" href="/static/css/layout.css?v=1.6.0">
   <link rel="stylesheet" href="/static/css/editor.css?v=1.6.0">
@@ -15,11 +40,16 @@
   <!-- Header tối giản dạng thanh công cụ -->
   <header class="studio-topbar">
     <div class="topbar-left">
-      <div class="topbar-brand-group">
-        <img src="/static/brand-logo" alt="Logo" class="topbar-logo" onerror="this.style.display='none'">
-        <div class="app-version" id="appVersionBadge">v1.6.0</div>
-      </div>
-      <span class="topbar-title">TAIO Cover Studio</span>
+      <a href="https://taio.club/" target="_blank" rel="noopener noreferrer" class="topbar-brand-link" title="Về trang chủ hệ sinh thái TAIO.CLUB">
+        <div class="topbar-brand-group">
+          <img src="/static/brand-logo" alt="TAIO.CLUB Logo" class="topbar-logo" onerror="this.style.display='none'">
+          <div class="app-version" id="appVersionBadge">v1.6.0</div>
+        </div>
+        <div class="topbar-title-wrap">
+          <span class="topbar-title">TAIO Cover Studio</span>
+          <span class="topbar-sub-brand">taio.club ↗</span>
+        </div>
+      </a>
     </div>
     <div class="topbar-right">
       <span class="clip-name-badge" id="clipNameBadge">TAIO.CoverClip</span>
@@ -58,6 +88,14 @@
               <button type="button" id="btnLoadVideoUrl" class="btn-load-url">Tải URL</button>
             </div>
             <div class="url-error-hint" id="urlErrorHint" hidden></div>
+          </div>
+
+          <!-- Huy hiệu liên kết đối chứng Entity TAIO.CLUB -->
+          <div class="drop-ecosystem-badge">
+            <span>Hệ sinh thái công cụ</span>
+            <a href="https://taio.club/" target="_blank" rel="noopener noreferrer" class="ecosystem-link" title="Khám phá hệ sinh thái TAIO.CLUB">
+              <span class="brand-sparkle">✦</span> TAIO.CLUB ↗
+            </a>
           </div>
         </div>
 
@@ -363,6 +401,10 @@
         <button type="button" class="btn-action-done btn-telegram" id="btnTriggerSendTelegram" title="Gửi video về kênh admin TAIO.CLUB">
           ✈️ Gửi về TAIO.CLUB
         </button>
+
+        <div class="render-done-entity-footer">
+          <span>Hệ sinh thái công cụ <a href="https://taio.club/" target="_blank" rel="noopener noreferrer">TAIO.CLUB ↗</a></span>
+        </div>
       </div>
 
       <div class="error-strip" id="renderErrorMsg" hidden></div>

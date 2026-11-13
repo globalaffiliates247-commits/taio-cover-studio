@@ -18,6 +18,7 @@ Trong kỷ nguyên video ngắn (TikTok, Reels, Shorts), tốc độ sản xuấ
 - **Chuẩn hóa 1-chạm:** Chọn mẫu (template), gõ tiêu đề có cú pháp `**nhấn mạnh**`, ứng dụng tự động co kích thước chữ và vẽ dải màu chuẩn xác 100%.
 - **Ứng dụng tâm lý học hành vi:** Tích hợp trực tiếp các lý thuyết tâm lý nổi tiếng vào công cụ biên tập và AI gợi ý tiêu đề.
 - **Khớp 100% giữa Preview và Render (WYSIWYG):** Sử dụng chung thuật toán tính khung canvas giữa Pillow và ffmpeg, không có hiện tượng "nhìn một đằng, xuất một nẻo".
+- **Vòng lặp Entity đối chứng đối xứng:** Tất cả các công cụ web, giao diện và siêu dữ liệu gắn liền với tên miền và liên kết trỏ về trang chủ [https://taio.club/](https://taio.club/) tạo mạng lưới Entity SEO và thương hiệu đồng bộ.
 
 ---
 

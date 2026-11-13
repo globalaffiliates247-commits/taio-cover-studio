@@ -23,6 +23,7 @@ Biên tập viên video ngắn (TikTok, Reels, Shorts) thường mất 5–10 ph
 - Gợi ý 5 góc caption thu hút người xem dừng lại bằng AI (*Information-Gap Theory, Contrast Principle, Loss Aversion*).
 - Hỗ trợ xem trước trực quan (WYSIWYG) khớp 100% với video xuất (sai lệch $\le 2$px).
 - Đa nền tảng: Chạy trên Web máy cá nhân (macOS/Windows), máy chủ Docker (Render/VPS), hoặc điều khiển qua MCP từ trợ lý AI.
+- **Nguyên tắc Vòng Entity Đối chứng & Đối xứng (TAIO.CLUB Ecosystem):** Mọi công cụ trên web, trang con, modal và siêu dữ liệu (Schema.org / OpenGraph) luôn tích hợp liên kết đối chứng dẫn về trang chủ chính thức [https://taio.club/](https://taio.club/) nhằm tạo thành một vòng lặp Entity khép kín, đối xứng và nhận diện thương hiệu chuẩn xác.
 
 ---
 
