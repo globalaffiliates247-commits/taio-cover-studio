@@ -29,6 +29,15 @@
     }
   }
   </script>
+  <!-- PWA Manifest & Apple Touch Icons -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1A56DB">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="TAIO Cover">
+  <link rel="apple-touch-icon" href="/static/icon-192.png">
+
   <link rel="stylesheet" href="/static/css/base.css?v=1.6.0">
   <link rel="stylesheet" href="/static/css/layout.css?v=1.6.0">
   <link rel="stylesheet" href="/static/css/editor.css?v=1.6.0">
@@ -52,6 +61,16 @@
       </a>
     </div>
     <div class="topbar-right">
+      <!-- Nút cài đặt PWA / Tạo lối tắt màn hình -->
+      <button type="button" class="btn-pwa-install" id="btnPwaInstall" title="Cài đặt App / Tạo lối tắt màn hình (PWA)">
+        <svg class="icon-pwa-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span class="btn-pwa-text">Cài App</span>
+      </button>
+
       <span class="clip-name-badge" id="clipNameBadge">TAIO.CoverClip</span>
       <span class="status-indicator-dot online" title="Sẵn sàng"></span>
     </div>
@@ -631,6 +650,192 @@
   <script src="/static/js/save-photos.js?v=1.6.0"></script>
   <script src="/static/js/export/export-sheet.js?v=1.6.0"></script>
   <script src="/static/js/export/result-actions.js?v=1.6.0"></script>
+  <script src="/static/js/pwa-install.js?v=1.6.0"></script>
   <script src="/static/app.js?v=1.6.0"></script>
+
+  <!-- MODAL / POPOVER HƯỚNG DẪN CÀI ĐẶT PWA SHORTCUT -->
+  <div class="modal-backdrop" id="pwaModal" hidden>
+    <div class="modal-overlay-dismiss" id="pwaModalOverlay"></div>
+    <div class="modal-sheet pwa-sheet-container">
+      <div class="modal-header">
+        <div class="pwa-header-title-wrap">
+          <div class="pwa-title-row">
+            <span class="pwa-title-icon">📲</span>
+            <h3 class="modal-title">Cài đặt Ứng dụng & Lối tắt (PWA)</h3>
+          </div>
+          <span class="pwa-detected-badge" id="pwaDetectedBadge">🎯 Đang phát hiện thiết bị...</span>
+        </div>
+        <button type="button" class="btn-close-modal" id="btnClosePwaModal" title="Đóng">&times;</button>
+      </div>
+
+      <div class="modal-body pwa-modal-body">
+        <!-- Nút cài đặt 1 chạm cho trình duyệt Chromium -->
+        <button type="button" class="btn-pwa-direct-install" id="pwaBtnInstallDirect" hidden>
+          <span class="pwa-sparkle-icon">⚡</span>
+          <div class="pwa-direct-info">
+            <strong>Cài đặt ngay vào máy (1 chạm)</strong>
+            <small>Tạo biểu tượng độc lập trên màn hình chính</small>
+          </div>
+        </button>
+
+        <!-- Thanh chuyển tab thiết bị: Android | Mac | Windows | iOS -->
+        <div class="pwa-tabs-bar">
+          <button type="button" class="pwa-tab-btn" data-plat="android">
+            <span class="tab-emoji">🤖</span> Android
+          </button>
+          <button type="button" class="pwa-tab-btn" data-plat="mac">
+            <span class="tab-emoji">🍏</span> Mac
+          </button>
+          <button type="button" class="pwa-tab-btn" data-plat="pc">
+            <span class="tab-emoji">💻</span> Windows / PC
+          </button>
+          <button type="button" class="pwa-tab-btn" data-plat="ios">
+            <span class="tab-emoji">🍎</span> iPhone / iPad
+          </button>
+        </div>
+
+        <!-- NỘI DUNG 1: ANDROID -->
+        <div class="pwa-guide-panel" id="pwaGuide_android">
+          <div class="pwa-browser-badge">Trình duyệt: Chrome · Samsung Internet · Cốc Cốc · Edge</div>
+          <ol class="pwa-steps-list">
+            <li class="pwa-step-item">
+              <span class="pwa-step-num">1</span>
+              <div class="pwa-step-text">
+                Bấm vào nút <strong>"⚡ Cài đặt ngay"</strong> ở trên (nếu xuất hiện).
+              </div>
+            </li>
+            <li class="pwa-step-item">
+              <span class="pwa-step-num">2</span>
+              <div class="pwa-step-text">
+                Hoặc chạm vào biểu tượng menu <strong>3 chấm (⋮)</strong> ở góc trên bên phải màn hình.
+              </div>
+            </li>
+            <li class="pwa-step-item">
+              <span class="pwa-step-num">3</span>
+              <div class="pwa-step-text">
+                Chọn dòng <strong>"Cài đặt ứng dụng"</strong> hoặc <strong>"Thêm vào Màn hình chính"</strong> (Add to Home screen).
+              </div>
+            </li>
+            <li class="pwa-step-item">
+              <span class="pwa-step-num">4</span>
+              <div class="pwa-step-text">
+                Chạm xác nhận <strong>"Cài đặt"</strong>. Biểu tượng <strong>TAIO Cover</strong> sẽ xuất hiện ngay trên màn hình điện thoại, chạy mượt toàn màn hình không có viền trình duyệt.
+              </div>
+            </li>
+          </ol>
+        </div>
+
+        <!-- NỘI DUNG 2: MAC (macOS) -->
+        <div class="pwa-guide-panel" id="pwaGuide_mac" hidden>
+          <div class="pwa-sub-tabs-desc">Hỗ trợ cả Safari (macOS Sonoma+) và Chrome / Edge</div>
+          
+          <div class="pwa-mac-subblock">
+            <h4 class="pwa-subblock-title">Cách 1: Safari trên macOS (Sonoma trở lên)</h4>
+            <ol class="pwa-steps-list">
+              <li class="pwa-step-item">
+                <span class="pwa-step-num">1</span>
+                <div class="pwa-step-text">Trên thanh menu ở đỉnh màn hình Mac, bấm vào menu <strong>Tệp (File)</strong>.</div>
+              </li>
+              <li class="pwa-step-item">
+                <span class="pwa-step-num">2</span>
+                <div class="pwa-step-text">Chọn <strong>"Thêm vào Dock..." (Add to Dock...)</strong>.</div>
+              </li>
+              <li class="pwa-step-item">
+                <span class="pwa-step-num">3</span>
+                <div class="pwa-step-text">Bấm <strong>Thêm (Add)</strong>. App sẽ nằm trên thanh Dock của Mac và mở trong cửa sổ độc lập!</div>
+              </li>
+            </ol>
+          </div>
+
+          <div class="pwa-mac-subblock" style="margin-top: 12px;">
+            <h4 class="pwa-subblock-title">Cách 2: Google Chrome hoặc MS Edge trên Mac</h4>
+            <ol class="pwa-steps-list">
+              <li class="pwa-step-item">
+                <span class="pwa-step-num">1</span>
+                <div class="pwa-step-text">Nhìn vào góc phải thanh địa chỉ URL, bấm biểu tượng <strong>Cài đặt (⊕ hoặc hình máy tính)</strong>.</div>
+              </li>
+              <li class="pwa-step-item">
+                <span class="pwa-step-num">2</span>
+                <div class="pwa-step-text">Hoặc bấm menu <strong>3 chấm (⋮)</strong> → chọn <strong>"Lưu và chia sẻ"</strong> → <strong>"Cài đặt TAIO Cover Studio"</strong>.</div>
+              </li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- NỘI DUNG 3: WINDOWS / PC -->
+        <div class="pwa-guide-panel" id="pwaGuide_pc" hidden>
+          <div class="pwa-browser-badge">Trình duyệt: Google Chrome · Microsoft Edge · Cốc Cốc · Brave</div>
+          <ol class="pwa-steps-list">
+            <li class="pwa-step-item">
+              <span class="pwa-step-num">1</span>
+              <div class="pwa-step-text">
+                Bấm nút <strong>"⚡ Cài đặt ngay"</strong> ở trên nếu có.
+              </div>
+            </li>
+            <li class="pwa-step-item">
+              <span class="pwa-step-num">2</span>
+              <div class="pwa-step-text">
+                Hoặc nhìn vào góc phải thanh địa chỉ URL, bấm vào biểu tượng <strong>Cài đặt (⊕ hoặc màn hình có mũi tên xuống)</strong>.
+              </div>
+            </li>
+            <li class="pwa-step-item">
+              <span class="pwa-step-num">3</span>
+              <div class="pwa-step-text">
+                Bấm <strong>"Cài đặt" (Install)</strong> trong hộp thoại xác nhận.
+              </div>
+            </li>
+            <li class="pwa-step-item">
+              <span class="pwa-step-num">4</span>
+              <div class="pwa-step-text">
+                Ứng dụng sẽ được ghim vào Taskbar, Desktop và Start Menu Windows, khởi động siêu nhanh không phụ thuộc tab trình duyệt.
+              </div>
+            </li>
+          </ol>
+        </div>
+
+        <!-- NỘI DUNG 4: iOS (iPhone / iPad) -->
+        <div class="pwa-guide-panel" id="pwaGuide_ios" hidden>
+          <div class="pwa-browser-badge">Trình duyệt tối ưu: Safari trên iOS</div>
+          <ol class="pwa-steps-list">
+            <li class="pwa-step-item">
+              <span class="pwa-step-num">1</span>
+              <div class="pwa-step-text">
+                Mở trang web này bằng trình duyệt <strong>Safari</strong> (yêu cầu từ Apple).
+              </div>
+            </li>
+            <li class="pwa-step-item">
+              <span class="pwa-step-num">2</span>
+              <div class="pwa-step-text">
+                Chạm vào nút <strong>Chia sẻ (Share ⎋)</strong> ở thanh công cụ dưới đáy màn hình.
+              </div>
+            </li>
+            <li class="pwa-step-item">
+              <span class="pwa-step-num">3</span>
+              <div class="pwa-step-text">
+                Cuộn xuống danh sách hành động và chọn <strong>"Thêm vào MH chính" (Add to Home Screen ⊞)</strong>.
+              </div>
+            </li>
+            <li class="pwa-step-item">
+              <span class="pwa-step-num">4</span>
+              <div class="pwa-step-text">
+                Chạm vào <strong>"Thêm" (Add)</strong> ở góc trên bên phải. Xong! Ứng dụng đã nằm ngay ngắn trên màn hình chính iPhone của bạn.
+              </div>
+            </li>
+          </ol>
+        </div>
+
+        <!-- Ưu điểm khi dùng PWA -->
+        <div class="pwa-benefits-banner">
+          <div class="pwa-benefit-item">⚡ Mở 1 chạm</div>
+          <div class="pwa-benefit-item">📱 Full màn hình</div>
+          <div class="pwa-benefit-item">🪶 Siêu nhẹ (&lt; 1MB)</div>
+        </div>
+
+        <div class="pwa-entity-footer">
+          Hệ sinh thái công cụ sáng tạo <a href="https://taio.club/" target="_blank" rel="noopener noreferrer">TAIO.CLUB ↗</a>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

@@ -200,3 +200,256 @@
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
 }
+
+/* ==================== 4. PWA INSTALL & SHORTCUT MODAL / POPOVER ==================== */
+.pwa-sheet-container {
+  max-width: 540px;
+  width: 100%;
+  background: #0F172A;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 640px) {
+  .pwa-sheet-container {
+    border-radius: 18px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+    max-height: 85vh;
+  }
+}
+
+.modal-overlay-dismiss {
+  position: absolute;
+  inset: 0;
+}
+
+.pwa-header-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pwa-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pwa-title-icon {
+  font-size: 1.25rem;
+}
+
+.pwa-detected-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  color: #38BDF8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 500;
+  width: fit-content;
+}
+
+.pwa-modal-body {
+  padding: 16px 20px 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Nút cài đặt trực tiếp 1 chạm */
+.btn-pwa-direct-install {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #1D4ED8 0%, #2563EB 50%, #3B82F6 100%);
+  border: 1px solid #60A5FA;
+  border-radius: 12px;
+  color: #FFFFFF;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-pwa-direct-install:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(37, 99, 235, 0.55);
+}
+
+.pwa-sparkle-icon {
+  font-size: 1.5rem;
+}
+
+.pwa-direct-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pwa-direct-info strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.pwa-direct-info small {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Thanh Tabs nền tảng */
+.pwa-tabs-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  background: #1E293B;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pwa-tab-btn {
+  background: none;
+  border: none;
+  color: #94A3B8;
+  padding: 8px 4px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.pwa-tab-btn:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.pwa-tab-btn.active {
+  background: #2563EB;
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+}
+
+.pwa-tab-btn .tab-emoji {
+  font-size: 1rem;
+}
+
+/* Các bước hướng dẫn */
+.pwa-guide-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.pwa-browser-badge, .pwa-sub-tabs-desc {
+  font-size: 0.75rem;
+  color: #94A3B8;
+  font-style: italic;
+  margin-bottom: 2px;
+}
+
+.pwa-subblock-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #93C5FD;
+  margin: 0 0 6px 0;
+}
+
+.pwa-steps-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pwa-step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.pwa-step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #1E293B;
+  border: 1px solid #3B82F6;
+  color: #93C5FD;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.pwa-step-text {
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #E2E8F0;
+}
+
+.pwa-step-text strong {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
+/* Ưu điểm & Footer */
+.pwa-benefits-banner {
+  display: flex;
+  justify-content: space-around;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 0.75rem;
+  color: #CBD5E1;
+}
+
+.pwa-benefit-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pwa-entity-footer {
+  text-align: center;
+  font-size: 0.75rem;
+  color: #64748B;
+  margin-top: 4px;
+}
+
+.pwa-entity-footer a {
+  color: #60A5FA;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.pwa-entity-footer a:hover {
+  text-decoration: underline;
+}
+

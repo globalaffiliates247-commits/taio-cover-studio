@@ -190,6 +190,27 @@ def brand_logo():
     return Response(status=404)
 
 
+# ==================== PWA MANIFEST & SERVICE WORKER ====================
+@app.route("/manifest.json")
+def manifest_json():
+    """Cung cấp Web App Manifest cho tính năng cài đặt PWA."""
+    p = BASE_DIR / "web" / "static" / "manifest.json"
+    if p.exists():
+        return send_file(str(p), mimetype="application/manifest+json")
+    return Response(status=404)
+
+
+@app.route("/sw.js")
+def service_worker():
+    """Cung cấp Service Worker cho PWA."""
+    p = BASE_DIR / "web" / "static" / "sw.js"
+    if p.exists():
+        resp = send_file(str(p), mimetype="application/javascript")
+        resp.headers["Service-Worker-Allowed"] = "/"
+        return resp
+    return Response(status=404)
+
+
 # ==================== CẤU HÌNH HỆ THỐNG ====================
 @app.route("/api/config")
 def api_config():
