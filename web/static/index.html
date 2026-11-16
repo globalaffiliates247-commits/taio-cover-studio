@@ -50,20 +50,21 @@
   <header class="studio-topbar">
     <div class="topbar-left">
       <a href="https://taio.club/" target="_blank" rel="noopener noreferrer" class="topbar-brand-link" title="Về trang chủ hệ sinh thái TAIO.CLUB">
-        <div class="topbar-brand-group">
-          <img src="/static/brand-logo" alt="TAIO.CLUB Logo" class="topbar-logo" onerror="this.style.display='none'">
-          <div class="app-version" id="appVersionBadge">v1.6.0</div>
-        </div>
-        <div class="topbar-title-wrap">
+        <img src="/static/brand-logo" alt="TAIO.CLUB Logo" class="topbar-logo" onerror="this.style.display='none'">
+        <div class="topbar-brand-content">
           <span class="topbar-title">TAIO Cover Studio</span>
-          <span class="topbar-sub-brand">taio.club ↗</span>
+          <div class="topbar-sub-line">
+            <span class="topbar-sub-brand">taio.club ↗</span>
+            <span class="topbar-sep">·</span>
+            <div class="app-version" id="appVersionBadge">v1.6.0</div>
+          </div>
         </div>
       </a>
     </div>
     <div class="topbar-right">
       <!-- Nút cài đặt PWA / Tạo lối tắt màn hình -->
       <button type="button" class="btn-pwa-install" id="btnPwaInstall" title="Cài đặt App / Tạo lối tắt màn hình (PWA)">
-        <svg class="icon-pwa-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg class="icon-pwa-svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
           <polyline points="7 10 12 15 17 10"></polyline>
           <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -71,7 +72,6 @@
         <span class="btn-pwa-text">Cài App</span>
       </button>
 
-      <span class="clip-name-badge" id="clipNameBadge">TAIO.CoverClip</span>
       <span class="status-indicator-dot online" title="Sẵn sàng"></span>
     </div>
   </header>
@@ -170,7 +170,10 @@
 
         <!-- Overlay thanh thông tin video rút gọn (FIX v1.6.0 FIX-1) -->
         <div class="preview-top-pills" id="previewTopPills" hidden>
-          <span class="pill-meta" id="videoMetaBadge">1080×1920 · 0:37</span>
+          <div class="preview-meta-group">
+            <span class="pill-filename" id="clipNameBadge" title="Tên tệp video">TAIO.CoverClip</span>
+            <span class="pill-meta" id="videoMetaBadge">1080×1920 · 0:37</span>
+          </div>
           <button type="button" class="btn-pill-change" id="btnChangeVideo">📁 Đổi video</button>
         </div>
 
