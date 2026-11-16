@@ -132,7 +132,8 @@
         btnSaveShareEl.textContent = "📤 Lưu / Chia sẻ";
       }
       if (btnDownloadMp4El) {
-        btnDownloadMp4El.href = state.blobUrl;
+        const directDownloadUrl = state.jobId ? `/api/download/${state.jobId}` : (state.blobUrl || "#");
+        btnDownloadMp4El.href = isIOS() ? directDownloadUrl : (state.blobUrl || directDownloadUrl);
         btnDownloadMp4El.download = state.filename;
       }
       if (statusTextEl) {
@@ -195,9 +196,19 @@
   }
 
   function handleDownloadMp4Click(e) {
+    const directUrl = state.jobId ? `/api/download/${state.jobId}` : state.blobUrl;
+
     if (isIOS()) {
-      alert("Mẹo trên iPhone: Muốn lưu trực tiếp vào ứng dụng Ảnh hoặc chọn thư mục iCloud, hãy bấm nút '📤 Lưu / Chia sẻ'.");
+      // Trên iOS (đặc biệt Chrome iOS / Safari):
+      // Tuyệt đối không dùng alert() vì sẽ làm mất user activation.
+      // Chuyển hướng trực tiếp tới endpoint server để kích hoạt hộp thoại tải tệp của Chrome/Safari.
+      if (directUrl) {
+        window.location.href = directUrl;
+      }
+      e.preventDefault();
+      return;
     }
+
     if (state.blobUrl) {
       const a = document.createElement("a");
       a.href = state.blobUrl;
@@ -207,10 +218,18 @@
       a.click();
       document.body.removeChild(a);
       e.preventDefault();
+    } else if (directUrl) {
+      window.location.href = directUrl;
+      e.preventDefault();
     }
   }
 
   function fallbackDownload() {
+    const directUrl = state.jobId ? `/api/download/${state.jobId}` : state.blobUrl;
+    if (isIOS()) {
+      if (directUrl) window.location.href = directUrl;
+      return;
+    }
     if (state.blobUrl) {
       const a = document.createElement("a");
       a.href = state.blobUrl;
@@ -219,6 +238,8 @@
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+    } else if (directUrl) {
+      window.location.href = directUrl;
     }
   }
 

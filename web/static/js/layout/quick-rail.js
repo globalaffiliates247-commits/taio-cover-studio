@@ -75,11 +75,11 @@
           label: "Tải xuống",
           icon: icons.get("download", 24),
           action: () => {
-            if (window.TAIOExportSheet) {
-              window.TAIOExportSheet.openSheet();
+            const btn = document.getElementById("btnRenderVideo");
+            if (btn && !btn.disabled) {
+              btn.click();
             } else {
-              const btn = document.getElementById("btnRenderVideo");
-              if (btn) btn.click();
+              alert("Vui lòng chạm để chọn hoặc dán link video trước khi xuất!");
             }
           },
         },

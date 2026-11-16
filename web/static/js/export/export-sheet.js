@@ -218,8 +218,14 @@
     confirmCallback = null;
   }
 
+  function openSheet() {
+    const btn = document.getElementById("btnRenderVideo");
+    if (btn) btn.click();
+  }
+
   window.TAIOExportSheet = {
     open,
+    openSheet,
     close,
     getSavedSettings,
     saveSettings,

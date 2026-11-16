@@ -171,18 +171,27 @@
     console.info("[save-photos] Trình duyệt không hỗ trợ canShare file");
 
     if (isIOS()) {
-      // Trên iOS mà không hỗ trợ share: hướng dẫn chạm giữ video đang phát trên preview
+      // Trên iOS mà không hỗ trợ canShare file (ví dụ Chrome iOS / trình duyệt nhúng):
+      // Tự động kích hoạt tải tệp trực tiếp từ server
+      if (state.currentJobId) {
+        window.location.href = `/api/download/${state.currentJobId}`;
+      } else if (state.blobUrl) {
+        triggerSameTabDownload(state.blobUrl, state.filename);
+      }
       if (btnSaveEl) {
-        btnSaveEl.textContent = "👆 Chạm giữ video đang phát → Lưu video";
+        btnSaveEl.textContent = "📥 Đang tải video về máy…";
         setTimeout(() => {
           if (btnSaveEl && state.resultFile) {
-            btnSaveEl.textContent = "📱 Lưu vào Cuộn Camera";
+            btnSaveEl.textContent = "📤 Lưu / Chia sẻ";
           }
-        }, 4000);
+        }, 3000);
       }
       if (statusEl) {
-        statusEl.textContent = "Hướng dẫn: Chạm và giữ vào video đang phát trong khung xem trước → chọn 'Lưu video' vào Ảnh.";
+        statusEl.textContent = "Đã kích hoạt tải video. Bạn cũng có thể chạm giữ vào video đang phát để 'Lưu video' vào Cuộn Camera.";
         statusEl.hidden = false;
+        setTimeout(() => {
+          if (statusEl) statusEl.hidden = true;
+        }, 5000);
       }
     } else {
       // Máy tính / Trình duyệt không hỗ trợ Web Share: Tải xuống bằng thẻ <a> trong CÙNG TAB, tuyệt đối không window.open
