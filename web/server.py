@@ -190,6 +190,15 @@ def brand_logo():
     return Response(status=404)
 
 
+@app.route("/favicon.ico")
+def favicon():
+    """Trả về biểu tượng favicon chuẩn cho trình duyệt."""
+    p = BASE_DIR / "web" / "static" / "favicon.ico"
+    if p.exists():
+        return send_file(str(p), mimetype="image/x-icon")
+    return Response(status=404)
+
+
 # ==================== PWA MANIFEST & SERVICE WORKER ====================
 @app.route("/manifest.json")
 def manifest_json():

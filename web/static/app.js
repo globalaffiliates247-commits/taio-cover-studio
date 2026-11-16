@@ -666,7 +666,7 @@
         combinedOverrides.objects = stickerOverrides.objects;
       }
 
-      // 1. Kiểm tra LRU cache phía trình duyệt trước (FEATURE v1.5 P7)
+      // 1. Kiểm tra LRU cache phía trình duyệt trước cho preview (FEATURE v1.5 P7)
       let cacheKey = null;
       let cachedUrl = null;
       if (window.TAIOPreviewEngine) {
@@ -826,31 +826,6 @@
       };
       if (stickerOverrides.objects && stickerOverrides.objects.length > 0) {
         combinedOverrides.objects = stickerOverrides.objects;
-      }
-
-      // 1. Kiểm tra LRU cache phía trình duyệt trước (FEATURE v1.5 P7)
-      let cacheKey = null;
-      let cachedUrl = null;
-      if (window.TAIOPreviewEngine) {
-        cacheKey = window.TAIOPreviewEngine.computeCacheKey(
-          state.templateId,
-          combinedOverrides,
-          state.caption,
-          state.timeSec
-        );
-        cachedUrl = window.TAIOPreviewEngine.getCachedPreview(cacheKey);
-      }
-
-      if (cachedUrl) {
-        previewImage.src = cachedUrl;
-        previewImage.classList.remove("stale");
-        previewImage.style.opacity = "1";
-        previewImage.hidden = false;
-        playerResultVideo.hidden = true;
-        previewLoadingOverlay.hidden = true;
-        const stickerStage = document.getElementById("stickerStage");
-        if (stickerStage) stickerStage.hidden = false;
-        return;
       }
 
       const payload = {
