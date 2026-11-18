@@ -813,6 +813,11 @@
     renderPctText.textContent = "0%";
     renderProgressBar.style.width = "0%";
 
+    // Tự động cuộn mượt để thanh trạng thái xuất hiện hoàn toàn, không bị che khuất
+    setTimeout(() => {
+      renderProgressCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }, 60);
+
     try {
       const stickerOverrides = window.TAIOSticker ? window.TAIOSticker.getOverrides() : {};
       const captionOverrides = window.TAIOTextPanel ? window.TAIOTextPanel.getCaptionOverrides() : {};
@@ -934,6 +939,9 @@
           const filename = state.video.name || "TAIO.CoverClip.mp4";
           renderDoneActions.hidden = false;
           btnRenderVideo.disabled = false;
+          setTimeout(() => {
+            renderDoneActions.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          }, 60);
 
           if (window.TAIOQuickRail) {
             window.TAIOQuickRail.setMode("result");
